@@ -1,0 +1,57 @@
+MODULE Customer;
+
+REQUIRE MasterData;
+
+CLASS Customer 'Клиент';
+TABLE customer(Customer);
+
+name 'Наименование' = DATA VARISTRING[200] (Customer) CHARWIDTH 15;
+inactive 'Неактивный' = DATA BOOLEAN (Customer);
+active 'Активный' (Customer c) = c IS Customer AND NOT inactive(c);
+
+FORM customer 'Клиент'
+    OBJECTS c = Customer PANEL
+    PROPERTIES(c) name, inactive
+
+    EDIT Customer OBJECT c
+;
+
+DESIGN customer {
+    NEW pane FIRST {
+        fill = 1;
+        type = SPLITH;
+        NEW leftPane {
+            fill = 1;
+            MOVE BOX(c);
+        }
+        NEW tabPane {
+            fill = 2;
+            type = TABBED;
+        }
+    }
+}
+
+FORM customers 'Клиенты'
+    OBJECTS c = Customer
+    PROPERTIES(c) READONLY active, name
+    ORDER name(c)
+    
+    FILTERGROUP active FILTER 'Активный' active(c) 'F5' DEFAULT
+    
+    PROPERTIES(c) NEWSESSION NEW, EDIT, DELETE 
+;
+
+FORM dialogCustomer 'Выбор клиента'
+    OBJECTS c = Customer
+    PROPERTIES(c) READONLY active, name
+    
+    FILTERGROUP active FILTER 'Активный' active(c) 'F5' DEFAULT
+    
+    LIST Customer OBJECT c
+;
+
+NAVIGATOR {
+    masterData {
+        NEW customers;
+    }
+}
