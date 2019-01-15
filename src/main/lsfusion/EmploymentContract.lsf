@@ -1,0 +1,197 @@
+MODULE EmploymentContract;
+
+REQUIRE MasterData, Word;
+
+NAMESPACE EmploymentContract;
+
+defaultEmplomentContractTemplate 'Шаблон трудового договора по умолчанию' = DATA Template();
+nameDefaultEmplomentContractTemplate 'Шаблон трудового договора по умолчанию' () = name(defaultEmplomentContractTemplate());
+
+EXTEND FORM options PROPERTIES nameDefaultEmplomentContractTemplate();
+DESIGN options {
+    commons {
+        MOVE PROPERTY (nameDefaultEmplomentContractTemplate());
+    }
+}
+
+CLASS EmploymentContract 'Трудовой договор';
+TABLE employmentContract(EmploymentContract);
+
+CLASS Form 'Форма хозяйства' {
+    ao 'Акционерное общество',
+    ooo 'Общество с ограниченной ответственностью'
+}
+name 'Наименование' (Form f) = staticCaption(f) IF f IS Form CHARWIDTH 20;
+shortName 'Краткое наименование' (Form f) = CASE WHEN f = Form.ao THEN 'АО' WHEN f = Form.ooo THEN 'ООО';
+
+FORM forms 'Форма хозяйства'
+    OBJECTS f = Form
+    PROPERTIES (f) READONLY name
+;
+
+form = DATA Form(EmploymentContract);
+nameForm 'Форма хозяйства' (EmploymentContract c) = name(form(c));
+shortNameForm 'Форма хозяйства (кратко)' (EmploymentContract c) = shortName(form(c));
+
+idDocument 'Номер договора' = DATA VARISTRING[256](EmploymentContract) CHARWIDTH 10;
+city 'Город' = DATA VARISTRING[256](EmploymentContract) CHARWIDTH 15;
+date 'Дата заключения договора' = DATA DATE (EmploymentContract);
+nameLegalEntity 'Название' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
+shortNameLegalEntity 'Краткое название' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
+positionEmployer 'Должность работодателя' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
+firstNameEmployer 'Имя работодателя' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
+lastNameEmployer 'Фамилия работодателя' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
+middleNameEmployer 'Отчество работодателя' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
+baseEmployer 'Основание' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
+firstNameEmployee 'Имя работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
+lastNameEmployee 'Фамилия работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
+middleNameEmployee 'Отчество работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
+positionEmployee 'Должность работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
+addressWork 'Адрес места работы' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
+dateFrom 'Дата начала трудовых обязанностей' = DATA DATE (EmploymentContract);
+duration 'Продолжительность испытательного срока в месяцах' = DATA INTEGER (EmploymentContract) CHARWIDTH 3;
+salary 'Размер оклада' = DATA NUMERIC[15,2](EmploymentContract);
+birthdayEmployee 'Дата рождения работника' = DATA DATE (EmploymentContract);
+seriesPassport 'Серия паспорта работника' = DATA INTEGER (EmploymentContract);
+numberPassport 'Номер паспорта работника' = DATA INTEGER (EmploymentContract);
+authorityPassport 'Орган, выдавший паспорт' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
+dateIssuePassport 'Дата выдачи паспорта' = DATA DATE (EmploymentContract);
+codeUnitPassport 'Код подразделения паспорта' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 10;
+addressEmployee 'Адрес прописки' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
+phoneEmployee 'Телефон работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
+innEmployee 'ИНН работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
+
+
+city (EmploymentContract c) <- 'Москва' WHEN SET (c IS EmploymentContract);
+date (EmploymentContract c) <- currentDate() WHEN SET (c IS EmploymentContract);
+form (EmploymentContract c) <- Form.ooo WHEN SET (c IS EmploymentContract);
+positionEmployer (EmploymentContract c) <- 'Генеральный директор' WHEN SET (c IS EmploymentContract);
+baseEmployer (EmploymentContract c) <- 'Устава' WHEN SET (c IS EmploymentContract);
+duration (EmploymentContract c) <- 3 WHEN SET (c IS EmploymentContract);
+
+ruText 'Родительный падеж месяца' = DATA VARSTRING[20] (Month);
+onStarted() + { 
+    ruText(Month d) <- 'января' WHERE d == Month.january; 
+    ruText(Month d) <- 'февраля' WHERE d == Month.february; 
+    ruText(Month d) <- 'марта' WHERE d == Month.march; 
+    ruText(Month d) <- 'апреля' WHERE d == Month.april; 
+    ruText(Month d) <- 'мая' WHERE d == Month.may; 
+    ruText(Month d) <- 'июня' WHERE d == Month.june; 
+    ruText(Month d) <- 'июля' WHERE d == Month.july; 
+    ruText(Month d) <- 'августа' WHERE d == Month.august; 
+    ruText(Month d) <- 'сентября' WHERE d == Month.september; 
+    ruText(Month d) <- 'октября' WHERE d == Month.october; 
+    ruText(Month d) <- 'ноября' WHERE d == Month.november; 
+    ruText(Month d) <- 'декабря' WHERE d == Month.december; 
+}
+
+toDateRus (DATE d) = CONCAT ' ', '«' + lpad(TEXT (extractDay(d)), 2, '0') + '»', ruText(extractMonth(d)), extractYear(d);
+
+createTemplate 'Сформировать по шаблону' (EmploymentContract c) {
+    NEWSESSION {
+        NEW te = TemplateEntry { value(te) <- idDocument(c); key(te) <- 'ID_ДОГОВОРА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- city(c); key(te) <- 'ГОРОД'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- toDateRus(date(c)); key(te) <- 'ДАТА_ПОДПИСАНИЯ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- nameForm(c); key(te) <- 'ФОРМА_ХОЗЯЙСТВА_ПОЛНОЕ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- nameLegalEntity(c); key(te) <- 'НАЗВАНИЕ_ОРГАНИЗАЦИИ_ПОЛНОЕ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- shortNameForm(c); key(te) <- 'ФОРМА_ХОЗЯЙСТВА_КРАТКОЕ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- OVERRIDE shortNameLegalEntity(c), nameLegalEntity(c); key(te) <- 'НАЗВАНИЕ_ОРГАНИЗАЦИИ_КРАТКОЕ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- positionEmployer(c); key(te) <- 'ДОЛЖНОСТЬ РАБОТОДАТЕЛЯ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployer(c), firstNameEmployer(c), middleNameEmployer(c); key(te) <- 'ИМЯ РАБОТОДАТЕЛЯ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- baseEmployer(c); key(te) <- 'ОСНОВАНИЕ РАБОТОДАТЕЛЯ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployee(c), firstNameEmployee(c), middleNameEmployee(c); key(te) <- 'ИМЯ РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- addressWork(c); key(te) <- 'МЕСТО_РАБОТЫ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- toDateRus(dateFrom(c)); key(te) <- 'ДАТА_НАЧАЛА_ИСПОЛНЕНИЯ_ТРУДОВЫХ_ОБЯЗАННОСТЕЙ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- TEXT (duration(c)); key(te) <- 'ПРОДОЛЖИТЕЛЬНОСТЬ_ИСПЫТАТЕЛЬНОГО_СРОКА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- TEXT (salary(c)); key(te) <- 'РАЗМЕР_ОКЛАДА '; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- toDateDDMMYYYY(birthdayEmployee(c)); key(te) <- 'ДАТА_РОЖДЕНИЯ_РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- TEXT (seriesPassport(c)); key(te) <- 'СЕРИЯ_ПАСПОРТА_РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- TEXT (numberPassport(c)); key(te) <- 'НОМЕР_ПАСПОРТА_РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- authorityPassport(c); key(te) <- 'ОРГАН_ВЫДАВШИЙ_ПАСПОРТ_РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- toDateDDMMYYYY(dateIssuePassport(c)); key(te) <- 'ДАТА_ВЫДАЧИ_ПАСПОРТА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- codeUnitPassport(c); key(te) <- 'КОД_ПОДРАЗДЕЛЕНИЯ_ПАСПОРТА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- addressEmployee(c); key(te) <- 'АДРЕС_ПРОЖИВАНИЯ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- phoneEmployee(c); key(te) <- 'ТЕЛЕФОН_РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- innEmployee(c); key(te) <- 'ИНН_РАБОТНИКА '; template(te) <- defaultEmplomentContractTemplate(); }
+        process(defaultEmplomentContractTemplate());
+        open(resultTemplate());
+    }
+}
+
+FORM employmentContract 'Трудовой договор'
+    OBJECTS e = EmploymentContract PANEL 
+    PROPERTIES (e) idDocument, city, date, nameLegalEntity, shortNameLegalEntity, positionEmployer, lastNameEmployer, firstNameEmployer, middleNameEmployer,
+                   baseEmployer, firstNameEmployee, lastNameEmployee, middleNameEmployee, positionEmployee, addressWork, dateFrom, duration, salary, shortNameForm, 
+                   birthdayEmployee, seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, addressEmployee, phoneEmployee, innEmployee
+    
+    EDIT EmploymentContract OBJECT e
+;
+
+DESIGN employmentContract {
+    OBJECTS {
+        type = CONTAINERH;
+        NEW employer {
+            caption = 'Данные Работодателя';
+            MOVE PROPERTY (shortNameForm(e)) { caption = 'Форма хозяйства'; }
+            MOVE PROPERTY (nameLegalEntity(e));
+            MOVE PROPERTY (shortNameLegalEntity(e));
+            NEW employerRepresentative {
+                caption = 'Представитель';
+                fill = 1;
+                MOVE PROPERTY (lastNameEmployer(e)) { caption = 'Фамилия'; }
+                MOVE PROPERTY (firstNameEmployer(e)) { caption = 'Имя'; }
+                MOVE PROPERTY (middleNameEmployer(e)) { caption = 'Отчество'; }
+                MOVE PROPERTY (positionEmployer(e)) { caption = 'Должность'; }
+                MOVE PROPERTY (baseEmployer(e));
+            }
+        }
+        NEW employee {
+            caption = 'Данные Работника';
+            MOVE PROPERTY (lastNameEmployee(e)) { caption = 'Фамилия'; }
+            MOVE PROPERTY (firstNameEmployee(e)) { caption = 'Имя'; }
+            MOVE PROPERTY (middleNameEmployee(e)) { caption = 'Отчество'; }
+            MOVE PROPERTY (birthdayEmployee(e)) { caption = 'Дата рождения'; }
+            MOVE PROPERTY (phoneEmployee(e)) { caption = 'Номер телефона'; }
+            MOVE PROPERTY (innEmployee(e)) { caption = 'ИНН'; }
+            NEW employeePassport {
+                caption = 'Паспортные данные';
+                NEW seriesNumber {
+                    type = CONTAINERH;
+                    fill = 1;
+                    MOVE PROPERTY (seriesPassport(e)) { caption = 'Серия'; }
+                    MOVE PROPERTY (numberPassport(e)) { caption = 'Номер'; }
+                }
+                MOVE PROPERTY (dateIssuePassport(e)) { caption = 'Дата выдачи'; }
+                MOVE PROPERTY (authorityPassport(e));
+                MOVE PROPERTY (codeUnitPassport(e)) { caption = 'Код подразделения'; }
+                MOVE PROPERTY (addressEmployee(e));
+            }
+        }
+        NEW contract {
+            caption = 'Данные Договора';
+            MOVE PROPERTY (idDocument(e));
+            MOVE PROPERTY (city(e)) { caption = 'Место заключения договора'; }
+            MOVE PROPERTY (date(e));
+            MOVE PROPERTY (addressWork(e));
+            MOVE PROPERTY (dateFrom(e));
+            MOVE PROPERTY (duration(e));
+            MOVE PROPERTY (positionEmployee(e)) { caption = 'Должность'; }
+            MOVE PROPERTY (salary(e)) { caption = 'Оклад'; }
+        }
+    }
+}
+
+FORM employmentContracts 'Трудовые договоры'
+    OBJECTS e = EmploymentContract
+    PROPERTIES (e) READONLY idDocument, city, date, nameLegalEntity, shortNameLegalEntity, positionEmployer, lastNameEmployer, firstNameEmployer, middleNameEmployer,
+                   baseEmployer, firstNameEmployee, lastNameEmployee, middleNameEmployee, positionEmployee, addressWork, dateFrom, duration, salary, shortNameForm, 
+                   birthdayEmployee, seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, addressEmployee, phoneEmployee, innEmployee
+    PROPERTIES createTemplate(e) TOOLBAR 
+    PROPERTIES (e) NEWSESSION NEW, EDIT, DELETE
+;
+
+NAVIGATOR {
+    NEW FOLDER documents 'Документы' BEFORE masterData WINDOW toolbar {
+        NEW employmentContracts;
+    }
+}
