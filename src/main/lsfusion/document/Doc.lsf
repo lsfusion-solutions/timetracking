@@ -1,0 +1,26 @@
+MODULE Doc;
+
+REQUIRE MasterData, Word;
+
+ruText 'Родительный падеж месяца' = DATA VARSTRING[20] (Month);
+onStarted() + { 
+    ruText(Month d) <- 'января' WHERE d == Month.january; 
+    ruText(Month d) <- 'февраля' WHERE d == Month.february; 
+    ruText(Month d) <- 'марта' WHERE d == Month.march; 
+    ruText(Month d) <- 'апреля' WHERE d == Month.april; 
+    ruText(Month d) <- 'мая' WHERE d == Month.may; 
+    ruText(Month d) <- 'июня' WHERE d == Month.june; 
+    ruText(Month d) <- 'июля' WHERE d == Month.july; 
+    ruText(Month d) <- 'августа' WHERE d == Month.august; 
+    ruText(Month d) <- 'сентября' WHERE d == Month.september; 
+    ruText(Month d) <- 'октября' WHERE d == Month.october; 
+    ruText(Month d) <- 'ноября' WHERE d == Month.november; 
+    ruText(Month d) <- 'декабря' WHERE d == Month.december; 
+}
+
+toDateRus (DATE d) = CONCAT ' ', '«' + lpad(TEXT (extractDay(d)), 2, '0') + '»', ruText(extractMonth(d)), extractYear(d);
+
+NAVIGATOR {
+    NEW FOLDER documents 'Документы' BEFORE masterData WINDOW toolbar {
+    }
+}
