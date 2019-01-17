@@ -80,9 +80,11 @@ createTemplate 'Сформировать по шаблону' (EmploymentContrac
         NEW te = TemplateEntry { value(te) <- OVERRIDE shortNameLegalEntity(c), nameLegalEntity(c); key(te) <- 'НАЗВАНИЕ_ОРГАНИЗАЦИИ_КРАТКОЕ'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- positionEmployer(c); key(te) <- 'ДОЛЖНОСТЬ РАБОТОДАТЕЛЯ'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployer(c), firstNameEmployer(c), middleNameEmployer(c); key(te) <- 'ИМЯ РАБОТОДАТЕЛЯ'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- CONCAT '', left(firstNameEmployer(c), 1) + '.', left(middleNameEmployer(c), 1) + '.', ' ' + lastNameEmployer(c); key(te) <- 'ФИО РАБОТОДАТЕЛЯ'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- baseEmployer(c); key(te) <- 'ОСНОВАНИЕ РАБОТОДАТЕЛЯ'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- positionEmployee(c); key(te) <- 'ДОЛЖНОСТЬ_РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployee(c), firstNameEmployee(c), middleNameEmployee(c); key(te) <- 'ИМЯ РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- CONCAT '', left(firstNameEmployee(c), 1) + '.', left(middleNameEmployee(c), 1) + '.', ' ' + lastNameEmployee(c); key(te) <- 'ФИО РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- addressWork(c); key(te) <- 'МЕСТО_РАБОТЫ'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- toDateRus(dateFrom(c)); key(te) <- 'ДАТА_НАЧАЛА_ИСПОЛНЕНИЯ_ТРУДОВЫХ_ОБЯЗАННОСТЕЙ'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- TEXT (duration(c)); key(te) <- 'ПРОДОЛЖИТЕЛЬНОСТЬ_ИСПЫТАТЕЛЬНОГО_СРОКА'; template(te) <- defaultEmplomentContractTemplate(); }
