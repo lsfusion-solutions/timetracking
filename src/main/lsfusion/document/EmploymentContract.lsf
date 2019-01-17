@@ -94,7 +94,7 @@ createTemplate 'Сформировать по шаблону' (EmploymentContrac
         NEW te = TemplateEntry { value(te) <- codeUnitPassport(c); key(te) <- 'КОД_ПОДРАЗДЕЛЕНИЯ_ПАСПОРТА'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- addressEmployee(c); key(te) <- 'АДРЕС_ПРОЖИВАНИЯ'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- phoneEmployee(c); key(te) <- 'ТЕЛЕФОН_РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- innEmployee(c); key(te) <- 'ИНН_РАБОТНИКА '; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- innEmployee(c); key(te) <- 'ИНН_РАБОТНИКА'; template(te) <- defaultEmplomentContractTemplate(); }
         process(defaultEmplomentContractTemplate());
         open(resultTemplate());
     }
