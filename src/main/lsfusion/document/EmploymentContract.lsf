@@ -83,8 +83,8 @@ numberSnilsPattern 'Регулярное выражение для номера'
 // \d{3}-\d{3}-\d{3}\s*\d{2}
 fioSnilsPattern 'Регулярное выражение для ФИО' = DATA VARSTRING[200] ();
 // \d{3}-\d{3}-\d{3}-*\s*\d{2}\s+\S+\s+([А-Я]+)[^А-Я]+([А-Я]+)[^А-Я]+([А-Я]+)\s
-EXTEND FORM options PROPERTIES() numberSnilsPattern, fioSnilsPattern;
-DESIGN options { openCV { MOVE PROPERTY(numberSnilsPattern()); MOVE PROPERTY(fioSnilsPattern()); } }
+EXTEND FORM options PROPERTIES() thresholdSnils, numberSnilsPattern, fioSnilsPattern;
+DESIGN options { openCV { MOVE PROPERTY(thresholdSnils()); MOVE PROPERTY(numberSnilsPattern()); MOVE PROPERTY(fioSnilsPattern()); } }
 
 loadFileSnilsEmployee 'Загрузить' (EmploymentContract c) { 
     INPUT f=fileSnilsEmployee(c) CHANGE DO {
