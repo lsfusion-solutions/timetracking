@@ -1,23 +1,178 @@
 MODULE Person;
 
-REQUIRE Project;
+REQUIRE Doc, OpenCV, Project;
 
-CLASS Person 'Контактное лицо' : Contact;
+NAMESPACE Person;
+
+CLASS Person 'Физическое лицо' : Contact;
 TABLE person (Person);
 
 customer 'Клиент' = DATA Customer (Person);
 nameCustomer 'Клиент' (Person p) = name(customer(p));
 
+middleName 'Отчество' = DATA VARISTRING[250](Person) CHARWIDTH 15;
+
+firstNameRp 'Имя род. падеж' = DATA VARISTRING[250](Person) CHARWIDTH 15;
+lastNameRp 'Фамилия род. падеж' = DATA VARISTRING[250](Person) CHARWIDTH 15;
+middleNameRp 'Отчество род. падеж' = DATA VARISTRING[250](Person) CHARWIDTH 15;
+
+fioName 'И.О. Фамилия' (Person p) = CONCAT '', left(firstName(p), 1) + '.', left(middleName(p), 1) + '.', ' ' + lastName(p);
+
+address 'Адрес' = DATA VARISTRING[250](Person) CHARWIDTH 20;
+
+seriesPassport 'Серия паспорта' = DATA INTEGER (Person);
+numberPassport 'Номер паспорта' = DATA INTEGER (Person);
+authorityPassport 'Орган, выдавший паспорт' = DATA VARISTRING[1024](Person) CHARWIDTH 20;
+dateIssuePassport 'Дата выдачи паспорта' = DATA DATE (Person);
+codeUnitPassport 'Код орагана выдачи паспорта' = DATA VARISTRING[1024](Person) CHARWIDTH 10;
+
+inn 'ИНН' = DATA VARISTRING[10](Person);
+snils 'СНИЛС' = DATA VARISTRING[50](Person) CHARWIDTH 10;
+
+numberAccount 'Банковский счёт' = DATA VARISTRING[50](Person) CHARWIDTH 15;
+
+CLASS Bank 'Банк';
+TABLE bank (Bank);
+
+id 'Код' = DATA VARSTRING[15] (Bank) MATERIALIZED INDEXED CHARWIDTH 5 IN id;
+bank (id) = GROUP AGGR Bank b BY id (b);
+
+name 'Название' = DATA VARISTRING[250](Bank) CHARWIDTH 15;
+bic 'БИК' = DATA VARSTRING[11](Bank) CHARWIDTH 11 IN id;
+swift 'SWIFT' = DATA VARISTRING[50] (Bank) CHARWIDTH 15 IN id;
+numberAccount 'Корреспондентский счёт' = DATA VARISTRING[50](Bank) CHARWIDTH 15;
+
+bank = DATA Bank(Person);
+nameBank 'Банк' (Person p) = name(bank(p));
+
+FORM bank 'Банк'
+    OBJECTS o = Bank PANEL
+    PROPERTIES(o) id, name, bic, swift, numberAccount
+    
+    EDIT Bank OBJECT o
+;
+
+FORM banks 'Банки'
+    OBJECTS o = Bank
+    PROPERTIES(o) READONLY id, name, bic, swift, numberAccount
+    PROPERTIES(o) NEWSESSION NEW, EDIT, DELETE
+    ORDER name(o)
+;
+
+FORM dialogBanks 'Банки'
+    OBJECTS o = Bank
+    PROPERTIES(o) READONLY id, name, bic, swift, numberAccount
+    ORDER name(o)
+    
+    LIST Bank OBJECT o
+;
+
+fileSnils = DATA FILE (Person);
+openFileSnils 'Открыть' (Person c) { open(fileSnils(c)); }
+
+regexpMatches = FORMULA 'SELECT (regexp_matches($1, $2))[$3]';
+
+thresholdSnils 'Порог для обработки изображения' = DATA INTEGER();
+numberSnilsPattern 'Регулярное выражение для номера' = DATA VARSTRING[200] ();
+// \d{3}-\d{3}-\d{3}\s*\d{2}
+fioSnilsPattern 'Регулярное выражение для ФИО' = DATA VARSTRING[200] ();
+// \d{3}-\d{3}-\d{3}-*\s*\d{2}\s+\S+\s+([А-Я]+)[^А-Я]+([А-Я]+)[^А-Я]+([А-Я]+)\s
+EXTEND FORM options PROPERTIES() thresholdSnils, numberSnilsPattern, fioSnilsPattern;
+DESIGN options { openCV { MOVE PROPERTY(thresholdSnils()); MOVE PROPERTY(numberSnilsPattern()); MOVE PROPERTY(fioSnilsPattern()); } }
+
+loadFileSnils 'Загрузить' (Person c) { 
+    INPUT f=fileSnils(c) CHANGE DO {
+        convertToBlackAndWhite(f, thresholdSnils());        
+        imageToString(convertToBlackAndWhiteResult(), 'rus', 1, 3);
+        snils(c) <- regexpMatches(imageToStringResult(), numberSnilsPattern(), 1);
+        lastName(c) <- regexpMatches(imageToStringResult(), fioSnilsPattern(), 1);
+        firstName(c) <- regexpMatches(imageToStringResult(), fioSnilsPattern(), 2);
+        middleName(c) <- regexpMatches(imageToStringResult(), fioSnilsPattern(), 3);
+    } 
+}
+
+filePassport = DATA FILE (Person);
+openFilePassport 'Открыть' (Person c) { open(filePassport(c)); }
+loadFilePassport 'Загрузить' (Person c) { 
+    INPUT f=filePassport(c) CHANGE DO {
+    } 
+}
+
+CLASS Child 'Ребёнок';
+TABLE child(Child);
+
+name 'Имя' = DATA VARISTRING[250](Child) CHARWIDTH 30;
+parent = DATA Person(Child) NONULL DELETE;
+nameParent 'Родитель' (Child c) = Authentication.name(parent(c));
+
+FORM person 'Физическое лицо'
+    OBJECTS p = Person PANEL 
+    PROPERTIES (p) nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, 
+                   seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank,
+                   openFileSnils SHOWIF TRUE IF fileSnils(p), loadFileSnils,
+                   openFilePassport SHOWIF TRUE IF filePassport(p), loadFilePassport
+    
+    OBJECTS c = Child
+    PROPERTIES (c) name, NEW, DELETE 
+    FILTERS parent(c) == p
+    
+    EDIT Person OBJECT p
+;
+
+DESIGN person {
+    OBJECTS {
+        fill = 1;
+        GROUP (,p) {
+            type = CONTAINERV;
+            fill = 1;
+            NEW files {
+                type = CONTAINERH;
+                NEW passport {
+                    caption = 'Паспорт';
+                    type = CONTAINERH;
+                    MOVE PROPERTY (openFilePassport(p));
+                    MOVE PROPERTY (loadFilePassport(p));
+                }
+                NEW snils {
+                    caption = 'СНИЛС';
+                    type = CONTAINERH;
+                    MOVE PROPERTY (openFileSnils(p));
+                    MOVE PROPERTY (loadFileSnils(p));
+                }
+            }
+        }
+        MOVE BOX (c) { caption = 'Дети'; fill = 1; }
+    }
+}
+
+FORM persons 'Физические лица'
+    OBJECTS p = Person 
+    PROPERTIES (p) READONLY nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, 
+                   seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank
+    PROPERTIES (p) NEWSESSION NEW, EDIT, DELETE
+    ORDER lastName(p)
+    
+    LIST Person OBJECT p
+;
+
 EXTEND FORM customer
     OBJECTS r = Person
     
-    PROPERTIES(r) firstName, lastName, phone, email, NEW, DELETE
+    PROPERTIES(r) lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, 
+                  seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank, NEW, DELETE
     FILTERS customer(r) == c
+    ORDER lastName(r)
 ;
 
 DESIGN customer {
     tabPane {
         caption = 'Контактные лица';
         MOVE BOX(r);
+    }
+}
+
+NAVIGATOR {
+    masterData {
+        NEW persons;
     }
 }

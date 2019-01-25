@@ -1,0 +1,144 @@
+MODULE LegalEntity;
+
+REQUIRE Customer, Person;
+
+NAMESPACE LegalEntity;
+
+CLASS LegalEntity 'Юридическое лицо';
+TABLE legalEntity (LegalEntity);
+
+id 'Код' = DATA VARSTRING[15] (LegalEntity) INDEXED CHARWIDTH 5 IN id;
+legalEntity (id) = GROUP AGGR LegalEntity le BY id (le);
+
+shortName 'Сокращённое название' = DATA VARISTRING[250] (LegalEntity) CHARWIDTH 20 IN id;
+fullName 'Полное название' = DATA VARISTRING[250] (LegalEntity) CHARWIDTH 25;
+
+shortNameLat 'Сокращённое название латиницей' = DATA VARISTRING[250] (LegalEntity) CHARWIDTH 20;
+fullNameLat 'Полное название латиницей' = DATA VARISTRING[250] (LegalEntity) CHARWIDTH 25;
+
+customer = DATA Customer(LegalEntity) INDEXED;
+nameCustomer 'Клиент' (LegalEntity l) = name(customer(l)) IN id;
+
+CLASS Form 'Форма хозяйства' {
+    ao 'Акционерное общество',
+    ooo 'Общество с ограниченной ответственностью'
+}
+name 'Наименование' (Form f) = staticCaption(f) IF f IS Form CHARWIDTH 20;
+shortName 'Краткое наименование' (Form f) = CASE WHEN f = Form.ao THEN 'АО' WHEN f = Form.ooo THEN 'ООО';
+
+FORM forms 'Форма хозяйства'
+    OBJECTS f = Form
+    PROPERTIES (f) READONLY name
+;
+
+form = DATA Form(LegalEntity);
+nameFrom 'Форма хозяйства' (LegalEntity l) = name(form(l));
+shortNameFrom 'Форма хозяйства' (LegalEntity l) = shortName(form(l));
+
+address 'Юридический адрес' = DATA VARISTRING[250](LegalEntity) CHARWIDTH 20;
+
+representative = DATA Person(LegalEntity);
+nameRepresentative 'Представитель по умолчанию' (LegalEntity l) = name(representative(l)) CHARWIDTH 20;
+baseRepresentative 'Основание представителя' = DATA VARISTRING[250](LegalEntity) CHARWIDTH 20;
+positionRepresentative 'Должность представителя' = DATA VARISTRING[250](LegalEntity) CHARWIDTH 20;
+
+inn 'ИНН' = DATA VARISTRING[10](LegalEntity) CHARWIDTH 10;
+kpp 'КПП' = DATA VARISTRING[10](LegalEntity) CHARWIDTH 10;
+phone 'Номер телефона' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 15;
+okpo 'Код ОКПО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+okato 'Код ОКАТО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+oktmo 'Код ОКТМО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+okved 'Код ОКВЭД' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+ogrn 'Код ОГРН' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+
+CLASS Account 'Банковский счёт';
+TABLE account (Account);
+
+number 'Номер счёта'  = DATA VARSTRING[50] (Account) IN id CHARWIDTH 28 FIXED;
+account (number) = GROUP MAX Account account BY number(account);
+
+
+legalEntity = DATA LegalEntity (Account) NONULL DELETE AUTOSET;
+nameLegalEntity 'Организация' (Account account) = shortName(legalEntity(account));
+nameCustomer 'Клиент' (Account account) = name(customer(legalEntity(account)));
+
+account (number, legalEntity) = GROUP MAX Account account BY number(account), legalEntity(account);
+defaultAccount(legalEntity) = GROUP MAX Account account BY legalEntity(account);
+
+userAccount = DATA Account (LegalEntity);
+CONSTRAINT legalEntity(userAccount(LegalEntity legalEntity)) != legalEntity CHECKED MESSAGE 'ошибка: Р/сч. по умолчанию должен соответствовать р/сч. Ю.Л.';
+
+account (LegalEntity legalEntity) =  OVERRIDE userAccount(legalEntity), defaultAccount(legalEntity) MATERIALIZED INDEXED;
+numberAccount 'Банковский счёт по умолчанию' (LegalEntity legalEntity) = number(account(legalEntity));
+
+equals 'Основной' (LegalEntity legalEntity, Account account) = userAccount(legalEntity) == account;
+
+accountID 'Расчетный счет по номеру' (number, legalEntityId) = GROUP AGGR Account account WHERE account IS Account BY number(account), id(legalEntity(account));
+legalEntityAccount (VARSTRING[20] number) = legalEntity(account(number)); 
+
+bank = DATA Bank (Account);
+nameBank 'Банк' (Account account) = name(bank(account)) IN id;
+bicBank 'БИК банка' (Account a) = bic(bank(a));
+swiftBank 'SWIFT банка' (Account a) = swift(bank(a));
+numberAccountBank 'Корреспондентский счёт банка' (Account a) = numberAccount(bank(a));
+nameBank 'Банк' (LegalEntity legalEntity) = nameBank(account(legalEntity));
+
+FORM account 'Счёт'
+    OBJECTS a = Account PANEL 
+    PROPERTIES (a) nameLegalEntity, number, nameBank
+    
+    EDIT Account OBJECT a
+;
+
+FORM accounts 'Счета'
+    OBJECTS a = Account 
+    PROPERTIES (a) READONLY number, nameLegalEntity, nameBank, bicBank, swiftBank
+    PROPERTIES (a) NEWSESSION NEW, EDIT, DELETE 
+    
+    LIST Account OBJECT a
+;
+
+NAVIGATOR {
+    masterData {
+        NEW banks;
+        NEW accounts;
+    }
+}
+
+FORM legalEntity 'Юридическое лицо'
+    OBJECTS o = LegalEntity PANEL
+    PROPERTIES(o) id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, 
+                  nameRepresentative, positionRepresentative, baseRepresentative, phone, inn, kpp, okpo, okato, oktmo, okved, ogrn, numberAccount
+    ORDER shortName(o)
+    
+    OBJECTS a=Account
+    PROPERTIES(a) number, nameBank, bicBank, swiftBank, NEW, DELETE GRID
+    FILTERS legalEntity(a) == o
+    PROPERTIES equals(o, a)
+    
+    EDIT LegalEntity OBJECT o
+;
+
+DESIGN legalEntity {
+    GROUP (,o) {
+        columns = 2;
+    }
+}
+
+FORM legalEntities 'Юридические лица'
+    OBJECTS o = LegalEntity
+    PROPERTIES(o) READONLY id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, nameRepresentative, 
+                           baseRepresentative, positionRepresentative, inn, kpp, phone, okpo, okato, oktmo, okved, ogrn, numberAccount
+    PROPERTIES (o) NEWSESSION NEW, EDIT, DELETE
+    ORDER shortName(o)
+;
+
+NAVIGATOR {
+    masterData {
+        NEW legalEntities AFTER persons;
+    }
+}
+
+form (LegalEntity c) <- Form.ooo WHEN SET (c IS LegalEntity);
+baseRepresentative (LegalEntity c) <- 'Устава' WHEN SET (c IS LegalEntity);
+positionRepresentative (LegalEntity c) <- 'Генеральный директор' WHEN SET (c IS LegalEntity);

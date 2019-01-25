@@ -1,6 +1,8 @@
 MODULE EmploymentContract;
 
-REQUIRE Doc, OpenCV;
+REQUIRE Doc, OpenCV, LegalEntity, Person;
+
+PRIORITY LegalEntity;
 
 NAMESPACE EmploymentContract;
 
@@ -17,91 +19,47 @@ DESIGN options {
 CLASS EmploymentContract 'Трудовой договор';
 TABLE employmentContract(EmploymentContract);
 
-CLASS Form 'Форма хозяйства' {
-    ao 'Акционерное общество',
-    ooo 'Общество с ограниченной ответственностью'
-}
-name 'Наименование' (Form f) = staticCaption(f) IF f IS Form CHARWIDTH 20;
-shortName 'Краткое наименование' (Form f) = CASE WHEN f = Form.ao THEN 'АО' WHEN f = Form.ooo THEN 'ООО';
+legalEntity = DATA LegalEntity(EmploymentContract);
+person = DATA Person(EmploymentContract);
 
-FORM forms 'Форма хозяйства'
-    OBJECTS f = Form
-    PROPERTIES (f) READONLY name
-;
-
-form = DATA Form(EmploymentContract);
+form (EmploymentContract c) = form(legalEntity(c));
 nameForm 'Форма хозяйства' (EmploymentContract c) = name(form(c));
 shortNameForm 'Форма хозяйства (кратко)' (EmploymentContract c) = shortName(form(c));
 
 idDocument 'Номер договора' = DATA VARISTRING[256](EmploymentContract) CHARWIDTH 10;
 city 'Город' = DATA VARISTRING[256](EmploymentContract) CHARWIDTH 15;
 date 'Дата заключения договора' = DATA DATE (EmploymentContract);
-nameLegalEntity 'Название' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
-shortNameLegalEntity 'Краткое название' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
-positionEmployer 'Должность работодателя' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
-firstNameEmployer 'Имя работодателя' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
-lastNameEmployer 'Фамилия работодателя' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
-middleNameEmployer 'Отчество работодателя' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
-baseEmployer 'Основание' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
-
-firstNameEmployee 'Имя работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
-lastNameEmployee 'Фамилия работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
-middleNameEmployee 'Отчество работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
-positionEmployee 'Должность работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
 addressWork 'Адрес места работы' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
-birthdayEmployee 'Дата рождения работника' = DATA DATE (EmploymentContract);
-
+positionEmployee 'Должность работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
 dateFrom 'Дата начала трудовых обязанностей' = DATA DATE (EmploymentContract);
 duration 'Продолжительность испытательного срока в месяцах' = DATA INTEGER (EmploymentContract) CHARWIDTH 3;
 salary 'Размер оклада' = DATA NUMERIC[15,2](EmploymentContract);
 
-filePassportEmployee = DATA FILE (EmploymentContract);
-openFilePassportEmployee 'Открыть' (EmploymentContract c) { open(filePassportEmployee(c)); }
-loadFilePassportEmployee 'Загрузить' (EmploymentContract c) { 
-    INPUT f=filePassportEmployee(c) CHANGE DO {
-    } 
-}
+nameLegalEntity 'Название' (EmploymentContract c) = fullName(legalEntity(c));
+shortNameLegalEntity 'Краткое название' (EmploymentContract c) = shortName(legalEntity(c));
+firstNameEmployer 'Имя работодателя' (EmploymentContract c) = firstName(representative(legalEntity(c)));
+lastNameEmployer 'Фамилия работодателя' (EmploymentContract c) = lastName(representative(legalEntity(c)));
+middleNameEmployer 'Отчество работодателя' (EmploymentContract c) = middleName(representative(legalEntity(c)));
+baseEmployer 'Основание' (EmploymentContract c) = baseRepresentative(legalEntity(c));
+positionEmployer 'Должность работодателя' (EmploymentContract c) = positionRepresentative(legalEntity(c));
 
-seriesPassport 'Серия паспорта работника' = DATA INTEGER (EmploymentContract);
-numberPassport 'Номер паспорта работника' = DATA INTEGER (EmploymentContract);
-authorityPassport 'Орган, выдавший паспорт' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
-dateIssuePassport 'Дата выдачи паспорта' = DATA DATE (EmploymentContract);
-codeUnitPassport 'Код подразделения паспорта' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 10;
-addressEmployee 'Адрес прописки' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
-phoneEmployee 'Телефон работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
-innEmployee 'ИНН работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 15;
+firstNameEmployee 'Имя работника' (EmploymentContract c) = firstName(person(c));
+lastNameEmployee 'Фамилия работника' (EmploymentContract c) = lastName(person(c));
+middleNameEmployee 'Отчество работника' (EmploymentContract c) = middleName(person(c));
+birthdayEmployee 'Дата рождения работника' (EmploymentContract c) = birthday(person(c));
+addressEmployee 'Адрес прописки' (EmploymentContract c) = address(person(c));
 
-snilsEmployee 'СНИЛС работника' = DATA VARSTRING[20] (EmploymentContract) CHARWIDTH 15;
- 
-fileSnilsEmployee = DATA FILE (EmploymentContract);
-openFileSnilsEmployee 'Открыть' (EmploymentContract c) { open(fileSnilsEmployee(c)); }
-
-regexpMatches = FORMULA 'SELECT (regexp_matches($1, $2))[$3]';
-
-thresholdSnils 'Порог для обработки изображения' = DATA INTEGER();
-numberSnilsPattern 'Регулярное выражение для номера' = DATA VARSTRING[200] ();
-// \d{3}-\d{3}-\d{3}\s*\d{2}
-fioSnilsPattern 'Регулярное выражение для ФИО' = DATA VARSTRING[200] ();
-// \d{3}-\d{3}-\d{3}-*\s*\d{2}\s+\S+\s+([А-Я]+)[^А-Я]+([А-Я]+)[^А-Я]+([А-Я]+)\s
-EXTEND FORM options PROPERTIES() thresholdSnils, numberSnilsPattern, fioSnilsPattern;
-DESIGN options { openCV { MOVE PROPERTY(thresholdSnils()); MOVE PROPERTY(numberSnilsPattern()); MOVE PROPERTY(fioSnilsPattern()); } }
-
-loadFileSnilsEmployee 'Загрузить' (EmploymentContract c) { 
-    INPUT f=fileSnilsEmployee(c) CHANGE DO {
-        convertToBlackAndWhite(f, thresholdSnils());        
-        imageToString(convertToBlackAndWhiteResult(), 'rus', 1, 3);
-        snilsEmployee(c) <- regexpMatches(imageToStringResult(), numberSnilsPattern(), 1);
-        lastNameEmployee(c) <- regexpMatches(imageToStringResult(), fioSnilsPattern(), 1);
-        firstNameEmployee(c) <- regexpMatches(imageToStringResult(), fioSnilsPattern(), 2);
-        middleNameEmployee(c) <- regexpMatches(imageToStringResult(), fioSnilsPattern(), 3);
-    } 
-}
+seriesPassport 'Серия паспорта работника' (EmploymentContract c) =  seriesPassport(person(c));
+numberPassport 'Номер паспорта работника' (EmploymentContract c) =  numberPassport(person(c));
+authorityPassport 'Орган, выдавший паспорт' (EmploymentContract c) =  authorityPassport(person(c));
+dateIssuePassport 'Дата выдачи паспорта' (EmploymentContract c) =  dateIssuePassport(person(c));
+codeUnitPassport 'Код подразделения паспорта' (EmploymentContract c) = codeUnitPassport(person(c));
+phoneEmployee 'Телефон работника' (EmploymentContract c) =   phone(person(c));
+innEmployee 'ИНН работника' (EmploymentContract c) =  inn(person(c));
+snilsEmployee 'СНИЛС работника' (EmploymentContract c) = snils(person(c));
 
 city (EmploymentContract c) <- 'Москва' WHEN SET (c IS EmploymentContract);
 date (EmploymentContract c) <- currentDate() WHEN SET (c IS EmploymentContract);
-form (EmploymentContract c) <- Form.ooo WHEN SET (c IS EmploymentContract);
-positionEmployer (EmploymentContract c) <- 'Генеральный директор' WHEN SET (c IS EmploymentContract);
-baseEmployer (EmploymentContract c) <- 'Устава' WHEN SET (c IS EmploymentContract);
 duration (EmploymentContract c) <- 3 WHEN SET (c IS EmploymentContract);
 
 createTemplate 'Сформировать по шаблону' (EmploymentContract c) {
@@ -121,7 +79,7 @@ createTemplate 'Сформировать по шаблону' (EmploymentContrac
         NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployee(c), firstNameEmployee(c), middleNameEmployee(c); key(te) <- '{СОТРУДНИК.ФИО_ПОЛНОЕ}'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- CONCAT '', left(firstNameEmployee(c), 1) + '.', left(middleNameEmployee(c), 1) + '.', ' ' + lastNameEmployee(c); key(te) <- '{СОТРУДНИК.ФИО_КРАТКОЕ}'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- addressWork(c); key(te) <- '{ДОГОВОР.МЕСТО_РАБОТЫ}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- toDateRus(dateFrom(c)); key(te) <- '{ДОГОВОР.ДАТА_НАЧАЛА _ИСПОЛНЕНИЯ_ТРУДОВЫХ_ОБЯЗАННОСТЕЙ}'; template(te) <- defaultEmplomentContractTemplate(); }
+        NEW te = TemplateEntry { value(te) <- toDateRus(dateFrom(c)); key(te) <- '{ДОГОВОР.ДАТА_НАЧАЛА_ИСПОЛНЕНИЯ_ТРУДОВЫХ_ОБЯЗАННОСТЕЙ}'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- TEXT (duration(c)); key(te) <- '{ДОГОВОР.ПРОДОЛЖИТЕЛЬНОСТЬ_ИСПЫТАТЕЛЬНОГО_СРОКА}'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- TEXT (salary(c)); key(te) <- '{ДОГОВОР.РАЗМЕР_ОКЛАДА}'; template(te) <- defaultEmplomentContractTemplate(); }
         NEW te = TemplateEntry { value(te) <- toDateDDMMYYYY(birthdayEmployee(c)); key(te) <- '{СОТРУДНИК.ДАТА_РОЖДЕНИЯ}'; template(te) <- defaultEmplomentContractTemplate(); }
@@ -143,9 +101,8 @@ FORM employmentContract 'Трудовой договор'
     PROPERTIES (e) idDocument, city, date, nameLegalEntity, shortNameLegalEntity, positionEmployer, lastNameEmployer, firstNameEmployer, middleNameEmployer,
                    baseEmployer, firstNameEmployee, lastNameEmployee, middleNameEmployee, positionEmployee, addressWork, dateFrom, duration, salary, shortNameForm, 
                    birthdayEmployee,
-                   openFilePassportEmployee SHOWIF TRUE IF filePassportEmployee(e), loadFilePassportEmployee, 
                    seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, addressEmployee,
-                   snilsEmployee, openFileSnilsEmployee SHOWIF TRUE IF fileSnilsEmployee(e), loadFileSnilsEmployee, 
+                   snilsEmployee,
                    phoneEmployee, innEmployee
     
     EDIT EmploymentContract OBJECT e
@@ -179,11 +136,6 @@ DESIGN employmentContract {
             MOVE PROPERTY (innEmployee(e)) { caption = 'ИНН'; }
             NEW employeePassport {
                 caption = 'Паспортные данные';
-                NEW passportActions {
-                    type = CONTAINERH;
-                    MOVE PROPERTY(openFilePassportEmployee(e));                
-                    MOVE PROPERTY(loadFilePassportEmployee(e));
-                }
                 NEW seriesNumber {
                     type = CONTAINERH;
                     fill = 1;
@@ -194,16 +146,7 @@ DESIGN employmentContract {
                 MOVE PROPERTY (authorityPassport(e));
                 MOVE PROPERTY (codeUnitPassport(e)) { caption = 'Код подразделения'; }
                 MOVE PROPERTY (addressEmployee(e));
-            }
-            NEW employeeSnils {
-                caption = 'СНИЛС';
-                type = CONTAINERV;
-                NEW snilsActions {
-                    type = CONTAINERH;
-                    MOVE PROPERTY(openFileSnilsEmployee(e));                
-                    MOVE PROPERTY(loadFileSnilsEmployee(e));
-                }                
-                MOVE PROPERTY(snilsEmployee(e));                
+                MOVE PROPERTY(snilsEmployee(e));  
             }
         }
         NEW contract {
