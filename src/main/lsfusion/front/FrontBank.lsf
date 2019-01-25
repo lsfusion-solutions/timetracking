@@ -1,0 +1,10 @@
+MODULE FrontBank;
+
+REQUIRE Person, FrontUser;
+
+NAMESPACE Front;
+
+getBanks(FILE f) {
+    
+    EXPORT JSON FROM id = Bank b, name(b);
+}

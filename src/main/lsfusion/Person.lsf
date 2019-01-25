@@ -20,8 +20,8 @@ fioName 'И.О. Фамилия' (Person p) = CONCAT '', left(firstName(p), 1) + 
 
 address 'Адрес' = DATA VARISTRING[250](Person) CHARWIDTH 20;
 
-seriesPassport 'Серия паспорта' = DATA INTEGER (Person);
-numberPassport 'Номер паспорта' = DATA INTEGER (Person);
+seriesPassport 'Серия паспорта' = DATA VARISTRING[50] (Person);
+numberPassport 'Номер паспорта' = DATA VARISTRING[50] (Person);
 authorityPassport 'Орган, выдавший паспорт' = DATA VARISTRING[1024](Person) CHARWIDTH 20;
 dateIssuePassport 'Дата выдачи паспорта' = DATA DATE (Person);
 codeUnitPassport 'Код орагана выдачи паспорта' = DATA VARISTRING[1024](Person) CHARWIDTH 10;

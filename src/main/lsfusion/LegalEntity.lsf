@@ -51,12 +51,14 @@ oktmo 'Код ОКТМО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
 okved 'Код ОКВЭД' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
 ogrn 'Код ОГРН' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
 
+CONSTRAINT representative(LegalEntity l) AND NOT customer(representative(l)) == customer(l) CHECKED BY representative[LegalEntity] 
+    MESSAGE 'Клиент представителя не совпадает с клиентом организации';
+
 CLASS Account 'Банковский счёт';
 TABLE account (Account);
 
 number 'Номер счёта'  = DATA VARSTRING[50] (Account) IN id CHARWIDTH 28 FIXED;
 account (number) = GROUP MAX Account account BY number(account);
-
 
 legalEntity = DATA LegalEntity (Account) NONULL DELETE AUTOSET;
 nameLegalEntity 'Организация' (Account account) = shortName(legalEntity(account));

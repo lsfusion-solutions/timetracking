@@ -19,6 +19,8 @@ changeSHA256Password(FrontUser customUser)  {
     }
 }
 
+frontUser = GROUP AGGR FrontUser u BY login(u);
+
 FORM frontUser 'Внешний пользователь'
     OBJECTS o = FrontUser PANEL
     PROPERTIES(o) login, sha256Password ON CHANGE changeSHA256Password(o)

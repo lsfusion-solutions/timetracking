@@ -1,0 +1,18 @@
+MODULE FrontLegalEntity;
+
+REQUIRE LegalEntity, FrontUser;
+
+NAMESPACE Front;
+
+getLegalEntities(FILE f) {
+    
+    LOCAL login = VARSTRING[20] ();
+    IMPORT JSON FROM f AS FILE TO() login = login;
+     
+    IF NOT frontUser(login()) THEN {
+        EXPORT JSON FROM code = '1', message = 'Неверный логин';
+        RETURN;
+    }
+    
+    EXPORT JSON FROM id = LegalEntity l, fullName(l) WHERE customer(l) == customer(frontUser(login()));
+}
