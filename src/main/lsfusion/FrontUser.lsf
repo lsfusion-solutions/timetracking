@@ -1,0 +1,69 @@
+MODULE FrontUser;
+
+REQUIRE Authentication, Customer;
+
+NAMESPACE Front;
+
+CLASS FrontUser 'Внешний пользователь';
+TABLE frontUser (FrontUser);
+
+customer = DATA Customer(FrontUser);
+nameCustomer 'Клиент' (FrontUser f) = name(customer(f));
+
+login 'Логин' = DATA VARISTRING[100] (FrontUser) CHARWIDTH 15;
+sha256Password 'Пароль' = DATA VARSTRING[100] (FrontUser) ECHO;
+changeSHA256Password(FrontUser customUser)  { 
+    INPUT st=STRING[30] DO {
+        calculateBase64Hash('SHA-256', st);
+        sha256Password(customUser) <- calculatedHash();
+    }
+}
+
+FORM frontUser 'Внешний пользователь'
+    OBJECTS o = FrontUser PANEL
+    PROPERTIES(o) login, sha256Password ON CHANGE changeSHA256Password(o)
+    
+    EDIT FrontUser OBJECT o
+;
+
+FORM frontUsers 'Внешние пользователи'
+    OBJECTS o = FrontUser
+    PROPERTIES(o) READONLY login
+    PROPERTIES(o) NEWSESSION NEW, EDIT, DELETE
+;
+
+FORM dialogFrontUsers 'Внешние пользователи'
+    OBJECTS o = FrontUser
+    PROPERTIES(o) READONLY login
+    
+    LIST FrontUser OBJECT o
+;
+
+EXTEND FORM customer
+    OBJECTS u = FrontUser
+    PROPERTIES (u) login, sha256Password ON CHANGE changeSHA256Password(u), NEW, DELETE 
+    
+    FILTERS customer(u) == c
+;
+DESIGN customer {
+    tabPane {
+        MOVE BOX(u) { caption = 'Внешние пользователи'; }
+    }
+}
+
+login(FILE f) {
+    
+    LOCAL login = VARSTRING[20] ();
+    LOCAL password = VARSTRING[100] ();
+    
+    IMPORT JSON FROM f AS FILE TO() login = login, password = password;
+    
+     calculateBase64Hash('SHA-256', password());
+     
+    IF NOT (GROUP MAX FrontUser u IF login() == login(u) AND sha256Password(u) == calculatedHash()) THEN {
+        EXPORT JSON FROM code = '1', message = 'Неверный логин или пароль';
+        RETURN;
+    }
+    
+    EXPORT JSON FROM code = '0', message = 'OK';
+}
