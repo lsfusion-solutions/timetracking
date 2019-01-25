@@ -98,6 +98,20 @@ loadFilePassport 'Загрузить' (Person c) {
     } 
 }
 
+fileINN = DATA FILE (Person);
+openFileINN 'Открыть' (Person c) { open(fileINN(c)); }
+loadFileINN 'Загрузить' (Person c) { 
+    INPUT f=fileINN(c) CHANGE DO {
+    } 
+}
+
+fileMilitary = DATA FILE (Person);
+openFileMilitary 'Открыть' (Person c) { open(fileMilitary(c)); }
+loadFileMilitary 'Загрузить' (Person c) { 
+    INPUT f=fileMilitary(c) CHANGE DO {
+    } 
+}
+
 CLASS Child 'Ребёнок';
 TABLE child(Child);
 
@@ -111,7 +125,9 @@ FORM person 'Физическое лицо'
     PROPERTIES (p) nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, 
                    seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank,
                    openFileSnils SHOWIF TRUE IF fileSnils(p), loadFileSnils,
-                   openFilePassport SHOWIF TRUE IF filePassport(p), loadFilePassport
+                   openFilePassport SHOWIF TRUE IF filePassport(p), loadFilePassport,
+                   openFileINN SHOWIF TRUE IF fileINN(p), loadFileINN,
+                   openFileMilitary SHOWIF TRUE IF fileMilitary(p), loadFileMilitary
     
     OBJECTS c = Child
     PROPERTIES (c) name, birthday, NEW, DELETE 
@@ -139,6 +155,18 @@ DESIGN person {
                     type = CONTAINERH;
                     MOVE PROPERTY (openFileSnils(p));
                     MOVE PROPERTY (loadFileSnils(p));
+                }
+                NEW inn {
+                    caption = 'ИНН';
+                    type = CONTAINERH;
+                    MOVE PROPERTY (openFileINN(p));
+                    MOVE PROPERTY (loadFileINN(p));
+                }
+                NEW military {
+                    caption = 'Военный билет';
+                    type = CONTAINERH;
+                    MOVE PROPERTY (openFileMilitary(p));
+                    MOVE PROPERTY (loadFileMilitary(p));
                 }
             }
         }
