@@ -102,18 +102,19 @@ CLASS Child 'Ребёнок';
 TABLE child(Child);
 
 name 'Имя' = DATA VARISTRING[250](Child) CHARWIDTH 30;
+birthday 'Дата рождения' = DATA DATE (Child);
 parent = DATA Person(Child) NONULL DELETE;
 nameParent 'Родитель' (Child c) = Authentication.name(parent(c));
 
 FORM person 'Физическое лицо'
     OBJECTS p = Person PANEL 
-    PROPERTIES (p) nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, 
+    PROPERTIES (p) nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, 
                    seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank,
                    openFileSnils SHOWIF TRUE IF fileSnils(p), loadFileSnils,
                    openFilePassport SHOWIF TRUE IF filePassport(p), loadFilePassport
     
     OBJECTS c = Child
-    PROPERTIES (c) name, NEW, DELETE 
+    PROPERTIES (c) name, birthday, NEW, DELETE 
     FILTERS parent(c) == p
     
     EDIT Person OBJECT p
@@ -147,7 +148,7 @@ DESIGN person {
 
 FORM persons 'Физические лица'
     OBJECTS p = Person 
-    PROPERTIES (p) READONLY nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, 
+    PROPERTIES (p) READONLY nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address,
                    seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank
     PROPERTIES (p) NEWSESSION NEW, EDIT, DELETE
     ORDER lastName(p)
@@ -158,7 +159,7 @@ FORM persons 'Физические лица'
 EXTEND FORM customer
     OBJECTS r = Person
     
-    PROPERTIES(r) lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, 
+    PROPERTIES(r) lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address,
                   seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank, NEW, DELETE
     FILTERS customer(r) == c
     ORDER lastName(r)
