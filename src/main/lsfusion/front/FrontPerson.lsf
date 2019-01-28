@@ -4,6 +4,22 @@ REQUIRE Person, FrontSession;
 
 NAMESPACE Front;
 
+
+FORM exportPersons
+    OBJECTS c = Customer PANEL 
+    OBJECTS p = Person
+    PROPERTIES IN public id = LONG (p), lastName = lastName(p), firstName = firstName(p), middleName = middleName(p), lastNameRp = lastNameRp(p), 
+                         firstNameRp = firstNameRp(p), middleNameRp = middleNameRp(p), birthday = birthday(p), address = address(p), 
+                         seriesPassport = seriesPassport(p), numberPassport = numberPassport(p), authorityPassport = authorityPassport(p), 
+                         dateIssuePassport = dateIssuePassport(p), codeUnitPassport = codeUnitPassport(p), phone = phone(p), inn = inn(p), 
+                         snils = snils(p), numberAccount = numberAccount(p), bank = bank(p)
+    FILTERS customer(p) == c
+               
+    OBJECTS child = Child
+    PROPERTIES name_child = name(child), birthday_child = birthday(child)
+    FILTERS parent(child) == p
+;
+
 getPersons(TEXT token, FILE f) {
     
     checkToken(token);
@@ -11,10 +27,42 @@ getPersons(TEXT token, FILE f) {
         RETURN;
     }
     
-    EXPORT JSON FROM id = Person p, lastName(p), firstName(p), middleName(p), lastNameRp(p), firstNameRp(p), middleNameRp(p), 
-                     birthday(p), address(p), seriesPassport(p), numberPassport(p), authorityPassport(p), dateIssuePassport(p), 
-                     codeUnitPassport(p), phone(p), inn(p), snils(p), numberAccount(p), bank(p) WHERE customer(p) == customer(frontUser(frontSession(token)));
+    EXPORT exportPersons OBJECTS c = customer(frontUser(frontSession(token))) JSON;
 }
+
+id = DATA LOCAL LONG ();
+lastName = DATA LOCAL VARSTRING[250]();
+firstName = DATA LOCAL VARSTRING[250]();
+middleName = DATA LOCAL VARSTRING[250]();
+lastNameRp = DATA LOCAL VARSTRING[250]();
+firstNameRp = DATA LOCAL VARSTRING[250]();
+middleNameRp = DATA LOCAL VARSTRING[250]();
+birthday = DATA LOCAL DATE();
+address = DATA LOCAL VARSTRING[250]();
+seriesPassport = DATA LOCAL VARSTRING[250]();
+numberPassport = DATA LOCAL VARISTRING[50] ();
+authorityPassport = DATA LOCAL VARSTRING[250]();
+dateIssuePassport = DATA LOCAL DATE ();
+codeUnitPassport = DATA LOCAL VARSTRING[250]();
+phone = DATA LOCAL VARSTRING[250]();
+inn = DATA LOCAL VARSTRING[250]();
+snils = DATA LOCAL VARSTRING[250]();
+numberAccount = DATA LOCAL VARSTRING[250]();
+bank = DATA LOCAL LONG ();
+
+name_child = DATA VARISTRING[250](INTEGER);
+birthday_child = DATA DATE (INTEGER);
+
+FORM importPerson
+    PROPERTIES id = id(), lastName = lastName(), firstName = firstName(), middleName = middleName(), lastNameRp = lastNameRp(), 
+                 firstNameRp = firstNameRp(), middleNameRp = middleNameRp(), birthday = birthday(), address = address(), 
+                 seriesPassport = seriesPassport(), numberPassport = numberPassport(), authorityPassport = authorityPassport(), 
+                 dateIssuePassport = dateIssuePassport(), codeUnitPassport = codeUnitPassport(), phone = phone(), inn = inn(), 
+                 snils = snils(), numberAccount = numberAccount(), bank = bank()
+       
+    OBJECTS child = INTEGER 
+    PROPERTIES name_child = name_child(child), birthday_child = birthday_child(child)
+;
 
 addPerson(TEXT token, FILE f) {
       
@@ -22,31 +70,8 @@ addPerson(TEXT token, FILE f) {
     IF invalidToken() THEN {
         RETURN;
     }
-      
-    LOCAL id = LONG ();
-    LOCAL lastName = VARSTRING[250]();
-    LOCAL firstName = VARSTRING[250]();
-    LOCAL middleName = VARSTRING[250]();
-    LOCAL lastNameRp = VARSTRING[250]();
-    LOCAL firstNameRp = VARSTRING[250]();
-    LOCAL middleNameRp = VARSTRING[250]();
-    LOCAL birthday = DATE();
-    LOCAL address = VARSTRING[250]();
-    LOCAL seriesPassport = VARSTRING[250]();
-    LOCAL numberPassport = VARISTRING[50] ();
-    LOCAL authorityPassport = VARSTRING[250]();
-    LOCAL dateIssuePassport = DATE ();
-    LOCAL codeUnitPassport = VARSTRING[250]();
-    LOCAL phone = VARSTRING[250]();
-    LOCAL inn = VARSTRING[250]();
-    LOCAL snils = VARSTRING[250]();
-    LOCAL numberAccount = VARSTRING[250]();
-    LOCAL bank = LONG ();
     
-    IMPORT JSON FROM f AS FILE TO() id = id, lastName = lastName, firstName = firstName, middleName = middleName, 
-    lastNameRp = lastNameRp, firstNameRp = firstNameRp, middleNameRp = middleNameRp, birthday = birthday, address = address, seriesPassport = seriesPassport, 
-    numberPassport = numberPassport, authorityPassport = authorityPassport, dateIssuePassport = dateIssuePassport, codeUnitPassport = codeUnitPassport, 
-    phone = phone, inn = inn, snils = snils, numberAccount = numberAccount, bank = bank;
+    IMPORT importPerson JSON FROM f AS FILE;
 
     IF id() AND NOT (GROUP MAX Person p AS Person IF LONG (p) == id()) THEN {
         EXPORT JSON FROM code = '1', message = 'Не найдено физ. лицо по коду';
@@ -77,6 +102,12 @@ addPerson(TEXT token, FILE f) {
         snils(p) <- snils(); 
         numberAccount(p) <- numberAccount(); 
         bank(p) <- GROUP MAX Bank b AS Bank IF LONG (b) == bank();
+        
+        FOR name_child(INTEGER c) DO NEW ch = Child {
+            parent(ch) <- p;
+            name(ch) <- name_child(c);
+            birthday(ch) <- birthday_child(c);
+        }
     }
     APPLY;
     
