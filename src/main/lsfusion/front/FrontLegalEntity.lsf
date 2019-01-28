@@ -1,18 +1,15 @@
 MODULE FrontLegalEntity;
 
-REQUIRE LegalEntity, FrontUser;
+REQUIRE LegalEntity, FrontSession;
 
 NAMESPACE Front;
 
-getLegalEntities(FILE f) {
+getLegalEntities(TEXT token, FILE f) {
     
-    LOCAL login = VARSTRING[20] ();
-    IMPORT JSON FROM f AS FILE TO() login = login;
-     
-    IF NOT frontUser(login()) THEN {
-        EXPORT JSON FROM code = '1', message = 'Неверный логин';
+    checkToken(token);
+    IF invalidToken() THEN {
         RETURN;
     }
     
-    EXPORT JSON FROM id = LegalEntity l, fullName(l) WHERE customer(l) == customer(frontUser(login()));
+    EXPORT JSON FROM id = LegalEntity l, fullName(l) WHERE customer(l) == customer(frontUser(frontSession(token)));
 }

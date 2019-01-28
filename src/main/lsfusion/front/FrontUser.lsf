@@ -52,20 +52,3 @@ DESIGN customer {
         MOVE BOX(u) { caption = 'Внешние пользователи'; }
     }
 }
-
-login(FILE f) {
-    
-    LOCAL login = VARSTRING[20] ();
-    LOCAL password = VARSTRING[100] ();
-    
-    IMPORT JSON FROM f AS FILE TO() login = login, password = password;
-    
-     calculateBase64Hash('SHA-256', password());
-     
-    IF NOT (GROUP MAX FrontUser u IF login() == login(u) AND sha256Password(u) == calculatedHash()) THEN {
-        EXPORT JSON FROM code = '1', message = 'Неверный логин или пароль';
-        RETURN;
-    }
-    
-    EXPORT JSON FROM code = '0', message = 'OK';
-}

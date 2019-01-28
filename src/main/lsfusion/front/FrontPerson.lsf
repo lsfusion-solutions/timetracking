@@ -1,28 +1,28 @@
 MODULE FrontPerson;
 
-REQUIRE Person, FrontUser;
+REQUIRE Person, FrontSession;
 
 NAMESPACE Front;
 
-getPersons(FILE f) {
+getPersons(TEXT token, FILE f) {
     
-    LOCAL login = VARSTRING[20] ();
-    
-    IMPORT JSON FROM f AS FILE TO() login = login;
-     
-    IF NOT frontUser(login()) THEN {
-        EXPORT JSON FROM code = '1', message = 'Неверный логин';
+    checkToken(token);
+    IF invalidToken() THEN {
         RETURN;
     }
     
     EXPORT JSON FROM id = Person p, lastName(p), firstName(p), middleName(p), lastNameRp(p), firstNameRp(p), middleNameRp(p), 
                      birthday(p), address(p), seriesPassport(p), numberPassport(p), authorityPassport(p), dateIssuePassport(p), 
-                     codeUnitPassport(p), phone(p), inn(p), snils(p), numberAccount(p), bank(p) WHERE customer(p) == customer(frontUser(login()));
+                     codeUnitPassport(p), phone(p), inn(p), snils(p), numberAccount(p), bank(p) WHERE customer(p) == customer(frontUser(frontSession(token)));
 }
 
-addPerson(FILE f) {
-    
-    LOCAL login = VARSTRING[20] ();
+addPerson(TEXT token, FILE f) {
+      
+    checkToken(token);
+    IF invalidToken() THEN {
+        RETURN;
+    }
+      
     LOCAL id = LONG ();
     LOCAL lastName = VARSTRING[250]();
     LOCAL firstName = VARSTRING[250]();
@@ -43,16 +43,11 @@ addPerson(FILE f) {
     LOCAL numberAccount = VARSTRING[250]();
     LOCAL bank = LONG ();
     
-    IMPORT JSON FROM f AS FILE TO() login = login, id = id, lastName = lastName, firstName = firstName, middleName = middleName, 
+    IMPORT JSON FROM f AS FILE TO() id = id, lastName = lastName, firstName = firstName, middleName = middleName, 
     lastNameRp = lastNameRp, firstNameRp = firstNameRp, middleNameRp = middleNameRp, birthday = birthday, address = address, seriesPassport = seriesPassport, 
     numberPassport = numberPassport, authorityPassport = authorityPassport, dateIssuePassport = dateIssuePassport, codeUnitPassport = codeUnitPassport, 
     phone = phone, inn = inn, snils = snils, numberAccount = numberAccount, bank = bank;
-     
-    IF NOT frontUser(login()) THEN {
-        EXPORT JSON FROM code = '1', message = 'Неверный логин';
-        RETURN;
-    }
-    
+
     IF id() AND NOT (GROUP MAX Person p AS Person IF LONG (p) == id()) THEN {
         EXPORT JSON FROM code = '1', message = 'Не найдено физ. лицо по коду';
         RETURN;
@@ -63,7 +58,7 @@ addPerson(FILE f) {
     }
     
     FOR LONG (Person p AS Person) == id() DO {
-        customer(p) <- customer(frontUser(login()));
+        customer(p) <- customer(frontUser(frontSession(token)));
         lastName(p) <- lastName();
         firstName(p) <- firstName(); 
         middleName(p) <- middleName(); 
@@ -88,17 +83,16 @@ addPerson(FILE f) {
     EXPORT JSON FROM code = '0', message = 'OK';
 }
 
-deletePerson(FILE f) {
-    
-    LOCAL login = VARSTRING[20] ();
-    LOCAL id = LONG ();
-    
-    IMPORT JSON FROM f AS FILE TO() login = login, id = id;
-     
-    IF NOT frontUser(login()) THEN {
-        EXPORT JSON FROM code = '1', message = 'Неверный логин';
+deletePerson(TEXT token, FILE f) {
+        
+    checkToken(token);
+    IF invalidToken() THEN {
         RETURN;
     }
+    
+    LOCAL id = LONG ();
+    
+    IMPORT JSON FROM f AS FILE TO() id = id;
     
     FOR LONG (Person p AS Person) == id() DO {
         DELETE p;

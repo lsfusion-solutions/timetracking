@@ -1,0 +1,72 @@
+MODULE FrontSession;
+
+REQUIRE FrontUser, Time;
+
+NAMESPACE Front;
+
+CLASS FrontSession 'Внешняя сессия';
+TABLE frontSession(FrontSession);
+
+token = DATA TEXT (FrontSession);
+frontUser = DATA FrontUser(FrontSession);
+created 'Создан' = DATA DATETIME (FrontSession);
+updated 'Обновлен' = DATA DATETIME (FrontSession);
+
+frontSession = GROUP AGGR FrontSession f BY token(f);
+
+generateToken () = FORMULA TEXT 'MD5(random()::text)';
+
+login(FILE f) {
+    
+    LOCAL login = VARSTRING[20] ();
+    LOCAL password = VARSTRING[100] ();
+    
+    IMPORT JSON FROM f AS FILE TO() login = login, password = password;
+    
+     calculateBase64Hash('SHA-256', password());
+     
+    IF NOT (GROUP MAX FrontUser u IF login() == login(u) AND sha256Password(u) == calculatedHash()) THEN {
+        EXPORT JSON FROM code = '1', message = 'Неверный логин или пароль';
+        RETURN;
+    }
+    
+    NEW s = FrontSession {
+        created(s) <- currentDateTime();
+        updated(s) <- currentDateTime();
+        frontUser(s) <- frontUser(login());
+        token(s) <- generateToken();
+        APPLY;
+        EXPORT JSON FROM token = token(s);
+    }
+}
+
+invalidToken = DATA LOCAL BOOLEAN ();
+
+checkToken (TEXT token) {  
+    
+    invalidToken() <- NULL;
+    
+    IF NOT frontUser(frontSession(token)) THEN {
+        EXPORT JSON FROM code = '1', message = 'Неверный токен';
+        invalidToken() <- TRUE;
+    }
+    ELSE FOR FrontSession s = frontSession(token) DO {
+        IF subtractSeconds(currentDateTime(), 7200) > updated(s) THEN {
+            EXPORT JSON FROM code = '2', message = 'Устаревшая сессия';
+            invalidToken() <- TRUE;
+        }
+        ELSE NEWSESSION {
+            updated(s) <- currentDateTime();
+            APPLY;
+        }
+    }
+}
+//
+//deleteOldSessions() {
+//    NEWSESSION {
+//        FOR subtractSeconds(currentDateTime(), 7200) > updated(FrontSession s) DO {
+//            DELETE s;
+//        }
+//        APPLY;
+//    }
+//}
