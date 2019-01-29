@@ -11,5 +11,5 @@ getLegalEntities(TEXT token, FILE f) {
         RETURN;
     }
     
-    EXPORT JSON FROM id = LegalEntity l, fullName(l) WHERE customer(l) == customer(frontUser(frontSession(token)));
+    EXPORT JSON FROM id = LONG (LegalEntity l), fullName(l) WHERE customer(l) == customer(frontUser(frontSession(token)));
 }

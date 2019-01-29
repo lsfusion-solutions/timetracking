@@ -6,5 +6,5 @@ NAMESPACE Front;
 
 getBanks(FILE f) {
     
-    EXPORT JSON FROM id = Bank b, name(b);
+    EXPORT JSON FROM id = LONG (Bank b), name(b);
 }

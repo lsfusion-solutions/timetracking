@@ -1,9 +1,8 @@
 MODULE FrontPerson;
 
-REQUIRE Person, FrontSession;
+REQUIRE Person, FrontSession, System;
 
 NAMESPACE Front;
-
 
 FORM exportPersons
     OBJECTS c = Customer PANEL 
@@ -12,7 +11,7 @@ FORM exportPersons
                          firstNameRp = firstNameRp(p), middleNameRp = middleNameRp(p), birthday = birthday(p), address = address(p), 
                          seriesPassport = seriesPassport(p), numberPassport = numberPassport(p), authorityPassport = authorityPassport(p), 
                          dateIssuePassport = dateIssuePassport(p), codeUnitPassport = codeUnitPassport(p), phone = phone(p), inn = inn(p), 
-                         snils = snils(p), numberAccount = numberAccount(p), bank = bank(p)
+                         snils = snils(p), numberAccount = numberAccount(p), bank = LONG (bank(p))
     FILTERS customer(p) == c
                
     OBJECTS child = Child
@@ -49,6 +48,8 @@ inn = DATA LOCAL VARSTRING[250]();
 snils = DATA LOCAL VARSTRING[250]();
 numberAccount = DATA LOCAL VARSTRING[250]();
 bank = DATA LOCAL LONG ();
+passportFile = DATA LOCAL VARISTRING[50]();
+snilsFile = DATA LOCAL VARISTRING[50]();
 
 name_child = DATA VARISTRING[250](INTEGER);
 birthday_child = DATA DATE (INTEGER);
@@ -58,7 +59,7 @@ FORM importPerson
                  firstNameRp = firstNameRp(), middleNameRp = middleNameRp(), birthday = birthday(), address = address(), 
                  seriesPassport = seriesPassport(), numberPassport = numberPassport(), authorityPassport = authorityPassport(), 
                  dateIssuePassport = dateIssuePassport(), codeUnitPassport = codeUnitPassport(), phone = phone(), inn = inn(), 
-                 snils = snils(), numberAccount = numberAccount(), bank = bank()
+                 snils = snils(), numberAccount = numberAccount(), bank = bank(), passportFile = passportFile(), snilsFile = snilsFile()
        
     OBJECTS child = INTEGER 
     PROPERTIES name_child = name_child(child), birthday_child = birthday_child(child)
@@ -103,6 +104,9 @@ addPerson(TEXT token, FILE f) {
         numberAccount(p) <- numberAccount(); 
         bank(p) <- GROUP MAX Bank b AS Bank IF LONG (b) == bank();
         
+        filePassport(p) <- file(frontSession(token), passportFile());
+        fileSnils(p) <- file(frontSession(token), snilsFile());
+        
         FOR name_child(INTEGER c) DO NEW ch = Child {
             parent(ch) <- p;
             name(ch) <- name_child(c);
@@ -131,4 +135,26 @@ deletePerson(TEXT token, FILE f) {
     APPLY;
     
     EXPORT JSON FROM code = '0', message = 'OK';
+}
+
+file = DATA FILE (Person, VARISTRING[50]);
+
+downloadPersonFile(TEXT token, LONG person, VARISTRING[50] fileName, FILE f) {
+    
+    checkToken(token);
+    IF invalidToken() THEN RETURN;
+    
+    LOCAL file = FILE ();
+    
+    FOR LONG (Person p AS Person) == person DO {
+        
+        IF fileName == 'passport' THEN {
+            file() <- filePassport(p);
+        }
+        IF fileName == 'snils' THEN {
+            file() <- fileSnils(p);
+        }
+    }
+    
+//    EXPORT JSON FROM file();
 }

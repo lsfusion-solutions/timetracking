@@ -70,3 +70,18 @@ checkToken (TEXT token) {
 //        APPLY;
 //    }
 //}
+
+file = DATA FILE (FrontSession, VARISTRING[50]);
+
+uploadFile(TEXT token, FILE f) {
+    
+    checkToken(token);
+    IF invalidToken() THEN RETURN;
+    
+    FOR VARISTRING[50] id = generateToken() AND FrontSession s = frontSession(token) DO {
+        file(s, id) <- f;
+        APPLY;
+        
+        EXPORT JSON FROM code = '0', id = id;
+    }
+}
