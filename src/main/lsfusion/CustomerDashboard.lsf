@@ -1,0 +1,69 @@
+MODULE CustomerDashboard;
+
+REQUIRE EmploymentContract, Dashboard;
+
+addLegalEntity 'Добавить' (Customer c) {
+    NEWSESSION NEW l = LegalEntity {
+        customer(l) <- c;
+        SHOW legalEntity OBJECTS o = l DOCKED;
+    }
+} IMAGE 'add.png';
+
+addPerson 'Добавить' (Customer c) {
+    NEWSESSION NEW p = Person {
+        customer(p) <- c;
+        SHOW person OBJECTS p = p DOCKED;
+    }
+} IMAGE 'add.png';
+
+addContract 'Добавить' (LegalEntity l, Person p) {
+    NEWSESSION NEW c = EmploymentContract {
+        legalEntity(c) <- l;
+        person(c) <- p;
+        SHOW employmentContract OBJECTS e = c DOCKED;
+    }
+} IMAGE 'add.png';
+
+FORM customerDashboard 'Работа с клиентами'
+    OBJECTS c = Customer PANEL 
+    PROPERTIES (c) name SELECTOR 
+    
+    OBJECTS l = LegalEntity
+    PROPERTIES (l) READONLY id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, nameRepresentative, 
+                           baseRepresentative, positionRepresentative, inn, kpp, phone, okpo, okato, oktmo, okved, ogrn, numberAccount
+    PROPERTIES DRAW l TOOLBAR addLegalEntity(c)
+    PROPERTIES (l) NEWSESSION EDIT, DELETE 
+    FILTERS customer(l) == c
+    
+    OBJECTS p = Person
+    PROPERTIES (p) READONLY lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, children,
+                   seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank
+    PROPERTIES DRAW p TOOLBAR addPerson(c)
+    PROPERTIES (p) NEWSESSION EDIT, DELETE
+    FILTERS customer(p) == c
+    
+    OBJECTS ec = EmploymentContract
+    PROPERTIES (ec) READONLY idDocument, city, date, nameLegalEntity, shortNameLegalEntity, positionEmployer, lastNameEmployer, firstNameEmployer, middleNameEmployer,
+                    baseEmployer, firstNameEmployee, lastNameEmployee, middleNameEmployee, positionEmployee, addressWork, dateFrom, duration, salary, shortNameForm, 
+                    birthdayEmployee, seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, addressEmployee, phoneEmployee, innEmployee
+    PROPERTIES DRAW ec TOOLBAR addContract(l, p)
+    PROPERTIES (ec) NEWSESSION EDIT, DELETE 
+    FILTERS legalEntity(ec) == l, person(ec) == p
+;
+
+DESIGN customerDashboard {
+    OBJECTS {
+        NEW data AFTER BOX (c) {
+            type = CONTAINERH;
+            fill = 1;
+            MOVE BOX (l);
+            MOVE BOX (p);
+        }
+    }
+}
+
+NAVIGATOR {
+    dashboard {
+        NEW customerDashboard;
+    }
+}

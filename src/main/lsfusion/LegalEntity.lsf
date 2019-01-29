@@ -24,7 +24,7 @@ CLASS Form 'Форма хозяйства' {
     ooo 'Общество с ограниченной ответственностью'
 }
 name 'Наименование' (Form f) = staticCaption(f) IF f IS Form CHARWIDTH 20;
-shortName 'Краткое наименование' (Form f) = CASE WHEN f = Form.ao THEN 'АО' WHEN f = Form.ooo THEN 'ООО';
+shortName 'Краткое наименование' (Form f) = CASE WHEN f = Form.ao THEN 'АО' WHEN f = Form.ooo THEN 'ООО' CHARWIDTH 4;
 
 FORM forms 'Форма хозяйства'
     OBJECTS f = Form
@@ -45,11 +45,11 @@ positionRepresentative 'Должность представителя' = DATA VA
 inn 'ИНН' = DATA VARISTRING[10](LegalEntity) CHARWIDTH 10;
 kpp 'КПП' = DATA VARISTRING[10](LegalEntity) CHARWIDTH 10;
 phone 'Номер телефона' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 15;
-okpo 'Код ОКПО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
-okato 'Код ОКАТО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
-oktmo 'Код ОКТМО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
-okved 'Код ОКВЭД' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
-ogrn 'Код ОГРН' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+okpo 'ОКПО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+okato 'ОКАТО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+oktmo 'ОКТМО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+okved 'ОКВЭД' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+ogrn 'ОГРН' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
 
 CONSTRAINT representative(LegalEntity l) AND NOT customer(representative(l)) == customer(l) CHECKED BY representative[LegalEntity] 
     MESSAGE 'Клиент представителя не совпадает с клиентом организации';
@@ -122,8 +122,54 @@ FORM legalEntity 'Юридическое лицо'
 ;
 
 DESIGN legalEntity {
-    GROUP (,o) {
-        columns = 2;
+    BOX (o) {
+        NEW first {
+            type = CONTAINERH;
+            caption = 'Основые параметры';
+            MOVE PROPERTY (id(o));
+            MOVE PROPERTY (nameCustomer(o));
+            MOVE PROPERTY (shortNameFrom(o));
+        }
+        NEW names {
+            type = CONTAINERH;
+            NEW nameRus {
+                caption = 'Название';
+                MOVE PROPERTY (shortName(o)) { caption = 'Сокращенное'; }
+                MOVE PROPERTY (fullName(o))  { caption = 'Полное'; }
+            }
+            NEW nameLat {
+                caption = 'Название (латиницей)';
+                MOVE PROPERTY (shortNameLat(o)) { caption = 'Сокращенное'; }
+                MOVE PROPERTY (fullNameLat(o))  { caption = 'Полное'; }
+            }
+        }
+        NEW other {
+            type = CONTAINERH;
+            NEW info {
+                caption = 'Контакты';
+                MOVE PROPERTY (address(o));
+                MOVE PROPERTY (phone(o));
+                MOVE PROPERTY (numberAccount(o));
+            }
+            NEW repres {
+                caption = 'Представитель';
+                MOVE PROPERTY (nameRepresentative(o)) { caption = 'Имя'; }
+                MOVE PROPERTY (positionRepresentative(o)) { caption = 'Должность'; }
+                MOVE PROPERTY (baseRepresentative(o)) { caption = 'Основание'; }
+            }
+        }
+        NEW numbers {
+            caption = 'Информация';
+            type = COLUMNS;
+            columns = 4;
+            MOVE PROPERTY (inn(o));
+            MOVE PROPERTY (kpp(o));
+            MOVE PROPERTY (okpo(o));
+            MOVE PROPERTY (okato(o));
+            MOVE PROPERTY (oktmo(o));
+            MOVE PROPERTY (okved(o));
+            MOVE PROPERTY (ogrn(o));
+        }
     }
 }
 
