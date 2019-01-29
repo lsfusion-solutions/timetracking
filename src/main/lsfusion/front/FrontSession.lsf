@@ -7,12 +7,24 @@ NAMESPACE Front;
 CLASS FrontSession 'Внешняя сессия';
 TABLE frontSession(FrontSession);
 
-token = DATA TEXT (FrontSession);
+token 'Токен' = DATA TEXT (FrontSession);
 frontUser = DATA FrontUser(FrontSession);
 created 'Создан' = DATA DATETIME (FrontSession);
 updated 'Обновлен' = DATA DATETIME (FrontSession);
 
 frontSession = GROUP AGGR FrontSession f BY token(f);
+
+EXTEND FORM customer 
+    OBJECTS s = FrontSession
+    PROPERTIES READONLY 'Токен' = VARISTRING[250] (token(s)), created(s), updated(s)
+    FILTERS frontUser(s) == u
+;
+
+DESIGN customer {
+    users {
+        MOVE BOX (s) { caption = 'Внешние сессии'; }
+    }
+}
 
 generateToken () = FORMULA TEXT 'MD5(random()::text)';
 

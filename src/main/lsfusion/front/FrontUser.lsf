@@ -49,6 +49,9 @@ EXTEND FORM customer
 ;
 DESIGN customer {
     tabPane {
-        MOVE BOX(u) { caption = 'Внешние пользователи'; }
+        NEW users {
+            caption = 'Внешние пользователи';
+            MOVE BOX(u) { caption = 'Внешние пользователи'; }
+        }
     }
 }
