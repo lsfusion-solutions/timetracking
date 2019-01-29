@@ -148,10 +148,10 @@ downloadPersonFile(TEXT token, LONG person, VARISTRING[50] fileName, FILE f) {
     
     FOR LONG (Person p AS Person) == person DO {
         
-        IF fileName == 'passport' THEN {
+        IF fileName = 'passportfile' THEN {
             file() <- filePassport(p);
         }
-        IF fileName == 'snils' THEN {
+        IF fileName = 'snilsfile' THEN {
             file() <- fileSnils(p);
         }
     }
