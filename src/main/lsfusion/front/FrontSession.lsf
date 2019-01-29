@@ -73,13 +73,13 @@ checkToken (TEXT token) {
 
 file = DATA FILE (FrontSession, VARISTRING[50]);
 
-uploadFile(TEXT token, FILE f) {
+uploadFile(TEXT token, TEXT extension, FILE f) {
     
     checkToken(token);
     IF invalidToken() THEN RETURN;
     
     FOR VARISTRING[50] id = generateToken() AND FrontSession s = frontSession(token) DO {
-        file(s, id) <- f;
+        file(s, id) <- changeExtension(f, extension);
         APPLY;
         
         EXPORT JSON FROM code = '0', id = id;

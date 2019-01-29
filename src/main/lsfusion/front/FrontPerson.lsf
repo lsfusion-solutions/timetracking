@@ -156,5 +156,5 @@ downloadPersonFile(TEXT token, LONG person, VARISTRING[50] fileName, FILE f) {
         }
     }
     
-//    EXPORT JSON FROM file();
+    exportFile() <- file();
 }
