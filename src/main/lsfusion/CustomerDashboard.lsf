@@ -46,7 +46,7 @@ FORM customerDashboard 'Работа с клиентами'
     PROPERTIES (ec) READONLY idDocument, city, date, nameLegalEntity, shortNameLegalEntity, positionEmployer, lastNameEmployer, firstNameEmployer, middleNameEmployer,
                     baseEmployer, firstNameEmployee, lastNameEmployee, middleNameEmployee, positionEmployee, addressWork, dateFrom, duration, salary, shortNameForm, 
                     birthdayEmployee, seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, addressEmployee, phoneEmployee, innEmployee
-    PROPERTIES DRAW ec TOOLBAR addContract(l, p)
+    PROPERTIES DRAW ec TOOLBAR createTemplate(ec), addContract(l, p)
     PROPERTIES (ec) NEWSESSION EDIT, DELETE 
     FILTERS legalEntity(ec) == l, person(ec) == p
 ;
