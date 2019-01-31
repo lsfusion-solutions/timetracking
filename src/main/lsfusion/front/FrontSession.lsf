@@ -54,6 +54,11 @@ login(FILE f) {
 
 invalidToken = DATA LOCAL BOOLEAN ();
 
+sessionTimeOut 'Таймаут сессии (минуты)' = DATA LONG () COMPLEX;
+
+EXTEND FORM options PROPERTIES() sessionTimeOut;
+DESIGN options { commons { MOVE PROPERTY(sessionTimeOut()); } }
+
 checkToken (TEXT token) {  
     
     invalidToken() <- NULL;
@@ -63,7 +68,7 @@ checkToken (TEXT token) {
         invalidToken() <- TRUE;
     }
     ELSE FOR FrontSession s = frontSession(token) DO {
-        IF subtractSeconds(currentDateTime(), 7200) > updated(s) THEN {
+        IF subtractSeconds(currentDateTime(), sessionTimeOut() * 60) > updated(s) THEN {
             EXPORT JSON FROM code = '2', message = 'Устаревшая сессия';
             invalidToken() <- TRUE;
         }
