@@ -105,8 +105,8 @@ generateWord 'Сгенерировать (Word)' (Invoice i)  {
             value(detail) <- TEXT(number(i)) WHERE key(detail) == 'NUMBER';
             value(detail) <- TEXT(nameCustomer(i)) WHERE key(detail) == 'CUSTOMER_NAME';
             value(detail) <- TEXT(nameProject(i)) WHERE key(detail) == 'PROJECT_NAME';
-            value(detail) <- TEXT(toDateDDMMYY(fromDate(i))) WHERE key(detail) == 'FROM_DATE';
-            value(detail) <- TEXT(toDateDDMMYY(toDate(i))) WHERE key(detail) == 'TO_DATE';
+            value(detail) <- TEXT(toDateDDMMYY(firstDayOfMonth(date(i)))) WHERE key(detail) == 'FROM_DATE';
+            value(detail) <- TEXT(toDateDDMMYY(lastDayOfMonth(date(i)))) WHERE key(detail) == 'TO_DATE';
             value(detail) <- TEXT(formatHours(hours(i))) WHERE key(detail) == 'HOURS_INIT';
             value(detail) <- TEXT(formatHours(hoursMonthly(i))) WHERE key(detail) == 'HOURS_MONTHLY';
             value(detail) <- TEXT(formatHours(OVERRIDE hoursPay(i), 0.0)) WHERE key(detail) == 'HOURS_PAY';
