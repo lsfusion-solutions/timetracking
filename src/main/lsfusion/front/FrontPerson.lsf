@@ -7,16 +7,8 @@ NAMESPACE Front;
 FORM exportPersons
     OBJECTS c = Customer PANEL 
     OBJECTS p = Person
-    PROPERTIES IN public id = LONG (p), lastName = lastName(p), firstName = firstName(p), middleName = middleName(p), lastNameRp = lastNameRp(p), 
-                         firstNameRp = firstNameRp(p), middleNameRp = middleNameRp(p), birthday = birthday(p), address = address(p), 
-                         seriesPassport = seriesPassport(p), numberPassport = numberPassport(p), authorityPassport = authorityPassport(p), 
-                         dateIssuePassport = dateIssuePassport(p), codeUnitPassport = codeUnitPassport(p), phone = phone(p), inn = inn(p), 
-                         snils = snils(p), numberAccount = numberAccount(p), bank = LONG (bank(p))
+    PROPERTIES IN public id = LONG (p), lastName = lastName(p), firstName = firstName(p)
     FILTERS customer(p) == c
-               
-    OBJECTS child = Child
-    PROPERTIES name_child = name(child), birthday_child = birthday(child)
-    FILTERS parent(child) == p
 ;
 
 getPersons(TEXT token, FILE f) {
@@ -27,6 +19,38 @@ getPersons(TEXT token, FILE f) {
     }
     
     EXPORT exportPersons OBJECTS c = customer(frontUser(frontSession(token))) JSON;
+}
+
+FORM exportPerson
+    OBJECTS p = Person PANEL 
+    PROPERTIES IN public id = LONG (p), lastName = lastName(p), firstName = firstName(p), middleName = middleName(p), lastNameRp = lastNameRp(p), 
+                         firstNameRp = firstNameRp(p), middleNameRp = middleNameRp(p), birthday = birthday(p), address = address(p), 
+                         seriesPassport = seriesPassport(p), numberPassport = numberPassport(p), authorityPassport = authorityPassport(p), 
+                         dateIssuePassport = dateIssuePassport(p), codeUnitPassport = codeUnitPassport(p), phone = phone(p), inn = inn(p), 
+                         snils = snils(p), numberAccount = numberAccount(p), bank = LONG (bank(p))
+               
+    OBJECTS child = Child
+    PROPERTIES name_child = name(child), birthday_child = birthday(child)
+    FILTERS parent(child) == p
+;
+
+getPerson(TEXT token, FILE f) {
+    
+    checkToken(token);
+    IF invalidToken() THEN {
+        RETURN;
+    }
+    
+    LOCAL id = LONG ();
+    
+    IMPORT JSON FROM f AS FILE TO() id = id;
+    
+    FOR LONG (Person p AS Person) == id() DO {
+        EXPORT exportPerson OBJECTS p = p JSON;
+        RETURN;
+    }
+    
+    EXPORT JSON FROM code = '1', message = 'Неверный id';
 }
 
 id = DATA LOCAL LONG ();
@@ -113,9 +137,8 @@ addPerson(TEXT token, FILE f) {
             birthday(ch) <- birthday_child(c);
         }
     }
-    APPLY;
-    
-    EXPORT JSON FROM code = '0', message = 'OK';
+    APPLY NESTED (id[]);
+    EXPORT JSON FROM id = id();
 }
 
 deletePerson(TEXT token, FILE f) {
