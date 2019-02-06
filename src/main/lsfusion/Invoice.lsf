@@ -48,7 +48,13 @@ sumMonthly (Invoice i) <- sumMonthly(project(i)) WHEN CHANGED(project(i));
 sum 'Сумма, руб.' (Invoice i, Task t) = hours(i, t) * rate(i, t);
 sum 'Сумма, руб.' (Invoice i) = GROUP SUM sum(i, Task t);
 
-hoursPay 'Часов к оплате' (Invoice i, Task t) = hours(i,t) (-) PARTITION UNGROUP hoursMonthly LIMIT hours(i,t) ORDER rate(i,t), fromDate(i,t), t BY i;
+hoursMonthly 'Часов в абонентской плате'  = DATA NUMERIC[14,2](Project, Category);
+hoursMonthly 'Часов в абонентской плате' (Invoice i, Category c) = hoursMonthly(project(i), c);
+
+EXTEND FORM customer PROPERTIES hoursMonthly(p, cc);
+
+hoursPayCategory (Invoice i, Task t) = hours(i,t) (-) PARTITION UNGROUP hoursMonthly LIMIT hours(i,t) ORDER rate(i,t), fromDate(i,t), t BY i, category(employee(t));
+hoursPay 'Часов к оплате' (Invoice i, Task t) = hoursPayCategory(i,t) (-) PARTITION UNGROUP hoursMonthly LIMIT hoursPayCategory(i,t) ORDER rate(i,t), fromDate(i,t), t BY i;
 hoursPay 'Часов к оплате' (Invoice i) = GROUP SUM hoursPay(i, Task t);
 
 sumPay 'Сумма к оплате' (Invoice i, Task t) = hoursPay(i,t) * rate(i, t);
@@ -78,6 +84,11 @@ FORM invoice 'Счет'
     PROPERTIES(e) READONLY nameActivity, dateTimeStart, hours BACKGROUND userHours(e), dateTimeFinish
     PROPERTIES(e) removeInvoice TOOLBAR
     FILTERS task(e) == t
+    
+    OBJECTS c = Category
+    PROPERTIES READONLY name(c), hoursMonthly(i, c)
+    FILTERS hoursMonthly(i, c)
+    ORDER hoursMonthly(i, c) DESC 
     
     EDIT Invoice OBJECT i
 ;
@@ -116,6 +127,10 @@ DESIGN invoice {
                 panelCaptionAbove = TRUE;
             } 
         }
-        MOVE BOX(e);
+        NEW right {
+            fill = 1;
+            MOVE BOX(e);
+            MOVE BOX (c);
+        }
     }
 }
