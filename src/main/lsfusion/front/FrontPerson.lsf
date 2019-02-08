@@ -181,3 +181,22 @@ downloadPersonFile(TEXT token, LONG person, VARISTRING[50] fileName, FILE f) {
     
     exportFile() <- file();
 }
+
+getPersonByPassport (TEXT token, FILE f) {
+        
+    checkToken(token);
+    IF invalidToken() THEN {
+        RETURN;
+    }
+    
+    LOCAL series = VARISTRING[50] ();
+    LOCAL number = VARISTRING[50] ();
+    
+    IMPORT JSON FROM f AS FILE TO() series = series, number = number;
+    
+    FOR seriesPassport(Person p) == series() AND numberPassport(p) == number() DO {
+        EXPORT JSON FROM code = '0', id = LONG (p IS Person);
+        RETURN;
+    }
+    EXPORT JSON FROM code = '1', message = 'Физ. лицо не найдено';
+}
