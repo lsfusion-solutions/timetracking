@@ -38,7 +38,7 @@ login(FILE f) {
      calculateBase64Hash('SHA-256', password());
      
     IF NOT (GROUP MAX FrontUser u IF login() == login(u) AND sha256Password(u) == calculatedHash()) THEN {
-        EXPORT JSON FROM code = '1', message = 'Неверный логин или пароль';
+        EXPORT JSON FROM code = '401', message = 'Неверный логин или пароль';
         RETURN;
     }
     
