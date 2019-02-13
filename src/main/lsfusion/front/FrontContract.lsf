@@ -1,0 +1,146 @@
+MODULE FrontContract;
+
+REQUIRE FrontSession, EmploymentContract;
+
+NAMESPACE Front;
+
+FORM exportContracts
+    OBJECTS c = Customer PANEL 
+    OBJECTS l = LegalEntity PANEL 
+    OBJECTS p = Person PANEL 
+    FILTERS customer(l) == c, customer(p) == c
+    
+    OBJECTS ec = EmploymentContract
+    PROPERTIES IN public id = LONG (ec), idDocument = idDocument(ec), date = date(ec), city = city(ec), positionEmployee = positionEmployee(ec), 
+                         dateFrom = dateFrom(ec), duration = duration(ec), salary = salary(ec)
+    FILTERS legalEntity(ec) == l, person(ec) == p
+    
+;
+
+getContracts(TEXT token, FILE f) {
+    
+    checkToken(token);
+    IF invalidToken() THEN {
+        RETURN;
+    }
+    
+    LOCAL idLegalEntity = LONG ();
+    LOCAL idPerson = LONG ();
+    
+    IMPORT JSON FROM f AS FILE TO() idLegalEntity = idLegalEntity, idPerson = idPerson;
+    
+    FOR LONG (LegalEntity l AS LegalEntity) == idLegalEntity() AND LONG (Person p AS Person) == idPerson() DO {
+        EXPORT exportContracts OBJECTS c = customer(frontUser(frontSession(token))), l = l, p = p JSON;
+    }
+}
+
+deleteContract(TEXT token, FILE f) {
+        
+    checkToken(token);
+    IF invalidToken() THEN {
+        RETURN;
+    }
+    
+    LOCAL id = LONG ();
+    
+    IMPORT JSON FROM f AS FILE TO() id = id;
+    
+    FOR LONG (EmploymentContract c AS EmploymentContract) == id() DO {
+        DELETE c;
+    }
+    APPLY;
+    
+    EXPORT JSON FROM code = '0', message = 'OK';
+}
+
+FORM exportContract
+    OBJECTS c = EmploymentContract PANEL 
+    PROPERTIES IN public id = LONG (c), idLegalEntity = LONG (legalEntity(c)), idPerson = LONG (person(c)), idDocument = idDocument(c), 
+                         date = date(c), city = city(c), positionEmployee = positionEmployee(c), dateFrom = dateFrom(c), duration = duration(c), salary = salary(c)
+;
+
+getContract(TEXT token, FILE f) {
+    
+    checkToken(token);
+    IF invalidToken() THEN {
+        RETURN;
+    }
+    
+    LOCAL id = LONG ();
+    
+    IMPORT JSON FROM f AS FILE TO() id = id;
+    
+    FOR LONG (EmploymentContract c AS EmploymentContract) == id() DO {
+        EXPORT exportContract OBJECTS c = c JSON;
+        RETURN;
+    }
+    
+    EXPORT JSON FROM code = '1', message = 'Неверный id';
+}
+
+idContract = DATA LOCAL LONG ();
+idLegalEntity = DATA LOCAL LONG ();
+idPerson = DATA LOCAL LONG ();
+idDocument = DATA LOCAL VARSTRING[256]();
+date = DATA DATE ();
+city = DATA VARSTRING[256]();
+positionEmployee = DATA VARSTRING[1024]();
+dateFrom = DATA DATE ();
+duration = DATA INTEGER ();
+salary = DATA NUMERIC[15,2]();
+
+FORM importContract
+    PROPERTIES id = idContract(), idLegalEntity = idLegalEntity(), idPerson = idPerson(), idDocument = idDocument(), 
+               date = date(), city = city(), positionEmployee = positionEmployee(), dateFrom = dateFrom(), duration = duration(), salary = salary()
+;
+
+addContract(TEXT token, FILE f) {
+      
+    checkToken(token);
+    IF invalidToken() THEN {
+        RETURN;
+    }
+    
+    IMPORT importContract JSON FROM f AS FILE;
+
+    IF idContract() AND NOT (GROUP MAX EmploymentContract c AS EmploymentContract IF LONG (c) == idContract()) THEN {
+        EXPORT JSON FROM code = '1', message = 'Не найден договор по коду';
+        RETURN;
+    }
+    
+    IF NOT idContract() THEN NEW c = EmploymentContract {
+        idContract() <- LONG (c);
+    }
+    
+    FOR LONG (EmploymentContract c AS EmploymentContract) == idContract() DO {
+        legalEntity(c) <- GROUP MAX LegalEntity b AS LegalEntity IF LONG (b) == idLegalEntity();
+        person(c) <- GROUP MAX Person b AS Person IF LONG (b) == idPerson();
+        idDocument(c) <- idDocument();
+        date(c) <- date();
+        city(c) <- city();
+        positionEmployee(c) <- positionEmployee();
+        dateFrom(c) <- dateFrom();
+        duration(c) <- duration();
+        salary(c) <- salary();
+    }
+    APPLY NESTED (idContract[]);
+    EXPORT JSON FROM id = idContract();
+}
+
+generateFileContract (TEXT token, FILE f) {
+    
+    checkToken(token);
+    IF invalidToken() THEN {
+        RETURN;
+    }
+    
+    LOCAL id = LONG ();
+    
+    IMPORT JSON FROM f AS FILE TO() id = id;
+    
+    FOR LONG (EmploymentContract c AS EmploymentContract) == id() DO {
+        createTemplateEntries(c);
+        process(defaultEmplomentContractTemplate());
+        exportFile() <- FILE (resultTemplate());
+    }
+}

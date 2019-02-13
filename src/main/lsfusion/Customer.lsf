@@ -44,6 +44,7 @@ FORM customers 'Клиенты'
 FORM dialogCustomer 'Выбор клиента'
     OBJECTS c = Customer
     PROPERTIES(c) READONLY active, name
+    ORDER name(c)
     
     FILTERGROUP active FILTER 'Активный' active(c) 'F5' DEFAULT
     

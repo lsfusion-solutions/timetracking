@@ -76,46 +76,50 @@ city (EmploymentContract c) <- 'Москва' WHEN SET (c IS EmploymentContract)
 date (EmploymentContract c) <- currentDate() WHEN SET (c IS EmploymentContract);
 duration (EmploymentContract c) <- 3 WHEN SET (c IS EmploymentContract);
 
+createTemplateEntries (EmploymentContract c) {
+    NEW te = TemplateEntry { value(te) <- idDocument(c); key(te) <- '\{ДОГОВОР.НОМЕР\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- city(c); key(te) <- '\{ДОГОВОР.ГОРОД\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- toDateRus(date(c)); key(te) <- '\{ДОГОВОР.ДАТА\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- nameForm(c); key(te) <- '\{АСБ_КЛИЕНТ.ФОРМА_ХОЗЯЙСТВА_ПОЛНАЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- nameLegalEntity(c); key(te) <- '\{АСБ_КЛИЕНТ.НАЗВАНИЕ_ОРГАНИЗАЦИИ_ПОЛНОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- shortNameForm(c); key(te) <- '\{АСБ_КЛИЕНТ.ФОРМА_ХОЗЯЙСТВА_КРАТКАЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- OVERRIDE shortNameLegalEntity(c), nameLegalEntity(c); key(te) <- '\{АСБ_КЛИЕНТ.НАЗВАНИЕ_ОРГАНИЗАЦИИ_КРАТКОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- addressWork(c); key(te) <- '\{АСБ_КЛИЕНТ.ЮР_АДРЕС\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- positionEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ДОЛЖНОСТЬ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployer(c), firstNameEmployer(c), middleNameEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_ПОЛНОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- CONCAT '', left(firstNameEmployer(c), 1) + '.', left(middleNameEmployer(c), 1) + '.', ' ' + lastNameEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_КРАТКОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- baseEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ОСНОВАНИЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- innEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ИНН\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- kppEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.КПП\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- nameBankEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.БАНК_НАЗВАНИЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- bicBankEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.БАНК_БИК\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- accountBankBankEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.БАНК_СЧЁТ_КОР\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- accountEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.БАНК_СЧЁТ_РАС\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- positionEmployee(c); key(te) <- '\{СОТРУДНИК.ДОЛЖНОСТЬ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployee(c), firstNameEmployee(c), middleNameEmployee(c); key(te) <- '\{СОТРУДНИК.ФИО_ПОЛНОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- CONCAT '', left(firstNameEmployee(c), 1) + '.', left(middleNameEmployee(c), 1) + '.', ' ' + lastNameEmployee(c); key(te) <- '\{СОТРУДНИК.ФИО_КРАТКОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- addressWork(c); key(te) <- '\{ДОГОВОР.МЕСТО_РАБОТЫ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- toDateRus(dateFrom(c)); key(te) <- '\{ДОГОВОР.ДАТА_НАЧАЛА_ИСПОЛНЕНИЯ_ТРУДОВЫХ_ОБЯЗАННОСТЕЙ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- TEXT (duration(c)); key(te) <- '\{ДОГОВОР.ПРОДОЛЖИТЕЛЬНОСТЬ_ИСПЫТАТЕЛЬНОГО_СРОКА\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- TEXT (salary(c)); key(te) <- '\{ДОГОВОР.РАЗМЕР_ОКЛАДА\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- toDateDDMMYYYY(birthdayEmployee(c)); key(te) <- '\{СОТРУДНИК.ДАТА_РОЖДЕНИЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- TEXT (seriesPassport(c)); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_СЕРИЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- TEXT (numberPassport(c)); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_НОМЕР\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- authorityPassport(c); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_ОРГАН_ВЫДАВШИЙ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- toDateDDMMYYYY(dateIssuePassport(c)); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_ДАТА_ВЫДАЧИ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- codeUnitPassport(c); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_КОД_ПОДРАЗДЕЛЕНИЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- addressEmployee(c); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_АДРЕС_ПРОЖИВАНИЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- phoneEmployee(c); key(te) <- '\{СОТРУДНИК.НОМЕР_ТЕЛЕФОНА\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- innEmployee(c); key(te) <- '\{СОТРУДНИК.ИНН\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- nameBankEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_НАЗВАНИЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- bicBankEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_БИК\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- accountBankBankEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_СЧЁТ_КОР\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- accountEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_СЧЁТ_РАС\}'; template(te) <- defaultEmplomentContractTemplate(); }
+}
+
 createTemplate 'Сформировать по шаблону' (EmploymentContract c) {
     NEWSESSION {
-        NEW te = TemplateEntry { value(te) <- idDocument(c); key(te) <- '\{ДОГОВОР.НОМЕР\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- city(c); key(te) <- '\{ДОГОВОР.ГОРОД\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- toDateRus(date(c)); key(te) <- '\{ДОГОВОР.ДАТА\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- nameForm(c); key(te) <- '\{АСБ_КЛИЕНТ.ФОРМА_ХОЗЯЙСТВА_ПОЛНАЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- nameLegalEntity(c); key(te) <- '\{АСБ_КЛИЕНТ.НАЗВАНИЕ_ОРГАНИЗАЦИИ_ПОЛНОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- shortNameForm(c); key(te) <- '\{АСБ_КЛИЕНТ.ФОРМА_ХОЗЯЙСТВА_КРАТКАЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- OVERRIDE shortNameLegalEntity(c), nameLegalEntity(c); key(te) <- '\{АСБ_КЛИЕНТ.НАЗВАНИЕ_ОРГАНИЗАЦИИ_КРАТКОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- addressWork(c); key(te) <- '\{АСБ_КЛИЕНТ.ЮР_АДРЕС\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- positionEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ДОЛЖНОСТЬ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployer(c), firstNameEmployer(c), middleNameEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_ПОЛНОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- CONCAT '', left(firstNameEmployer(c), 1) + '.', left(middleNameEmployer(c), 1) + '.', ' ' + lastNameEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_КРАТКОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- baseEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ОСНОВАНИЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- innEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ИНН\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- kppEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.КПП\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- nameBankEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.БАНК_НАЗВАНИЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- bicBankEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.БАНК_БИК\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- accountBankBankEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.БАНК_СЧЁТ_КОР\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- accountEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.БАНК_СЧЁТ_РАС\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- positionEmployee(c); key(te) <- '\{СОТРУДНИК.ДОЛЖНОСТЬ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployee(c), firstNameEmployee(c), middleNameEmployee(c); key(te) <- '\{СОТРУДНИК.ФИО_ПОЛНОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- CONCAT '', left(firstNameEmployee(c), 1) + '.', left(middleNameEmployee(c), 1) + '.', ' ' + lastNameEmployee(c); key(te) <- '\{СОТРУДНИК.ФИО_КРАТКОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- addressWork(c); key(te) <- '\{ДОГОВОР.МЕСТО_РАБОТЫ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- toDateRus(dateFrom(c)); key(te) <- '\{ДОГОВОР.ДАТА_НАЧАЛА_ИСПОЛНЕНИЯ_ТРУДОВЫХ_ОБЯЗАННОСТЕЙ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- TEXT (duration(c)); key(te) <- '\{ДОГОВОР.ПРОДОЛЖИТЕЛЬНОСТЬ_ИСПЫТАТЕЛЬНОГО_СРОКА\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- TEXT (salary(c)); key(te) <- '\{ДОГОВОР.РАЗМЕР_ОКЛАДА\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- toDateDDMMYYYY(birthdayEmployee(c)); key(te) <- '\{СОТРУДНИК.ДАТА_РОЖДЕНИЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- TEXT (seriesPassport(c)); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_СЕРИЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- TEXT (numberPassport(c)); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_НОМЕР\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- authorityPassport(c); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_ОРГАН_ВЫДАВШИЙ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- toDateDDMMYYYY(dateIssuePassport(c)); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_ДАТА_ВЫДАЧИ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- codeUnitPassport(c); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_КОД_ПОДРАЗДЕЛЕНИЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- addressEmployee(c); key(te) <- '\{СОТРУДНИК.ПАСПОРТ_АДРЕС_ПРОЖИВАНИЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- phoneEmployee(c); key(te) <- '\{СОТРУДНИК.НОМЕР_ТЕЛЕФОНА\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- innEmployee(c); key(te) <- '\{СОТРУДНИК.ИНН\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- nameBankEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_НАЗВАНИЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- bicBankEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_БИК\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- accountBankBankEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_СЧЁТ_КОР\}'; template(te) <- defaultEmplomentContractTemplate(); }
-        NEW te = TemplateEntry { value(te) <- accountEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_СЧЁТ_РАС\}'; template(te) <- defaultEmplomentContractTemplate(); }
+        createTemplateEntries(c);
         process(defaultEmplomentContractTemplate());
         open(resultTemplate());
     }
