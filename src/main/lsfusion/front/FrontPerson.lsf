@@ -50,7 +50,7 @@ getPerson(TEXT token, FILE f) {
         RETURN;
     }
     
-    EXPORT JSON FROM code = '1', message = 'Неверный id';
+    EXPORT JSON FROM code = '404', message = 'Неверный id';
 }
 
 id = DATA LOCAL LONG ();
@@ -99,7 +99,7 @@ addPerson(TEXT token, FILE f) {
     IMPORT importPerson JSON FROM f AS FILE;
 
     IF id() AND NOT (GROUP MAX Person p AS Person IF LONG (p) == id()) THEN {
-        EXPORT JSON FROM code = '1', message = 'Не найдено физ. лицо по коду';
+        EXPORT JSON FROM code = '404', message = 'Не найдено физ. лицо по коду';
         RETURN;
     }
     
@@ -198,5 +198,5 @@ getPersonByPassport (TEXT token, FILE f) {
         EXPORT JSON FROM code = '0', id = LONG (p IS Person);
         RETURN;
     }
-    EXPORT JSON FROM code = '1', message = 'Физ. лицо не найдено';
+    EXPORT JSON FROM code = '404', message = 'Физ. лицо не найдено';
 }

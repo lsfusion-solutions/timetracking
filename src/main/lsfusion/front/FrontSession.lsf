@@ -1,6 +1,6 @@
 MODULE FrontSession;
 
-REQUIRE FrontUser, Time;
+REQUIRE FrontUser, Time, Utils;
 
 NAMESPACE Front;
 
@@ -64,12 +64,12 @@ checkToken (TEXT token) {
     invalidToken() <- NULL;
     
     IF NOT frontUser(frontSession(token)) THEN {
-        EXPORT JSON FROM code = '1', message = 'Неверный токен';
+        EXPORT JSON FROM code = '401', message = 'Неверный токен';
         invalidToken() <- TRUE;
     }
     ELSE FOR FrontSession s = frontSession(token) DO {
         IF subtractSeconds(currentDateTime(), sessionTimeOut() * 60) > updated(s) THEN {
-            EXPORT JSON FROM code = '2', message = 'Устаревшая сессия';
+            EXPORT JSON FROM code = '401', message = 'Устаревшая сессия';
             invalidToken() <- TRUE;
         }
         ELSE NEWSESSION {

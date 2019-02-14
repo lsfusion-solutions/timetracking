@@ -75,7 +75,7 @@ getContract(TEXT token, FILE f) {
         RETURN;
     }
     
-    EXPORT JSON FROM code = '1', message = 'Неверный id';
+    EXPORT JSON FROM code = '404', message = 'Неверный id';
 }
 
 idContract = DATA LOCAL LONG ();
@@ -104,7 +104,7 @@ addContract(TEXT token, FILE f) {
     IMPORT importContract JSON FROM f AS FILE;
 
     IF idContract() AND NOT (GROUP MAX EmploymentContract c AS EmploymentContract IF LONG (c) == idContract()) THEN {
-        EXPORT JSON FROM code = '1', message = 'Не найден договор по коду';
+        EXPORT JSON FROM code = '404', message = 'Не найден договор по коду';
         RETURN;
     }
     

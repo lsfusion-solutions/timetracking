@@ -115,6 +115,7 @@ createTemplateEntries (EmploymentContract c) {
     NEW te = TemplateEntry { value(te) <- bicBankEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_БИК\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- accountBankBankEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_СЧЁТ_КОР\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- accountEmployee(c); key(te) <- '\{СОТРУДНИК.БАНК_СЧЁТ_РАС\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- snilsEmployee(c); key(te) <- '\{СОТРУДНИК.СНИЛС\}'; template(te) <- defaultEmplomentContractTemplate(); }
 }
 
 createTemplate 'Сформировать по шаблону' (EmploymentContract c) {
