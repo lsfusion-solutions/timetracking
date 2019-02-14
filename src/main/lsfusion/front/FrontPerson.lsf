@@ -195,7 +195,7 @@ getPersonByPassport (TEXT token, FILE f) {
     IMPORT JSON FROM f AS FILE TO() series = series, number = number;
     
     FOR seriesPassport(Person p) == series() AND numberPassport(p) == number() DO {
-        EXPORT JSON FROM code = '0', id = LONG (p IS Person);
+        EXPORT JSON FROM code = '0', id = LONG (p AS Person);
         RETURN;
     }
     EXPORT JSON FROM code = '404', message = 'Физ. лицо не найдено';
