@@ -55,7 +55,7 @@ deleteContract(TEXT token, FILE f) {
 
 FORM exportContract
     OBJECTS c = EmploymentContract PANEL 
-    PROPERTIES IN public id = LONG (c), idLegalEntity = LONG (legalEntity(c)), idPerson = LONG (person(c)), idDocument = idDocument(c), 
+    PROPERTIES IN public id = LONG (c), idLegalEntity = LONG (legalEntity(c)), idPerson = LONG (person(c)), idDocument = idDocument(c), code = '0',
                          date = date(c), city = city(c), positionEmployee = positionEmployee(c), dateFrom = dateFrom(c), duration = duration(c), salary = salary(c)
 ;
 
@@ -124,7 +124,7 @@ addContract(TEXT token, FILE f) {
         salary(c) <- salary();
     }
     APPLY NESTED (idContract[]);
-    EXPORT JSON FROM id = idContract();
+    EXPORT JSON FROM id = idContract(), code = '0';
 }
 
 generateFileContract (TEXT token, FILE f) {
@@ -142,5 +142,8 @@ generateFileContract (TEXT token, FILE f) {
         createTemplateEntries(c);
         process(defaultEmplomentContractTemplate());
         exportFile() <- FILE (resultTemplate());
+        RETURN;
     }
+    
+    EXPORT JSON FROM code = '404', message = 'Не найден договор по коду';
 }

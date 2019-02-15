@@ -27,7 +27,7 @@ FORM exportPerson
                          firstNameRp = firstNameRp(p), middleNameRp = middleNameRp(p), birthday = birthday(p), address = address(p), 
                          seriesPassport = seriesPassport(p), numberPassport = numberPassport(p), authorityPassport = authorityPassport(p), 
                          dateIssuePassport = dateIssuePassport(p), codeUnitPassport = codeUnitPassport(p), phone = phone(p), inn = inn(p), 
-                         snils = snils(p), numberAccount = numberAccount(p), bank = LONG (bank(p))
+                         snils = snils(p), numberAccount = numberAccount(p), bank = LONG (bank(p)), code = '0'
                
     OBJECTS child = Child
     PROPERTIES name_child = name(child), birthday_child = birthday(child)
@@ -138,7 +138,7 @@ addPerson(TEXT token, FILE f) {
         }
     }
     APPLY NESTED (id[]);
-    EXPORT JSON FROM id = id();
+    EXPORT JSON FROM id = id(), code = '0';
 }
 
 deletePerson(TEXT token, FILE f) {

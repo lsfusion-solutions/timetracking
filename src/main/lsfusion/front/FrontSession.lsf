@@ -48,7 +48,7 @@ login(FILE f) {
         frontUser(s) <- frontUser(login());
         token(s) <- generateToken();
         APPLY;
-        EXPORT JSON FROM token = token(s);
+        EXPORT JSON FROM token = token(s), code = '0';
     }
 }
 
