@@ -90,7 +90,7 @@ checkToken (TEXT token) {
 
 file = DATA FILE (FrontSession, VARISTRING[50]);
 
-uploadFile(TEXT token, TEXT extension, FILE f) {
+uploadFile(TEXT extension, TEXT token, FILE f) {
     
     checkToken(token);
     IF invalidToken() THEN RETURN;
