@@ -9,14 +9,14 @@ code 'Код' = DATA VARSTRING[10] (Employee);
 
 FORM employee 'Сотрудник'
     OBJECTS e = Employee PANEL
-    PROPERTIES(e) firstName, lastName, code, login, sha256Password ON CHANGE changeSHA256Password(e), nameMainRole 
+    PROPERTIES(e) firstName, lastName, code, login, sha256Password ON CHANGE changeSHA256Password(e), nameMainRole, isLocked 
 
     EDIT Employee OBJECT e
 ;
 
 FORM employees 'Сотрудники'
     OBJECTS e = Employee
-    PROPERTIES(e) READONLYIF isReadonly() firstName, lastName, code, login, nameMainRole
+    PROPERTIES(e) READONLYIF isReadonly() firstName, lastName, code, login, nameMainRole, isLocked
     
     PROPERTIES(e) NEWSESSION NEW, EDIT, DELETE 
 ;
@@ -24,7 +24,7 @@ FORM employees 'Сотрудники'
 
 FORM dialogEmployee 'Выбор сотрудника'
     OBJECTS e = Employee
-    PROPERTIES(e) READONLY firstName, lastName, code
+    PROPERTIES(e) READONLY firstName, lastName, code, isLocked
     
     LIST Employee OBJECT e
 ;
