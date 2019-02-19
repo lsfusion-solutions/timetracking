@@ -203,3 +203,28 @@ NAVIGATOR {
         NEW timeDashboard;
     }
 }
+
+filterEmployee = DATA LOCAL Employee();
+nameFilterEmployee 'Сотрудник' () = name(filterEmployee()) CHARWIDTH 30;
+
+FORM timeEntriesEmployee 'Просмотр трудозатрат'
+    OBJECTS dates = (df = DATE, dt = DATE) PANEL 
+    PROPERTIES 'Дата с' = VALUE (df), 'Дата по' = VALUE (dt), nameFilterEmployee() DRAW dates
+    
+    OBJECTS t = TimeEntry
+    PROPERTIES (t) READONLY nameEmployee SHOWIF NOT filterEmployee(), nameCustomerProject, nameProject, dateStart, dateFinish, 
+                            nameTaskType, nameTask, nameActivity, comment, hours
+    FILTERS employee(t) == filterEmployee() OR NOT filterEmployee(),
+            dateFinish(t) >= df AND dateStart(t) <= dt
+    
+    EVENTS ON INIT {
+        filterEmployee() <- currentUser();
+        SEEK timeEntriesEmployee.dates OBJECTS df = subtract(currentDate(), INTEGER (numberM(extractDOW(currentDate()))));
+    }
+;
+
+NAVIGATOR {
+    dashboard {
+        NEW timeEntriesEmployee;
+    }
+}

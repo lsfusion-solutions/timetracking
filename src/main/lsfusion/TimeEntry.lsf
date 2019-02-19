@@ -13,7 +13,7 @@ project 'Проект' (TimeEntry e) = project(task(e));
 nameProject 'Проект' (TimeEntry e) = nameProject(task(e));
 
 employee 'Сотрудник' (TimeEntry e) = employee(task(e));
-nameEmployee 'Сотрудник' (TimeEntry e) = name(employee(e));
+nameEmployee 'Сотрудник' (TimeEntry e) = name(employee(e)) CHARWIDTH 20;
 
 namePractice 'Практика' (TimeEntry e) = namePractice(employee(e));
 
