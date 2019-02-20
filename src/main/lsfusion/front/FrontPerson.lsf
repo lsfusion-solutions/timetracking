@@ -7,7 +7,7 @@ NAMESPACE Front;
 FORM exportPersons
     OBJECTS c = Customer PANEL 
     OBJECTS p = Person
-    PROPERTIES IN public id = LONG (p), lastName = lastName(p), firstName = firstName(p), seriesPassport = seriesPassport(p), numberPassport = numberPassport(p)
+    PROPERTIES IN public id = LONG (p), lastName = lastName(p), firstName = firstName(p), middleName = middleName(p), seriesPassport = seriesPassport(p), numberPassport = numberPassport(p), birthday = birthday(p)
     FILTERS customer(p) == c
     PROPERTIES code = '0'
 ;
@@ -76,8 +76,8 @@ inn = DATA LOCAL VARSTRING[250]();
 snils = DATA LOCAL VARSTRING[250]();
 numberAccount = DATA LOCAL VARSTRING[250]();
 bank = DATA LOCAL LONG ();
-passportFile = DATA LOCAL VARISTRING[50]();
-snilsFile = DATA LOCAL VARISTRING[50]();
+filePassport = DATA LOCAL VARISTRING[50]();
+fileSnils = DATA LOCAL VARISTRING[50]();
 
 name_child = DATA VARISTRING[250](INTEGER);
 birthday_child = DATA DATE (INTEGER);
@@ -87,7 +87,7 @@ FORM importPerson
                  firstNameRp = firstNameRp(), middleNameRp = middleNameRp(), birthday = birthday(), address = address(), 
                  seriesPassport = seriesPassport(), numberPassport = numberPassport(), authorityPassport = authorityPassport(), 
                  dateIssuePassport = dateIssuePassport(), codeUnitPassport = codeUnitPassport(), phone = phone(), inn = inn(), 
-                 snils = snils(), numberAccount = numberAccount(), bank = bank(), passportFile = passportFile(), snilsFile = snilsFile()
+                 snils = snils(), numberAccount = numberAccount(), bank = bank(), filePassport = filePassport(), fileSnils = fileSnils()
        
     OBJECTS child = INTEGER 
     PROPERTIES name_child = name_child(child), birthday_child = birthday_child(child)
@@ -135,8 +135,8 @@ addPerson(TEXT token, FILE f) {
         numberAccount(p) <- numberAccount(); 
         bank(p) <- GROUP MAX Bank b AS Bank IF LONG (b) == bank();
         
-        filePassport(p) <- file(frontSession(token), passportFile());
-        fileSnils(p) <- file(frontSession(token), snilsFile());
+        filePassport(p) <- file(frontSession(token), filePassport());
+        fileSnils(p) <- file(frontSession(token), fileSnils());
         
         FOR name_child(INTEGER c) DO NEW ch = Child {
             parent(ch) <- p;
