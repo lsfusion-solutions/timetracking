@@ -99,6 +99,9 @@ addPerson(TEXT token, FILE f) {
     IF invalidToken() THEN {
         RETURN;
     }
+        
+    fileToString(f, 'UTF-8');
+    logToFile('API', 'addPerson:\n' + resultString());
     
     IMPORT importPerson JSON FROM f AS FILE;
 

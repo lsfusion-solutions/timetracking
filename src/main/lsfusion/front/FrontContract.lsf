@@ -101,6 +101,9 @@ addContract(TEXT token, FILE f) {
         RETURN;
     }
     
+    fileToString(f, 'UTF-8');
+    logToFile('API', 'addContract:\n' + resultString());
+    
     IMPORT importContract JSON FROM f AS FILE;
 
     IF idContract() AND NOT (GROUP MAX EmploymentContract c AS EmploymentContract IF LONG (c) == idContract()) THEN {
