@@ -7,7 +7,7 @@ NAMESPACE Front;
 FORM exportPersons
     OBJECTS c = Customer PANEL 
     OBJECTS p = Person
-    PROPERTIES IN public id = LONG (p), lastName = lastName(p), firstName = firstName(p)
+    PROPERTIES IN public id = LONG (p), lastName = lastName(p), firstName = firstName(p), seriesPassport = seriesPassport(p), numberPassport = numberPassport(p)
     FILTERS customer(p) == c
     PROPERTIES code = '0'
 ;
