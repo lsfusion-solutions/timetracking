@@ -9,6 +9,7 @@ FORM exportPersons
     OBJECTS p = Person
     PROPERTIES IN public id = LONG (p), lastName = lastName(p), firstName = firstName(p)
     FILTERS customer(p) == c
+    PROPERTIES code = '0'
 ;
 
 getPersons(TEXT token, FILE f) {
@@ -21,13 +22,16 @@ getPersons(TEXT token, FILE f) {
     EXPORT exportPersons OBJECTS c = customer(frontUser(frontSession(token))) JSON;
 }
 
+hasPassport (Person p) = CASE WHEN filePassport(p) THEN 1 ELSE 0;
+hasSnils (Person p) = CASE WHEN fileSnils(p) THEN 1 ELSE 0;
+
 FORM exportPerson
     OBJECTS p = Person PANEL 
     PROPERTIES IN public id = LONG (p), lastName = lastName(p), firstName = firstName(p), middleName = middleName(p), lastNameRp = lastNameRp(p), 
                          firstNameRp = firstNameRp(p), middleNameRp = middleNameRp(p), birthday = birthday(p), address = address(p), 
                          seriesPassport = seriesPassport(p), numberPassport = numberPassport(p), authorityPassport = authorityPassport(p), 
                          dateIssuePassport = dateIssuePassport(p), codeUnitPassport = codeUnitPassport(p), phone = phone(p), inn = inn(p), 
-                         snils = snils(p), numberAccount = numberAccount(p), bank = LONG (bank(p)), code = '0'
+                         snils = snils(p), numberAccount = numberAccount(p), bank = LONG (bank(p)), code = '0', hasPassport = hasPassport(p), hasSnils = hasSnils(p)
                
     OBJECTS child = Child
     PROPERTIES name_child = name(child), birthday_child = birthday(child)
