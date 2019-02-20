@@ -26,7 +26,7 @@ authorityPassport 'Орган, выдавший паспорт' = DATA VARISTRIN
 dateIssuePassport 'Дата выдачи паспорта' = DATA DATE (Person);
 codeUnitPassport 'Код орагана выдачи паспорта' = DATA VARISTRING[1024](Person) CHARWIDTH 10;
 
-inn 'ИНН' = DATA VARISTRING[10](Person);
+inn 'ИНН' = DATA VARISTRING[12](Person);
 snils 'СНИЛС' = DATA VARISTRING[50](Person) CHARWIDTH 10;
 
 numberAccount 'Банковский счёт' = DATA VARISTRING[50](Person) CHARWIDTH 15;
