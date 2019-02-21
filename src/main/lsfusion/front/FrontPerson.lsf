@@ -169,7 +169,7 @@ deletePerson(TEXT token, FILE f) {
 
 file = DATA FILE (Person, VARISTRING[50]);
 
-downloadPersonFile(TEXT token, LONG person, VARISTRING[50] fileName, FILE f) {
+downloadPersonFile(LONG person, VARISTRING[50] fileName, TEXT token, FILE f) {
     
     checkToken(token);
     IF invalidToken() THEN RETURN;
