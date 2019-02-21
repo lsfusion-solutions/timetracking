@@ -95,8 +95,7 @@ uploadFile(TEXT extension, TEXT token, FILE f) {
     checkToken(token);
     IF invalidToken() THEN RETURN;
     
-    fileToString(f, 'UTF-8');
-    logToFile('API', 'uploadFile:\n' + resultString());
+    logToFile('API', 'uploadFile:\n' + token + ' - ' + extension);
     
     FOR VARISTRING[50] id = generateToken() AND FrontSession s = frontSession(token) DO {
         file(s, id) <- changeExtension(f, extension);
