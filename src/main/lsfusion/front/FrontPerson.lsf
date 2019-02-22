@@ -116,23 +116,23 @@ addPerson(TEXT token, FILE f) {
     
     FOR LONG (Person p AS Person) == id() DO {
         customer(p) <- customer(frontUser(frontSession(token)));
-        lastName(p) <- lastName();
-        firstName(p) <- firstName(); 
-        middleName(p) <- middleName(); 
-        lastNameRp(p) <- lastNameRp(); 
-        firstNameRp(p) <- firstNameRp(); 
-        middleNameRp(p) <- middleNameRp(); 
-        birthday(p) <- birthday(); 
-        address(p) <- address(); 
-        seriesPassport(p) <- seriesPassport(); 
-        numberPassport(p) <- numberPassport(); 
-        authorityPassport(p) <- authorityPassport(); 
-        dateIssuePassport(p) <- dateIssuePassport(); 
-        codeUnitPassport(p) <- codeUnitPassport(); 
-        phone(p) <- phone(); 
-        inn(p) <- inn(); 
-        snils(p) <- snils(); 
-        numberAccount(p) <- numberAccount(); 
+        lastName(p) <- lastName() WHERE lastName();
+        firstName(p) <- firstName() WHERE firstName(); 
+        middleName(p) <- middleName() WHERE middleName(); 
+        lastNameRp(p) <- lastNameRp() WHERE lastNameRp(); 
+        firstNameRp(p) <- firstNameRp() WHERE firstNameRp(); 
+        middleNameRp(p) <- middleNameRp() WHERE middleNameRp(); 
+        birthday(p) <- birthday() WHERE birthday(); 
+        address(p) <- address() WHERE address(); 
+        seriesPassport(p) <- seriesPassport() WHERE seriesPassport(); 
+        numberPassport(p) <- numberPassport() WHERE numberAccount(); 
+        authorityPassport(p) <- authorityPassport() WHERE authorityPassport(); 
+        dateIssuePassport(p) <- dateIssuePassport() WHERE dateIssuePassport(); 
+        codeUnitPassport(p) <- codeUnitPassport() WHERE codeUnitPassport(); 
+        phone(p) <- phone() WHERE phone(); 
+        inn(p) <- inn() WHERE inn(); 
+        snils(p) <- snils() WHERE snils(); 
+        numberAccount(p) <- numberAccount() WHERE numberAccount(); 
         bank(p) <- GROUP MAX Bank b AS Bank IF LONG (b) == bank();
         
         filePassport(p) <- file(frontSession(token), filePassport());
