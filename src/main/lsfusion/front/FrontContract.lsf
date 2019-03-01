@@ -4,16 +4,18 @@ REQUIRE FrontSession, EmploymentContract;
 
 NAMESPACE Front;
 
+filterPerson = DATA LOCAL Person();
+filterLegalEntity = DATA LOCAL LegalEntity();
+
 FORM exportContracts
     OBJECTS c = Customer PANEL 
-    OBJECTS l = LegalEntity PANEL 
-    OBJECTS p = Person PANEL 
-    FILTERS customer(l) == c, customer(p) == c
+    FILTERS customer(filterLegalEntity()) == c OR NOT filterLegalEntity(), customer(filterPerson()) == c OR NOT filterPerson()
     
     OBJECTS ec = EmploymentContract
     PROPERTIES IN public id = LONG (ec), idDocument = idDocument(ec), date = date(ec), city = city(ec), positionEmployee = positionEmployee(ec), 
-                         dateFrom = dateFrom(ec), duration = duration(ec), salary = salary(ec)
-    FILTERS legalEntity(ec) == l, person(ec) == p
+                         dateFrom = dateFrom(ec), duration = duration(ec), salary = salary(ec), 
+                         idPerson = LONG (person(ec) AS Person), idLegalEntity = LONG (legalEntity(ec) AS LegalEntity)
+    FILTERS legalEntity(ec) == filterLegalEntity() OR NOT filterLegalEntity(), person(ec) == filterPerson() OR NOT filterPerson()
     
 ;
 
@@ -29,8 +31,19 @@ getContracts(TEXT token, FILE f) {
     
     IMPORT JSON FROM f AS FILE TO() idLegalEntity = idLegalEntity, idPerson = idPerson;
     
-    FOR LONG (LegalEntity l AS LegalEntity) == idLegalEntity() AND LONG (Person p AS Person) == idPerson() DO {
-        EXPORT exportContracts OBJECTS c = customer(frontUser(frontSession(token))), l = l, p = p JSON;
+    filterPerson() <- GROUP MAX Person p IF LONG (p AS Person) == idPerson();
+    filterLegalEntity() <- GROUP MAX LegalEntity p IF LONG (p AS LegalEntity) == idLegalEntity();
+    
+    IF idPerson() AND NOT filterPerson() THEN {
+        EXPORT JSON FROM code = '404', message = 'Неверный id физ.лица';
+        RETURN;
+    }
+    IF idLegalEntity() AND NOT filterLegalEntity() THEN {
+        EXPORT JSON FROM code = '404', message = 'Неверный id юр.лица';
+        RETURN;
+    }
+    IF filterLegalEntity() OR filterPerson() THEN {
+        EXPORT exportContracts OBJECTS c = customer(frontUser(frontSession(token))) JSON;
     }
 }
 
