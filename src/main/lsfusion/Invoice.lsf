@@ -28,8 +28,23 @@ invoice 'Счет' = DATA Invoice (TimeEntry);
 
 CONSTRAINT project(TimeEntry t) != project(invoice(t)) MESSAGE 'Проект счета не соответствует проекту отметки времени'; 
 
-fromDate 'Дата с' = GROUP MIN dateStart(TimeEntry e) BY invoice(e);
-toDate 'Дата по' = GROUP MAX dateStart(TimeEntry e) BY invoice(e);
+fromDate 'Дата с' = DATA DATE (Invoice);
+toDate 'Дата по' = DATA DATE (Invoice);
+
+changeInvoiceDates = DATA BOOLEAN ();
+onStarted() + {
+    IF NOT changeInvoiceDates() THEN {
+        fromDate(Invoice i) <- GROUP MIN dateStart(TimeEntry e) IF invoice(e) == i;
+        toDate(Invoice i) <- lastDayOfMonth(fromDate(i));
+        changeInvoiceDates() <- TRUE;
+    }
+}
+
+fromDate(Invoice i) <- (GROUP MIN dateStart(TimeEntry e) IF invoice(e) == i) WHEN SET (i IS Invoice);
+
+WHEN LOCAL CHANGED (fromDate(Invoice i)) AND NOT CHANGED (toDate(i)) DO {
+    toDate(i) <- lastDayOfMonth(fromDate(i));
+}
 
 fromDate 'Дата с' = GROUP MIN dateStart(TimeEntry e) BY invoice(e), task(e);
 
