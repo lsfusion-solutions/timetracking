@@ -128,9 +128,24 @@ addContract(TEXT token, FILE f) {
         idContract() <- LONG (c);
     }
     
+    LOCAL legalEntity = LegalEntity();
+    LOCAL person = Person();
+    
+    legalEntity() <- GROUP MAX LegalEntity b AS LegalEntity IF LONG (b) == idLegalEntity();
+    person() <- GROUP MAX Person b AS Person IF LONG (b) == idPerson();
+    
+    IF NOT legalEntity() THEN {
+        EXPORT JSON FROM code = '404', message = 'Не найдено юр. лицо по коду';
+        RETURN;
+    }
+    IF NOT person() THEN {
+        EXPORT JSON FROM code = '404', message = 'Не найдено физ. лицо по коду';
+        RETURN;
+    }
+    
     FOR LONG (EmploymentContract c AS EmploymentContract) == idContract() DO {
-        legalEntity(c) <- GROUP MAX LegalEntity b AS LegalEntity IF LONG (b) == idLegalEntity();
-        person(c) <- GROUP MAX Person b AS Person IF LONG (b) == idPerson();
+        legalEntity(c) <- legalEntity();
+        person(c) <- person();
         idDocument(c) <- idDocument();
         date(c) <- date();
         city(c) <- city();
@@ -140,6 +155,10 @@ addContract(TEXT token, FILE f) {
         salary(c) <- salary();
     }
     APPLY NESTED (idContract[]);
+    IF canceled() THEN {
+        EXPORT JSON FROM code = '404', message = applyMessage();
+        RETURN;
+    }
     EXPORT JSON FROM id = idContract(), code = '0';
 }
 

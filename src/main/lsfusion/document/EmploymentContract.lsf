@@ -22,6 +22,9 @@ TABLE employmentContract(EmploymentContract);
 legalEntity = DATA LegalEntity(EmploymentContract);
 person = DATA Person(EmploymentContract);
 
+CONSTRAINT EmploymentContract c IS EmploymentContract AND NOT legalEntity(c) MESSAGE 'У договроа не задан работодатель';
+CONSTRAINT EmploymentContract c IS EmploymentContract AND NOT person(c) MESSAGE 'У договроа не задан работник';
+
 form (EmploymentContract c) = form(legalEntity(c));
 nameForm 'Форма хозяйства' (EmploymentContract c) = name(form(c));
 shortNameForm 'Форма хозяйства (кратко)' (EmploymentContract c) = shortName(form(c));
