@@ -10,14 +10,14 @@ fired 'Уволен' = DATA BOOLEAN (Employee);
 
 FORM employee 'Сотрудник'
     OBJECTS e = Employee PANEL
-    PROPERTIES(e) firstName, lastName, code, login, sha256Password ON CHANGE changeSHA256Password(e), nameMainRole, isLocked, fired
+    PROPERTIES(e) firstName, lastName, code, login, sha256Password ON CHANGE changeSHA256Password(e), email, nameMainRole, isLocked, fired
 
     EDIT Employee OBJECT e
 ;
 
 FORM employees 'Сотрудники'
     OBJECTS e = Employee
-    PROPERTIES(e) READONLYIF isReadonly() firstName, lastName, code, login, nameMainRole, isLocked
+    PROPERTIES(e) READONLYIF isReadonly() firstName, lastName, code, login, email, nameMainRole, isLocked
     
     PROPERTIES(e) NEWSESSION NEW, EDIT, DELETE 
     FILTERGROUP fired FILTER 'Не уволены' NOT fired(e) DEFAULT 

@@ -114,6 +114,7 @@ createEmailTasks () {
             name(t) <- trim(replace(subject(e), id(p), ''));
             description(t) <- message(e);
             taskType(t) <- emailTaskType();
+            employee(t) <- GROUP MAX Employee ee IF email(ee) == fromAddress(e);
             read(e) <- TRUE;
         }
         APPLY;
