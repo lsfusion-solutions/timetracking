@@ -109,12 +109,14 @@ DESIGN options { commons { MOVE PROPERTY (nameEmailTaskType()); } }
 createEmailTasks () {
     NEWSESSION {
         receiveEmailAction();
-        FOR isSubstring(subject(Email e), id(Project p)) AND NOT read(e) DO NEW t = Task {
+        FOR isSubstring(subject(Email e), id(Project p)) AND 
+            Employee et = GROUP MAX Employee ee IF email(ee) == fromAddress(e) 
+            AND NOT read(e) DO NEW t = Task {
             project(t) <- p;
             name(t) <- trim(replace(subject(e), id(p), ''));
             description(t) <- message(e);
             taskType(t) <- emailTaskType();
-            employee(t) <- GROUP MAX Employee ee IF email(ee) == fromAddress(e);
+            employee(t) <- et;
             read(e) <- TRUE;
         }
         APPLY;
