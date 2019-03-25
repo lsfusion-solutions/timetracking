@@ -22,7 +22,7 @@ nameEmployee 'Сотрудник' (Task e) = name(employee(e)) CHARWIDTH 20;
 
 employee(Task t) <- currentEmployee() WHEN SET(t IS Task);  
 
-CONSTRAINT employee(Task e) AND project(e) AND NOT assigned(project(e), employee(e)) AND NOT (CHANGED (assigned(project(e), employee(e))))
+CONSTRAINT (CHANGED(employee(Task e)) OR CHANGED(project(e))) AND employee(e) AND project(e) AND NOT assigned(project(e), employee(e))
     CHECKED BY employee, project
     MESSAGE 'Для трудозатрат задан сотрудник, не назначенный на проект';
 
