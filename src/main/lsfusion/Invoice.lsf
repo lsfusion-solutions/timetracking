@@ -71,6 +71,7 @@ EXTEND FORM customer PROPERTIES hoursMonthly(p, cc);
 hoursPayCategory (Invoice i, Task t) = hours(i,t) (-) PARTITION UNGROUP hoursMonthly LIMIT hours(i,t) ORDER rate(i,t), fromDate(i,t), t BY i, category(employee(t));
 hoursPay 'Часов к оплате' (Invoice i, Task t) = hoursPayCategory(i,t) (-) PARTITION UNGROUP hoursMonthly LIMIT hoursPayCategory(i,t) ORDER rate(i,t), fromDate(i,t), t BY i;
 hoursPay 'Часов к оплате' (Invoice i) = GROUP SUM hoursPay(i, Task t);
+hoursPay 'Часов к оплате' (Invoice i, Category c) = GROUP SUM hoursPay(i, Task t) BY category(t);
 
 sumPay 'Сумма к оплате' (Invoice i, Task t) = hoursPay(i,t) * rate(i, t);
 sumPay 'Сумма к оплате' (Invoice i) = GROUP SUM sumPay(i, Task t);
@@ -82,7 +83,7 @@ removeInvoice 'Исключить' (TimeEntry e)  {
 }
 
 codeEmployee 'Код' (Task t) = code(employee(t));
-nameCategoryEmployee 'Категория' (Task t) = nameCategory(employee(t));
+nameCategoryEmployee 'Категория сотрудника' (Task t) = nameCategory(employee(t));
 
 FORM invoice 'Счет'
     OBJECTS i = Invoice PANEL
@@ -101,8 +102,8 @@ FORM invoice 'Счет'
     FILTERS task(e) == t
     
     OBJECTS c = Category
-    PROPERTIES READONLY name(c), hoursMonthly(i, c)
-    FILTERS hoursMonthly(i, c)
+    PROPERTIES READONLY name(c), hoursMonthly(i, c), hoursPay(i, c)
+    FILTERS hoursMonthly(i, c) OR hoursPay(i, c)
     ORDER hoursMonthly(i, c) DESC 
     
     EDIT Invoice OBJECT i
@@ -149,3 +150,21 @@ DESIGN invoice {
         }
     }
 }
+
+backgroundCategory (Task t) = CASE 
+    WHEN NOT category(t) == category(employee(t)) AND category(t) == category(employee(t), project(t)) THEN RGB (255, 255, 200)
+    WHEN NOT category(t) == (OVERRIDE category(employee(t), project(t)), category(employee(t))) THEN RGB (255, 200, 200);
+
+changeCategoryProject(Invoice i, Task t) {
+    DIALOG dialogCategory OBJECTS c INPUT NULL DO {
+        category(Employee e, Project p) <- c WHERE e = employee(t) AND p == project(t);
+        
+        ASK 'Изменить категорию для всех задач в счёте?' DO {
+            category(Task tt) <- (OVERRIDE c, category(employee(tt))) WHERE hours(i, tt) AND employee(tt) == employee(t);
+        }
+    }
+}
+
+EXTEND FORM invoice 
+    PROPERTIES nameCategory(t) BACKGROUND backgroundCategory(t), 'Категория на проекте' = nameCategory(employee(t), project(t)) ON CHANGE changeCategoryProject(i, t) PANEL DRAW t TOOLBAR 
+;

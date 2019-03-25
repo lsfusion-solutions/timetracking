@@ -1,11 +1,11 @@
 MODULE Task;
 
-REQUIRE Project, Employee, Email;
+REQUIRE Project, Employee, Email, Category;
 
 CLASS Task 'Задача';
 TABLE task(Task);
 
-name 'Название' = DATA VARSTRING[100] (Task);
+name 'Название' = DATA VARSTRING[100] (Task) CHARWIDTH 20;
 
 description 'Описание' = DATA TEXT (Task);
 
@@ -18,7 +18,7 @@ customer 'Клиент' (Task e) = customer(project(e));
 nameCustomerProject 'Клиент' (Task e) = name(customer(e));
 
 employee 'Сотрудник' = DATA Employee (Task) NONULL;
-nameEmployee 'Сотрудник' (Task e) = name(employee(e));
+nameEmployee 'Сотрудник' (Task e) = name(employee(e)) CHARWIDTH 20;
 
 employee(Task t) <- currentEmployee() WHEN SET(t IS Task);  
 
@@ -120,5 +120,18 @@ createEmailTasks () {
             read(e) <- TRUE;
         }
         APPLY;
+    }
+}
+
+category = DATA Category(Task);
+nameCategory 'Категория для задачи' (Task t) = name(category(t));
+
+WHEN LOCAL (CHANGED (employee(Task t)) OR CHANGED (project(t))) AND NOT CHANGED (category(t)) DO {
+    category(t) <- OVERRIDE category(employee(t), project(t)), category(employee(t));
+}
+
+onStarted() + {
+    FOR Task t IS Task AND NOT category(t) DO {
+        category(t) <- OVERRIDE category(employee(t), project(t)), category(employee(t));
     }
 }

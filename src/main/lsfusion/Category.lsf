@@ -61,7 +61,7 @@ EXTEND FORM customer
 
 DESIGN customer {
     tabPane {
-        NEW rates {
+        NEW rates FIRST {
             caption = 'Оплата';
             NEW header {
                 type = CONTAINERH;
@@ -70,5 +70,21 @@ DESIGN customer {
             }
             MOVE BOX(cc);
         }
+    }
+}
+
+category = DATA Category(Employee, Project);
+nameCategory 'Категория' (Employee e, Project p) = name(category(e, p));
+
+EXTEND FORM customer 
+    OBJECTS e = Employee
+    PROPERTIES name(e) READONLY, nameCategory(e, p) 
+    FILTERS category(e) == cc
+    FILTERGROUP cat FILTER 'Неосновные категории' NOT category(e) == category(e, p)
+;
+
+DESIGN customer {
+    rates {
+        MOVE BOX (e) AFTER BOX (cc);
     }
 }
