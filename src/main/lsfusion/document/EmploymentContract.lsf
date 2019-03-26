@@ -47,8 +47,12 @@ shortNameLegalEntity 'Краткое название' (EmploymentContract c) = 
 firstNameEmployer 'Имя работодателя' (EmploymentContract c) = firstName(representative(legalEntity(c)));
 lastNameEmployer 'Фамилия работодателя' (EmploymentContract c) = lastName(representative(legalEntity(c)));
 middleNameEmployer 'Отчество работодателя' (EmploymentContract c) = middleName(representative(legalEntity(c)));
+firstNameEmployerRp 'Имя работодателя (Р.п.)' (EmploymentContract c) = firstNameRp(representative(legalEntity(c)));
+lastNameEmployerRp 'Фамилия работодателя (Р.п.)' (EmploymentContract c) = lastNameRp(representative(legalEntity(c)));
+middleNameEmployerRp 'Отчество работодателя (Р.п.)' (EmploymentContract c) = middleNameRp(representative(legalEntity(c)));
 baseEmployer 'Основание' (EmploymentContract c) = baseRepresentative(legalEntity(c));
 positionEmployer 'Должность работодателя' (EmploymentContract c) = positionRepresentative(legalEntity(c));
+addressEmployer 'Юридический адрес работодателя' (EmploymentContract c) = address(legalEntity(c));
 innEmployer 'ИНН работодателя' (EmploymentContract c) =  inn(legalEntity(c));
 kppEmployer 'КПП работодателя' (EmploymentContract c) =  kpp(legalEntity(c));
 nameBankEmployer 'Название банка работодателя' (EmploymentContract c) =  nameBank(legalEntity(c));
@@ -61,6 +65,10 @@ lastNameEmployee 'Фамилия работника' (EmploymentContract c) = la
 middleNameEmployee 'Отчество работника' (EmploymentContract c) = middleName(person(c));
 birthdayEmployee 'Дата рождения работника' (EmploymentContract c) = birthday(person(c));
 addressEmployee 'Адрес прописки' (EmploymentContract c) = address(person(c));
+
+firstNameEmployeeRp 'Имя работника (Р.п.)' (EmploymentContract c) = firstNameRp(person(c));
+lastNameEmployeeRp 'Фамилия работника (Р.п.)' (EmploymentContract c) = lastNameRp(person(c));
+middleNameEmployeeRp 'Отчество работника (Р.п.)' (EmploymentContract c) = middleNameRp(person(c));
 
 seriesPassport 'Серия паспорта работника' (EmploymentContract c) =  seriesPassport(person(c));
 numberPassport 'Номер паспорта работника' (EmploymentContract c) =  numberPassport(person(c));
@@ -87,9 +95,10 @@ createTemplateEntries (EmploymentContract c) {
     NEW te = TemplateEntry { value(te) <- nameLegalEntity(c); key(te) <- '\{АСБ_КЛИЕНТ.НАЗВАНИЕ_ОРГАНИЗАЦИИ_ПОЛНОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- shortNameForm(c); key(te) <- '\{АСБ_КЛИЕНТ.ФОРМА_ХОЗЯЙСТВА_КРАТКАЯ\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- OVERRIDE shortNameLegalEntity(c), nameLegalEntity(c); key(te) <- '\{АСБ_КЛИЕНТ.НАЗВАНИЕ_ОРГАНИЗАЦИИ_КРАТКОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
-    NEW te = TemplateEntry { value(te) <- addressWork(c); key(te) <- '\{АСБ_КЛИЕНТ.ЮР_АДРЕС\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- addressEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ЮР_АДРЕС\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- positionEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ДОЛЖНОСТЬ\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployer(c), firstNameEmployer(c), middleNameEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_ПОЛНОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployerRp(c), firstNameEmployerRp(c), middleNameEmployerRp(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_ПОЛНОЕ_РОДИТЕЛЬНЫЙ_ПАДЕЖ\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- CONCAT '', left(firstNameEmployer(c), 1) + '.', left(middleNameEmployer(c), 1) + '.', ' ' + lastNameEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_КРАТКОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- baseEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ОСНОВАНИЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- innEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ИНН\}'; template(te) <- defaultEmplomentContractTemplate(); }
@@ -100,6 +109,7 @@ createTemplateEntries (EmploymentContract c) {
     NEW te = TemplateEntry { value(te) <- accountEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.БАНК_СЧЁТ_РАС\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- positionEmployee(c); key(te) <- '\{СОТРУДНИК.ДОЛЖНОСТЬ\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployee(c), firstNameEmployee(c), middleNameEmployee(c); key(te) <- '\{СОТРУДНИК.ФИО_ПОЛНОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
+    NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployeeRp(c), firstNameEmployeeRp(c), middleNameEmployeeRp(c); key(te) <- '\{СОТРУДНИК.ФИО_ПОЛНОЕ_РОДИТЕЛЬНЫЙ_ПАДЕЖ\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- CONCAT '', left(firstNameEmployee(c), 1) + '.', left(middleNameEmployee(c), 1) + '.', ' ' + lastNameEmployee(c); key(te) <- '\{СОТРУДНИК.ФИО_КРАТКОЕ\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- addressWork(c); key(te) <- '\{ДОГОВОР.МЕСТО_РАБОТЫ\}'; template(te) <- defaultEmplomentContractTemplate(); }
     NEW te = TemplateEntry { value(te) <- toDateRus(dateFrom(c)); key(te) <- '\{ДОГОВОР.ДАТА_НАЧАЛА_ИСПОЛНЕНИЯ_ТРУДОВЫХ_ОБЯЗАННОСТЕЙ\}'; template(te) <- defaultEmplomentContractTemplate(); }
