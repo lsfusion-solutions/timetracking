@@ -12,7 +12,7 @@ description 'Описание' = DATA TEXT (Task);
 project 'Проект' = DATA Project (Task);
 nameProject 'Проект' (Task e) = name(project(e)); 
 
-CONSTRAINT Task t IS Task AND NOT project(t) MESSAGE 'Для задачи должен быть задан проект. Нельзя удалить проект, по которому есть задачи';
+CONSTRAINT DROPPED (Project p IS Project) AND [GROUP SUM 1 BY PREV (project(Task t))](p) MESSAGE 'Нельзя удалить проект, по которому есть задачи';
 
 customer 'Клиент' (Task e) = customer(project(e));
 nameCustomerProject 'Клиент' (Task e) = name(customer(e));
@@ -105,23 +105,6 @@ nameEmailTaskType 'Тип задач, созданных по email' () = name(e
 
 EXTEND FORM options PROPERTIES nameEmailTaskType();
 DESIGN options { commons { MOVE PROPERTY (nameEmailTaskType()); } }
-
-createEmailTasks () {
-    NEWSESSION {
-        receiveEmailAction();
-        FOR isSubstring(subject(Email e), id(Project p)) AND 
-            Employee et = GROUP MAX Employee ee IF email(ee) == fromAddress(e) 
-            AND NOT read(e) DO NEW t = Task {
-            project(t) <- p;
-            name(t) <- trim(replace(subject(e), id(p), ''));
-            description(t) <- message(e);
-            taskType(t) <- emailTaskType();
-            employee(t) <- et;
-            read(e) <- TRUE;
-        }
-        APPLY;
-    }
-}
 
 category = DATA Category(Task);
 nameCategory 'Категория для задачи' (Task t) = name(category(t));

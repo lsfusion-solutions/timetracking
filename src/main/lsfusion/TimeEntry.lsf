@@ -51,14 +51,46 @@ CONSTRAINT SETCHANGED(hours(TimeEntry e)) AND hours(e) < 0.0
 inProcess 'В работе' (TimeEntry e) = dateTimeStart(e) AND NOT dateTimeFinish(e) AND NOT userHours(e);
 inProcess 'В работе' (Task t) = t IS Task AND NOT completed(t) AND NOT dateTimeFinish(t);
 
+initPaused 'Запускать на паузе' = DATA BOOLEAN (Task);
+
 status 'Статус' (Task t) = CASE WHEN completed(t) THEN 'Завершена'
-                                                WHEN dateTimeFinish(t) THEN 'На паузе'
+                                                WHEN dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t)) THEN 'На паузе'
                                                 ELSE 'В работе';
 
 background (Task t) = CASE WHEN completed(t) THEN RGB(255,255,255)
-                                         WHEN dateTimeFinish(t) THEN RGB(212,212,255)
+                                         WHEN dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t)) THEN RGB(212,212,255)
                                          ELSE RGB(212,255,212);
 
+createEmailTasks () {
+    NEWSESSION {
+        receiveEmailAction();
+         
+        FOR isSubstring(subject(Email e), id(Project p)) AND 
+            (Employee et = GROUP MAX Employee ee IF email(ee) == fromAddress(e))
+            AND NOT read(e) DO NEW t = Task {
+            project(t) <- p;
+            name(t) <- trim(replace(subject(e), id(p), ''));
+            description(t) <- message(e);
+            taskType(t) <- emailTaskType();
+            employee(t) <- et;
+            read(e) <- TRUE;
+            IF [GROUP SUM 1 IF status(Task tt) == 'В работе' BY employee(tt)](et) THEN {
+                initPaused(t) <- TRUE;
+            }
+        }
+        FOR Email e IS Email AND (Employee et = GROUP MAX Employee ee IF email(ee) == fromAddress(e)) AND NOT read(e) DO NEW t = Task {
+            name(t) <- trim(subject(e));
+            description(t) <- message(e);
+            taskType(t) <- emailTaskType();
+            employee(t) <- et;
+            read(e) <- TRUE;
+            IF [GROUP SUM 1 IF status(Task tt) == 'В работе' BY employee(tt)](et) THEN {
+                initPaused(t) <- TRUE;
+            }
+        }
+        APPLY;
+    }
+}
 // Деятельность
 
 CLASS Activity 'Деятельность';
