@@ -7,7 +7,7 @@ NAMESPACE Time;
 CLASS TimeEntry 'Трудозатраты';
 TABLE timeEntry(TimeEntry);
 
-task 'Задача' = DATA Task (TimeEntry) NONULL DELETE;
+task 'Задача' = DATA Task (TimeEntry) NONULL DELETE INDEXED;
 
 project 'Проект' (TimeEntry e) = project(task(e));
 nameProject 'Проект' (TimeEntry e) = nameProject(task(e));

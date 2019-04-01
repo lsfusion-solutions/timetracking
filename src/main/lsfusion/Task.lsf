@@ -106,7 +106,7 @@ nameEmailTaskType 'Тип задач, созданных по email' () = name(e
 EXTEND FORM options PROPERTIES nameEmailTaskType();
 DESIGN options { commons { MOVE PROPERTY (nameEmailTaskType()); } }
 
-category = DATA Category(Task);
+category = DATA Category(Task) INDEXED;
 nameCategory 'Категория для задачи' (Task t) = name(category(t));
 
 WHEN LOCAL (CHANGED (employee(Task t)) OR CHANGED (project(t))) AND NOT CHANGED (category(t)) DO {

@@ -17,14 +17,56 @@ date 'Дата' = DATA DATE (Invoice) NONULL;
 date(i) <- currentDate() WHEN SET(i IS Invoice);
 
 @defineNumbered(Invoice);
-@defineNumeratedDefault(Invoice, 'Счета', '');
+@defineNumeratedDefault(Invoice, 'Счета', ''){
+    @defineNumeratedDefault(Invoice, 'Счета', '', ){
+    @defineNumerated(Invoice){
+    numerator '{numerator.id.numerator}' = DATA Numerator (Invoice);
+    nameNumerator '{numerator.numerator}' (Invoice o) = name(numerator(o)) IN numbered CHARWIDTH 7;
+
+    generateSeriesNumber '{numerator.generate.number}'(Invoice o)  { 
+        number(o) <- curStringValue(numerator(o));
+        series(o) <- series(numerator(o));
+        incrementValueSession(numerator(o));
+    }
+    
+    WHEN SETCHANGED(numerator(Invoice o)) AND
+         NOT CHANGED(number(o)) AND
+         NOT CHANGED(series(o))
+         DO generateSeriesNumber(o) ;
+};
+    @defineNumeratedDefaultPrefix(Invoice, 'Счета', '', ){
+
+    defaultNumeratorInvoice = DATA Numerator ();
+    nameDefaultNumeratorInvoice 'Счета' = name(defaultNumeratorInvoice()) IN defaultNumerator;
+
+    numerator(Invoice o) <- defaultNumeratorInvoice() WHEN SET(o IS Invoice);
+
+    EXTEND FORM defaultNumerators
+        PROPERTIES() nameDefaultNumeratorInvoice = nameDefaultNumeratorInvoice
+    ;
+    
+    loadDefaultNumerators() + { 
+        NEW n = Numerator {
+            name(n) <- 'Счета';
+            series(n) <- '';
+            minValue(n) <- 1L;
+            maxValue(n) <- 99999L;
+            stringLength(n) <- 5;
+
+            defaultNumeratorInvoice() <- n;
+        }
+    }
+
+};
+};
+};
 
 author 'Автор' = DATA Employee (Invoice);
 nameAuthor 'Автор' (Invoice i) = name(author(i));
 
 // Время выполнения
 
-invoice 'Счет' = DATA Invoice (TimeEntry) INDEXED;
+invoice 'Счет' = DATA Invoice (TimeEntry);
 
 CONSTRAINT project(TimeEntry t) != project(invoice(t)) MESSAGE 'Проект счета не соответствует проекту отметки времени'; 
 
