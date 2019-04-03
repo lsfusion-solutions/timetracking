@@ -67,6 +67,8 @@ sum 'Сумма, руб.' (Invoice i) = GROUP SUM sum(i, Task t);
 hoursMonthly 'Часов в абонентской плате'  = DATA NUMERIC[14,2](Project, Category);
 hoursMonthly 'Часов в абонентской плате' (Invoice i, Category c) = hoursMonthly(project(i), c);
 
+hoursMonthlyCategory 'Часов в абонентской плате по категориям' (Invoice i) = GROUP SUM hoursMonthly(i, Category c);
+
 EXTEND FORM customer PROPERTIES hoursMonthly(p, cc);
 
 hoursPayCategory (Invoice i, Task t) = hours(i,t) (-) PARTITION UNGROUP hoursMonthly LIMIT hours(i,t) ORDER rate(i,t), fromDate(i,t), t BY i, category(t);
