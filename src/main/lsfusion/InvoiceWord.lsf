@@ -96,8 +96,8 @@ rowText (Invoice i, Task t) = TEXT([ FORMULA VARSTRING[8] 'to_char(($1),\'DD.MM\
                                                (OVERRIDE TEXT(formatPrice(sumPay(i, t))), '-') + 'lsFusionCSep');
 tableText (Invoice i) = GROUP CONCAT rowText(i, Task t), 'lsFusionRSep' ORDER fromDate(i, t), t;
 
-hoursMonthlyWord (Invoice i) = CONCAT '', TEXT (formatHours(hoursMonthly(i))), ' \n', 
-    (GROUP CONCAT (CONCAT ' ', TEXT (formatHours(hoursMonthly(i, Category c))) + ' часов', name(c)) IF hoursMonthly(i, c), ' \n' ORDER hoursMonthly(i, c), c);
+hoursMonthlyWord (Invoice i) = CONCAT '', TEXT (formatHours(hoursMonthly(i))), '\n', 
+    (GROUP CONCAT (CONCAT ' ', TEXT (formatHours(hoursMonthly(i, Category c))) + ' часов', name(c)) IF hoursMonthly(i, c), '\n' ORDER hoursMonthly(i, c), c);
 
 generateWord 'Сгенерировать (Word)' (Invoice i)  { 
     IF templateWord(i) THEN {
