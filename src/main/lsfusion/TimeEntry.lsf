@@ -1,6 +1,6 @@
 MODULE TimeEntry;
 
-REQUIRE Project, Employee, Time, Task;
+REQUIRE Project, Employee, Time, Task, Utils;
 
 NAMESPACE Time;
 
@@ -70,7 +70,8 @@ createEmailTasks () {
             AND NOT read(e) DO NEW t = Task {
             project(t) <- p;
             name(t) <- trim(replace(subject(e), id(p), ''));
-            description(t) <- message(e);
+            richTextToString(message(e));
+            description(t) <- resultString();
             taskType(t) <- emailTaskType();
             employee(t) <- et;
             read(e) <- TRUE;
@@ -80,7 +81,8 @@ createEmailTasks () {
         }
         FOR Email e IS Email AND (Employee et = GROUP MAX Employee ee IF email(ee) == fromAddress(e)) AND NOT read(e) DO NEW t = Task {
             name(t) <- trim(subject(e));
-            description(t) <- message(e);
+            richTextToString(message(e));
+            description(t) <- resultString();
             taskType(t) <- emailTaskType();
             employee(t) <- et;
             read(e) <- TRUE;
