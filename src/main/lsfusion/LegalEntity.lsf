@@ -57,7 +57,7 @@ CONSTRAINT representative(LegalEntity l) AND NOT customer(representative(l)) == 
 CLASS Account 'Банковский счёт';
 TABLE account (Account);
 
-number 'Номер счёта'  = DATA VARSTRING[50] (Account) IN id CHARWIDTH 28 FIXED;
+number 'Номер счёта'  = DATA VARSTRING[50] (Account) IN id CHARWIDTH 28 NOFLEX;
 account (number) = GROUP MAX Account account BY number(account);
 
 legalEntity = DATA LegalEntity (Account) NONULL DELETE AUTOSET;
