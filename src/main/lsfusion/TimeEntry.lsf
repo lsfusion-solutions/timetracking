@@ -48,10 +48,10 @@ hours 'Часов' (TimeEntry e) = OVERRIDE userHours(e), calcHours(e);
 CONSTRAINT SETCHANGED(hours(TimeEntry e)) AND hours(e) < 0.0
     MESSAGE 'Количество часов в отметке не может быть отрицательным';
 
-inProcess 'В работе' (TimeEntry e) = dateTimeStart(e) AND NOT dateTimeFinish(e) AND NOT userHours(e);
-inProcess 'В работе' (Task t) = t IS Task AND NOT completed(t) AND NOT dateTimeFinish(t);
-
 initPaused 'Запускать на паузе' = DATA BOOLEAN (Task);
+
+inProcess 'В работе' (TimeEntry e) = dateTimeStart(e) AND NOT dateTimeFinish(e) AND NOT userHours(e);
+inProcess 'В работе' (Task t) = t IS Task AND NOT completed(t) AND NOT dateTimeFinish(t) AND NOT (initPaused(t) AND NOT dateTimeStart(t));
 
 status 'Статус' (Task t) = CASE WHEN completed(t) THEN 'Завершена'
                                                 WHEN dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t)) THEN 'На паузе'
