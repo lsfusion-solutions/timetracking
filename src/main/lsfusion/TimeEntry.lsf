@@ -75,7 +75,7 @@ createEmailTasks () {
             taskType(t) <- emailTaskType();
             employee(t) <- et;
             read(e) <- TRUE;
-            IF [GROUP SUM 1 IF status(Task tt) == 'В работе' BY employee(tt)](et) THEN {
+            IF PREV([GROUP SUM 1 IF status(Task tt) == 'В работе' BY employee(tt)](et)) THEN {
                 initPaused(t) <- TRUE;
             }
         }
@@ -86,7 +86,7 @@ createEmailTasks () {
             taskType(t) <- emailTaskType();
             employee(t) <- et;
             read(e) <- TRUE;
-            IF [GROUP SUM 1 IF status(Task tt) == 'В работе' BY employee(tt)](et) THEN {
+            IF PREV([GROUP SUM 1 IF status(Task tt) == 'В работе' BY employee(tt)](et)) THEN {
                 initPaused(t) <- TRUE;
             }
         }
