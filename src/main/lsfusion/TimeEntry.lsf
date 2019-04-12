@@ -70,7 +70,11 @@ createEmailTasks () {
             AND NOT read(e) DO NEW t = Task {
             project(t) <- p;
             name(t) <- trim(replace(subject(e), id(p), ''));
-            richTextToString(message(e));
+            TRY {
+                richTextToString(message(e));
+            } CATCH {
+                resultString() <- 'Не удалось прочитать описание';
+            }
             description(t) <- resultString();
             taskType(t) <- emailTaskType();
             employee(t) <- et;
@@ -81,7 +85,11 @@ createEmailTasks () {
         }
         FOR Email e IS Email AND (Employee et = GROUP MAX Employee ee IF email(ee) == fromAddress(e)) AND NOT read(e) DO NEW t = Task {
             name(t) <- trim(subject(e));
-            richTextToString(message(e));
+            TRY {
+                richTextToString(message(e));
+            } CATCH {
+                resultString() <- 'Не удалось прочитать описание';
+            }
             description(t) <- resultString();
             taskType(t) <- emailTaskType();
             employee(t) <- et;
