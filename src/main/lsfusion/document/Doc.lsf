@@ -2,7 +2,7 @@ MODULE Doc;
 
 REQUIRE MasterData, Word;
 
-ruText 'Родительный падеж месяца' = DATA VARSTRING[20] (Month);
+ruText 'Родительный падеж месяца' = DATA STRING[20] (Month);
 onStarted() + { 
     ruText(Month d) <- 'января' WHERE d == Month.january; 
     ruText(Month d) <- 'февраля' WHERE d == Month.february; 

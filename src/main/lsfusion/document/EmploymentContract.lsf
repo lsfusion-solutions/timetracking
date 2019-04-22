@@ -29,11 +29,11 @@ form (EmploymentContract c) = form(legalEntity(c));
 nameForm 'Форма хозяйства' (EmploymentContract c) = name(form(c));
 shortNameForm 'Форма хозяйства (кратко)' (EmploymentContract c) = shortName(form(c));
 
-idDocument 'Номер договора' = DATA VARISTRING[256](EmploymentContract) CHARWIDTH 10;
-city 'Город' = DATA VARISTRING[256](EmploymentContract) CHARWIDTH 15;
+idDocument 'Номер договора' = DATA ISTRING[256](EmploymentContract) CHARWIDTH 10;
+city 'Город' = DATA ISTRING[256](EmploymentContract) CHARWIDTH 15;
 date 'Дата заключения договора' = DATA DATE (EmploymentContract);
-addressWork 'Адрес места работы' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
-positionEmployee 'Должность работника' = DATA VARISTRING[1024](EmploymentContract) CHARWIDTH 20;
+addressWork 'Адрес места работы' = DATA ISTRING[1024](EmploymentContract) CHARWIDTH 20;
+positionEmployee 'Должность работника' = DATA ISTRING[1024](EmploymentContract) CHARWIDTH 20;
 dateFrom 'Дата начала трудовых обязанностей' = DATA DATE (EmploymentContract);
 duration 'Продолжительность испытательного срока в месяцах' = DATA INTEGER (EmploymentContract) CHARWIDTH 3;
 salary 'Размер оклада' = DATA NUMERIC[15,2](EmploymentContract);

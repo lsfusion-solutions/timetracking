@@ -106,7 +106,7 @@ createEmailTasks () {
 CLASS Activity 'Деятельность';
 TABLE activity (Activity);
 
-name 'Название' = DATA VARSTRING[50] (Activity);
+name 'Название' = DATA STRING[50] (Activity);
 
 FORM activities 'Деятельность'
     OBJECTS a = Activity

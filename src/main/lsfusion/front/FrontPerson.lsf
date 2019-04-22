@@ -58,28 +58,28 @@ getPerson(TEXT token, FILE f) {
 }
 
 id = DATA LOCAL LONG ();
-lastName = DATA LOCAL VARSTRING[250]();
-firstName = DATA LOCAL VARSTRING[250]();
-middleName = DATA LOCAL VARSTRING[250]();
-lastNameRp = DATA LOCAL VARSTRING[250]();
-firstNameRp = DATA LOCAL VARSTRING[250]();
-middleNameRp = DATA LOCAL VARSTRING[250]();
+lastName = DATA LOCAL STRING[250]();
+firstName = DATA LOCAL STRING[250]();
+middleName = DATA LOCAL STRING[250]();
+lastNameRp = DATA LOCAL STRING[250]();
+firstNameRp = DATA LOCAL STRING[250]();
+middleNameRp = DATA LOCAL STRING[250]();
 birthday = DATA LOCAL DATE();
-address = DATA LOCAL VARSTRING[250]();
-seriesPassport = DATA LOCAL VARSTRING[250]();
-numberPassport = DATA LOCAL VARISTRING[50] ();
-authorityPassport = DATA LOCAL VARSTRING[250]();
+address = DATA LOCAL STRING[250]();
+seriesPassport = DATA LOCAL STRING[250]();
+numberPassport = DATA LOCAL ISTRING[50] ();
+authorityPassport = DATA LOCAL STRING[250]();
 dateIssuePassport = DATA LOCAL DATE ();
-codeUnitPassport = DATA LOCAL VARSTRING[250]();
-phone = DATA LOCAL VARSTRING[250]();
-inn = DATA LOCAL VARSTRING[250]();
-snils = DATA LOCAL VARSTRING[250]();
-numberAccount = DATA LOCAL VARSTRING[250]();
+codeUnitPassport = DATA LOCAL STRING[250]();
+phone = DATA LOCAL STRING[250]();
+inn = DATA LOCAL STRING[250]();
+snils = DATA LOCAL STRING[250]();
+numberAccount = DATA LOCAL STRING[250]();
 bank = DATA LOCAL LONG ();
-filePassport = DATA LOCAL VARISTRING[50]();
-fileSnils = DATA LOCAL VARISTRING[50]();
+filePassport = DATA LOCAL ISTRING[50]();
+fileSnils = DATA LOCAL ISTRING[50]();
 
-name_child = DATA VARISTRING[250](INTEGER);
+name_child = DATA ISTRING[250](INTEGER);
 birthday_child = DATA DATE (INTEGER);
 
 FORM importPerson
@@ -167,9 +167,9 @@ deletePerson(TEXT token, FILE f) {
     EXPORT JSON FROM code = '0', message = 'OK';
 }
 
-file = DATA FILE (Person, VARISTRING[50]);
+file = DATA FILE (Person, ISTRING[50]);
 
-downloadPersonFile(LONG person, VARISTRING[50] fileName, TEXT token, FILE f) {
+downloadPersonFile(LONG person, ISTRING[50] fileName, TEXT token, FILE f) {
     
     checkToken(token);
     IF invalidToken() THEN RETURN;
@@ -196,8 +196,8 @@ getPersonByPassport (TEXT token, FILE f) {
         RETURN;
     }
     
-    LOCAL series = VARISTRING[50] ();
-    LOCAL number = VARISTRING[50] ();
+    LOCAL series = ISTRING[50] ();
+    LOCAL number = ISTRING[50] ();
     
     IMPORT JSON FROM f AS FILE TO() series = series, number = number;
     

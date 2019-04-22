@@ -5,7 +5,7 @@ REQUIRE Customer, Employee;
 CLASS Project 'Проект';
 TABLE project(Project);
 
-name 'Наименование' = DATA VARISTRING[200] (Project) CHARWIDTH 15;
+name 'Наименование' = DATA ISTRING[200] (Project) CHARWIDTH 15;
 
 customer 'Клиент' = DATA Customer (Project) NONULL;
 nameCustomer 'Клиент' (Project p) = name(customer(p));

@@ -5,7 +5,7 @@ REQUIRE MasterData;
 CLASS Customer 'Клиент';
 TABLE customer(Customer);
 
-name 'Наименование' = DATA VARISTRING[200] (Customer) CHARWIDTH 15;
+name 'Наименование' = DATA ISTRING[200] (Customer) CHARWIDTH 15;
 inactive 'Неактивный' = DATA BOOLEAN (Customer);
 active 'Активный' (Customer c) = c IS Customer AND NOT inactive(c);
 

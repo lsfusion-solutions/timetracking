@@ -7,14 +7,14 @@ NAMESPACE LegalEntity;
 CLASS LegalEntity 'Юридическое лицо';
 TABLE legalEntity (LegalEntity);
 
-id 'Код' = DATA VARSTRING[15] (LegalEntity) INDEXED CHARWIDTH 5 IN id;
+id 'Код' = DATA STRING[15] (LegalEntity) INDEXED CHARWIDTH 5 IN id;
 legalEntity (id) = GROUP AGGR LegalEntity le BY id (le);
 
-shortName 'Сокращённое название' = DATA VARISTRING[250] (LegalEntity) CHARWIDTH 20 IN id;
-fullName 'Полное название' = DATA VARISTRING[250] (LegalEntity) CHARWIDTH 25;
+shortName 'Сокращённое название' = DATA ISTRING[250] (LegalEntity) CHARWIDTH 20 IN id;
+fullName 'Полное название' = DATA ISTRING[250] (LegalEntity) CHARWIDTH 25;
 
-shortNameLat 'Сокращённое название латиницей' = DATA VARISTRING[250] (LegalEntity) CHARWIDTH 20;
-fullNameLat 'Полное название латиницей' = DATA VARISTRING[250] (LegalEntity) CHARWIDTH 25;
+shortNameLat 'Сокращённое название латиницей' = DATA ISTRING[250] (LegalEntity) CHARWIDTH 20;
+fullNameLat 'Полное название латиницей' = DATA ISTRING[250] (LegalEntity) CHARWIDTH 25;
 
 customer = DATA Customer(LegalEntity) INDEXED;
 nameCustomer 'Клиент' (LegalEntity l) = name(customer(l)) IN id;
@@ -35,21 +35,21 @@ form = DATA Form(LegalEntity);
 nameFrom 'Форма хозяйства' (LegalEntity l) = name(form(l));
 shortNameFrom 'Форма хозяйства' (LegalEntity l) = shortName(form(l));
 
-address 'Юридический адрес' = DATA VARISTRING[250](LegalEntity) CHARWIDTH 20;
+address 'Юридический адрес' = DATA ISTRING[250](LegalEntity) CHARWIDTH 20;
 
 representative = DATA Person(LegalEntity);
 nameRepresentative 'Представитель по умолчанию' (LegalEntity l) = name(representative(l)) CHARWIDTH 20;
-baseRepresentative 'Основание представителя' = DATA VARISTRING[250](LegalEntity) CHARWIDTH 20;
-positionRepresentative 'Должность представителя' = DATA VARISTRING[250](LegalEntity) CHARWIDTH 20;
+baseRepresentative 'Основание представителя' = DATA ISTRING[250](LegalEntity) CHARWIDTH 20;
+positionRepresentative 'Должность представителя' = DATA ISTRING[250](LegalEntity) CHARWIDTH 20;
 
-inn 'ИНН' = DATA VARISTRING[10](LegalEntity) CHARWIDTH 10;
-kpp 'КПП' = DATA VARISTRING[10](LegalEntity) CHARWIDTH 10;
-phone 'Номер телефона' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 15;
-okpo 'ОКПО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
-okato 'ОКАТО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
-oktmo 'ОКТМО' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
-okved 'ОКВЭД' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
-ogrn 'ОГРН' = DATA VARISTRING[50](LegalEntity) CHARWIDTH 10;
+inn 'ИНН' = DATA ISTRING[10](LegalEntity) CHARWIDTH 10;
+kpp 'КПП' = DATA ISTRING[10](LegalEntity) CHARWIDTH 10;
+phone 'Номер телефона' = DATA ISTRING[50](LegalEntity) CHARWIDTH 15;
+okpo 'ОКПО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
+okato 'ОКАТО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
+oktmo 'ОКТМО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
+okved 'ОКВЭД' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
+ogrn 'ОГРН' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
 
 CONSTRAINT representative(LegalEntity l) AND NOT customer(representative(l)) == customer(l) CHECKED BY representative[LegalEntity] 
     MESSAGE 'Клиент представителя не совпадает с клиентом организации';
@@ -57,7 +57,7 @@ CONSTRAINT representative(LegalEntity l) AND NOT customer(representative(l)) == 
 CLASS Account 'Банковский счёт';
 TABLE account (Account);
 
-number 'Номер счёта'  = DATA VARSTRING[50] (Account) IN id CHARWIDTH 28 NOFLEX;
+number 'Номер счёта'  = DATA STRING[50] (Account) IN id CHARWIDTH 28 NOFLEX;
 account (number) = GROUP MAX Account account BY number(account);
 
 legalEntity = DATA LegalEntity (Account) NONULL DELETE AUTOSET;
@@ -76,7 +76,7 @@ numberAccount 'Банковский счёт по умолчанию' (LegalEnti
 equals 'Основной' (LegalEntity legalEntity, Account account) = userAccount(legalEntity) == account;
 
 accountID 'Расчетный счет по номеру' (number, legalEntityId) = GROUP AGGR Account account WHERE account IS Account BY number(account), id(legalEntity(account));
-legalEntityAccount (VARSTRING[20] number) = legalEntity(account(number)); 
+legalEntityAccount (STRING[20] number) = legalEntity(account(number)); 
 
 bank = DATA Bank (Account);
 nameBank 'Банк' (Account account) = name(bank(account)) IN id;

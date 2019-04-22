@@ -7,7 +7,7 @@ NAMESPACE Project;
 CLASS Document 'Документ';
 TABLE document (Document);
 
-name 'Наименование' = DATA VARSTRING[200] (Document) CHARWIDTH 20;
+name 'Наименование' = DATA STRING[200] (Document) CHARWIDTH 20;
 
 customer 'Клиент' = DATA Customer (Document);
 nameCustomer 'Клиент' (Document d) = name(customer(d));

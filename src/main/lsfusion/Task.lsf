@@ -5,7 +5,7 @@ REQUIRE Project, Employee, Email, Category;
 CLASS Task 'Задача';
 TABLE task(Task);
 
-name 'Название' = DATA VARSTRING[100] (Task) CHARWIDTH 20;
+name 'Название' = DATA STRING[100] (Task) CHARWIDTH 20;
 
 description 'Описание' = DATA TEXT (Task);
 
@@ -34,7 +34,7 @@ notCompleted 'Не завершена' (Task t) = t IS Task AND NOT completed(t)
 CLASS TaskType 'Тип задачи';
 TABLE taskType (TaskType);
 
-name 'Название' = DATA VARSTRING[50] (TaskType);
+name 'Название' = DATA STRING[50] (TaskType);
 
 FORM taskTypes 'Типы задач'
     OBJECTS a = TaskType
@@ -95,7 +95,7 @@ read 'Обработан' = DATA BOOLEAN (Email);
 
 EXTEND FORM mail PROPERTIES READONLY read(e);
 
-id 'Код' = DATA VARISTRING[15](Project);
+id 'Код' = DATA ISTRING[15](Project);
 project = GROUP AGGR Project p BY id(p);
 
 EXTEND FORM customer PROPERTIES id(p);

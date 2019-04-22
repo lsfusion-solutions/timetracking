@@ -5,7 +5,7 @@ REQUIRE MasterData, Authentication, Security, Utils;
 CLASS Employee 'Сотрудник' : CustomUser;
 TABLE employee (Employee);
 
-code 'Код' = DATA VARSTRING[10] (Employee);
+code 'Код' = DATA STRING[10] (Employee);
 fired 'Уволен' = DATA BOOLEAN (Employee);
 
 FORM employee 'Сотрудник'
@@ -45,7 +45,7 @@ currentEmployee = currentUser() AS Employee;
 CLASS Practice 'Практика';
 TABLE practice (Practice);
 
-name 'Наименование' = DATA VARSTRING[50] (Practice) IN id CHARWIDTH 15;
+name 'Наименование' = DATA STRING[50] (Practice) IN id CHARWIDTH 15;
 
 FORM practice 'Практика'
     OBJECTS p = Practice PANEL

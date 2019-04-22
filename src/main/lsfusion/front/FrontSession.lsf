@@ -16,7 +16,7 @@ frontSession = GROUP AGGR FrontSession f BY token(f);
 
 EXTEND FORM customer 
     OBJECTS s = FrontSession
-    PROPERTIES READONLY 'Токен' = VARISTRING[250] (token(s)), created(s), updated(s)
+    PROPERTIES READONLY 'Токен' = ISTRING[250] (token(s)), created(s), updated(s)
     FILTERS frontUser(s) == u
 ;
 
@@ -30,8 +30,8 @@ generateToken () = FORMULA TEXT 'MD5(random()::text)';
 
 login(FILE f) {
     
-    LOCAL login = VARSTRING[20] ();
-    LOCAL password = VARSTRING[100] ();
+    LOCAL login = STRING[20] ();
+    LOCAL password = STRING[100] ();
     
     IMPORT JSON FROM f AS FILE TO() login = login, password = password;
     
@@ -88,7 +88,7 @@ checkToken (TEXT token) {
 //    }
 //}
 
-file = DATA FILE (FrontSession, VARISTRING[50]);
+file = DATA FILE (FrontSession, ISTRING[50]);
 
 uploadFile(TEXT extension, TEXT token, FILE f) {
     
@@ -97,7 +97,7 @@ uploadFile(TEXT extension, TEXT token, FILE f) {
     
     logToFile('API', 'uploadFile:\n' + token + ' - ' + extension);
     
-    FOR VARISTRING[50] id = generateToken() AND FrontSession s = frontSession(token) DO {
+    FOR ISTRING[50] id = generateToken() AND FrontSession s = frontSession(token) DO {
         file(s, id) <- changeExtension(f, extension);
         APPLY;
         

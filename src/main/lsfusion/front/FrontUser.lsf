@@ -10,8 +10,8 @@ TABLE frontUser (FrontUser);
 customer = DATA Customer(FrontUser);
 nameCustomer 'Клиент' (FrontUser f) = name(customer(f));
 
-login 'Логин' = DATA VARISTRING[100] (FrontUser) CHARWIDTH 15;
-sha256Password 'Пароль' = DATA VARSTRING[100] (FrontUser) ECHO;
+login 'Логин' = DATA ISTRING[100] (FrontUser) CHARWIDTH 15;
+sha256Password 'Пароль' = DATA STRING[100] (FrontUser) ECHO;
 changeSHA256Password(FrontUser customUser)  { 
     INPUT st=BPSTRING[30] DO {
         calculateBase64Hash('SHA-256', st);

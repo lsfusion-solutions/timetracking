@@ -10,37 +10,37 @@ TABLE person (Person);
 customer 'Клиент' = DATA Customer (Person);
 nameCustomer 'Клиент' (Person p) = name(customer(p));
 
-middleName 'Отчество' = DATA VARISTRING[250](Person) CHARWIDTH 15;
+middleName 'Отчество' = DATA ISTRING[250](Person) CHARWIDTH 15;
 
-firstNameRp 'Имя род. падеж' = DATA VARISTRING[250](Person) CHARWIDTH 15;
-lastNameRp 'Фамилия род. падеж' = DATA VARISTRING[250](Person) CHARWIDTH 15;
-middleNameRp 'Отчество род. падеж' = DATA VARISTRING[250](Person) CHARWIDTH 15;
+firstNameRp 'Имя род. падеж' = DATA ISTRING[250](Person) CHARWIDTH 15;
+lastNameRp 'Фамилия род. падеж' = DATA ISTRING[250](Person) CHARWIDTH 15;
+middleNameRp 'Отчество род. падеж' = DATA ISTRING[250](Person) CHARWIDTH 15;
 
 fioName 'И.О. Фамилия' (Person p) = CONCAT '', left(firstName(p), 1) + '.', left(middleName(p), 1) + '.', ' ' + lastName(p);
 
-address 'Адрес' = DATA VARISTRING[250](Person) CHARWIDTH 20;
+address 'Адрес' = DATA ISTRING[250](Person) CHARWIDTH 20;
 
-seriesPassport 'Серия паспорта' = DATA VARISTRING[50] (Person) CHARWIDTH 10;
-numberPassport 'Номер паспорта' = DATA VARISTRING[50] (Person) CHARWIDTH 10;
-authorityPassport 'Орган, выдавший паспорт' = DATA VARISTRING[1024](Person) CHARWIDTH 20;
+seriesPassport 'Серия паспорта' = DATA ISTRING[50] (Person) CHARWIDTH 10;
+numberPassport 'Номер паспорта' = DATA ISTRING[50] (Person) CHARWIDTH 10;
+authorityPassport 'Орган, выдавший паспорт' = DATA ISTRING[1024](Person) CHARWIDTH 20;
 dateIssuePassport 'Дата выдачи паспорта' = DATA DATE (Person);
-codeUnitPassport 'Код орагана выдачи паспорта' = DATA VARISTRING[1024](Person) CHARWIDTH 10;
+codeUnitPassport 'Код орагана выдачи паспорта' = DATA ISTRING[1024](Person) CHARWIDTH 10;
 
-inn 'ИНН' = DATA VARISTRING[12](Person);
-snils 'СНИЛС' = DATA VARISTRING[50](Person) CHARWIDTH 10;
+inn 'ИНН' = DATA ISTRING[12](Person);
+snils 'СНИЛС' = DATA ISTRING[50](Person) CHARWIDTH 10;
 
-numberAccount 'Банковский счёт' = DATA VARISTRING[50](Person) CHARWIDTH 15;
+numberAccount 'Банковский счёт' = DATA ISTRING[50](Person) CHARWIDTH 15;
 
 CLASS Bank 'Банк';
 TABLE bank (Bank);
 
-id 'Код' = DATA VARSTRING[15] (Bank) MATERIALIZED INDEXED CHARWIDTH 5 IN id;
+id 'Код' = DATA STRING[15] (Bank) MATERIALIZED INDEXED CHARWIDTH 5 IN id;
 bank (id) = GROUP AGGR Bank b BY id (b);
 
-name 'Название' = DATA VARISTRING[250](Bank) CHARWIDTH 15;
-bic 'БИК' = DATA VARSTRING[11](Bank) CHARWIDTH 11 IN id;
-swift 'SWIFT' = DATA VARISTRING[50] (Bank) CHARWIDTH 15 IN id;
-numberAccount 'Корреспондентский счёт' = DATA VARISTRING[50](Bank) CHARWIDTH 15;
+name 'Название' = DATA ISTRING[250](Bank) CHARWIDTH 15;
+bic 'БИК' = DATA STRING[11](Bank) CHARWIDTH 11 IN id;
+swift 'SWIFT' = DATA ISTRING[50] (Bank) CHARWIDTH 15 IN id;
+numberAccount 'Корреспондентский счёт' = DATA ISTRING[50](Bank) CHARWIDTH 15;
 
 bank = DATA Bank(Person);
 nameBank 'Банк' (Person p) = name(bank(p));
@@ -73,9 +73,9 @@ openFileSnils 'Открыть' (Person c) { open(fileSnils(c)); }
 regexpMatches = FORMULA 'SELECT (regexp_matches($1, $2))[$3]';
 
 thresholdSnils 'Порог для обработки изображения' = DATA INTEGER();
-numberSnilsPattern 'Регулярное выражение для номера' = DATA VARSTRING[200] ();
+numberSnilsPattern 'Регулярное выражение для номера' = DATA STRING[200] ();
 // \d{3}-\d{3}-\d{3}\s*\d{2}
-fioSnilsPattern 'Регулярное выражение для ФИО' = DATA VARSTRING[200] ();
+fioSnilsPattern 'Регулярное выражение для ФИО' = DATA STRING[200] ();
 // \d{3}-\d{3}-\d{3}-*\s*\d{2}\s+\S+\s+([А-Я]+)[^А-Я]+([А-Я]+)[^А-Я]+([А-Я]+)\s
 EXTEND FORM options PROPERTIES() thresholdSnils, numberSnilsPattern, fioSnilsPattern;
 DESIGN options { openCV { MOVE PROPERTY(thresholdSnils()); MOVE PROPERTY(numberSnilsPattern()); MOVE PROPERTY(fioSnilsPattern()); } }
@@ -115,7 +115,7 @@ loadFileMilitary 'Загрузить' (Person c) {
 CLASS Child 'Ребёнок';
 TABLE child(Child);
 
-name 'Имя' = DATA VARISTRING[250](Child) CHARWIDTH 30;
+name 'Имя' = DATA ISTRING[250](Child) CHARWIDTH 30;
 birthday 'Дата рождения' = DATA DATE (Child);
 parent = DATA Person(Child) NONULL DELETE;
 nameParent 'Родитель' (Child c) = Authentication.name(parent(c));

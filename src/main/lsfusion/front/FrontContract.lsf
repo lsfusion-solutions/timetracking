@@ -94,10 +94,10 @@ getContract(TEXT token, FILE f) {
 idContract = DATA LOCAL LONG ();
 idLegalEntity = DATA LOCAL LONG ();
 idPerson = DATA LOCAL LONG ();
-idDocument = DATA LOCAL VARSTRING[256]();
+idDocument = DATA LOCAL STRING[256]();
 date = DATA DATE ();
-city = DATA VARSTRING[256]();
-positionEmployee = DATA VARSTRING[1024]();
+city = DATA STRING[256]();
+positionEmployee = DATA STRING[1024]();
 dateFrom = DATA DATE ();
 duration = DATA INTEGER ();
 salary = DATA NUMERIC[15,2]();
