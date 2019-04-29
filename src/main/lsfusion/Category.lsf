@@ -76,6 +76,9 @@ DESIGN customer {
 category = DATA Category(Employee, Project);
 nameCategory 'Категория' (Employee e, Project p) = name(category(e, p));
 
+overCategory (Employee e, Project p) = OVERRIDE category(e, p), category(e);
+nameOverCategory 'Категория' (Employee e, Project p) = name(overCategory(e, p));
+
 EXTEND FORM customer 
     OBJECTS e = Employee
     PROPERTIES name(e) READONLY, nameCategory(e, p) 

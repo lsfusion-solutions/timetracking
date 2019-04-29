@@ -171,3 +171,36 @@ changeCategoryProject(Invoice i, Task t) {
 EXTEND FORM invoice 
     PROPERTIES nameCategory(t) BACKGROUND backgroundCategory(t), 'Категория на проекте' = nameCategory(employee(t), project(t)) ON CHANGE changeCategoryProject(i, t) PANEL DRAW t TOOLBAR 
 ;
+
+hours 'Часов' (Project p, Month m, INTEGER y) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY project(e), extractMonth(dateStart(e)), extractYear(dateStart(e));
+hours 'Часов' (Project p, Category c, Month m, INTEGER y) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY project(e), overCategory(employee(e), project(e)), extractMonth(dateStart(e)), extractYear(dateStart(e));
+
+setHours90 (Project p, Month m, INTEGER y) = round2(hours(p, m, y)/hoursMonthly(p)) >= 0.9;
+setHours95 (Project p, Month m, INTEGER y) = round2(hours(p, m, y)/hoursMonthly(p)) >= 0.95;
+setHours100 (Project p, Month m, INTEGER y) = round2(hours(p, m, y)/hoursMonthly(p)) >= 1.0;
+
+setHours90 (Project p, Category c, Month m, INTEGER y) = round2(hours(p, c, m, y)/hoursMonthly(p, c)) >= 0.9;
+setHours95 (Project p, Category c, Month m, INTEGER y) = round2(hours(p, c, m, y)/hoursMonthly(p, c)) >= 0.95;
+setHours100 (Project p, Category c, Month m, INTEGER y) = round2(hours(p, c, m, y)/hoursMonthly(p, c)) >= 1.0;
+
+WHEN (SET (setHours90(Project p, Month m, INTEGER y)) OR SET (setHours95(p, m, y)) OR SET (setHours100(p, m, y))) DO {
+    
+    FOR assigned(p, Employee e) DO {
+    EMAIL 
+        SUBJECT CONCAT ' ', nameCustomer(p) + ':', 'израсходовано ' + round0(hours(p, m, y)/hoursMonthly(p) * 100) + '% времени, включённого в оплату'
+        TO email(e)
+        BODY 'Здравствуйте!<br><br>Обратите внимание что у клиента ' + nameCustomer(p) + ' израсходованно ' + round0(hours(p, m, y)/hoursMonthly(p) * 100) + 
+            '% времени, включённого в оплату в текущем периоде.<br><br>С уважением,<br><br>Ваша CRM система!';
+    }
+}
+
+WHEN (SET (setHours90(Project p, Category c, Month m, INTEGER y)) OR SET (setHours95(p, c, m, y)) OR SET (setHours100(p, c, m, y))) DO {
+    
+    FOR assigned(p, Employee e) DO {
+    EMAIL 
+        SUBJECT CONCAT ' ', nameCustomer(p) + ':', 'израсходовано ' + round0(hours(p, c, m, y)/hoursMonthly(p, c) * 100) + '% времени, включённого в оплату'
+        TO email(e)
+        BODY 'Здравствуйте!<br><br>Обратите внимание что у клиента ' + nameCustomer(p) + ' израсходованно ' + round0(hours(p, c, m, y)/hoursMonthly(p, c) * 100) + 
+            '% времени специалиста ' + name(c) + ', включённого в оплату в текущем периоде.<br><br>С уважением,<br><br>Ваша CRM система!';
+    }
+}
