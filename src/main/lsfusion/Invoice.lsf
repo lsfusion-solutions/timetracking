@@ -198,7 +198,7 @@ WHEN (SET (setHours90(Project p, Category c, Month m, INTEGER y)) OR SET (setHou
     
     FOR assigned(p, Employee e) DO {
     EMAIL 
-        SUBJECT CONCAT ' ', nameCustomer(p) + ':', 'израсходовано ' + round0(hours(p, c, m, y)/hoursMonthly(p, c) * 100) + '% времени, включённого в оплату'
+        SUBJECT CONCAT ' ', nameCustomer(p) + ':', name(c) + ':', 'израсходовано ' + round0(hours(p, c, m, y)/hoursMonthly(p, c) * 100) + '% времени, включённого в оплату'
         TO email(e)
         BODY 'Здравствуйте!<br><br>Обратите внимание что у клиента ' + nameCustomer(p) + ' израсходованно ' + round0(hours(p, c, m, y)/hoursMonthly(p, c) * 100) + 
             '% времени специалиста ' + name(c) + ', включённого в оплату в текущем периоде.<br><br>С уважением,<br><br>Ваша CRM система!';
