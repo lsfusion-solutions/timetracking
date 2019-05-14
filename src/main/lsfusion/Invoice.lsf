@@ -183,24 +183,28 @@ setHours90 (Project p, Category c, Month m, INTEGER y) = round2(hours(p, c, m, y
 setHours95 (Project p, Category c, Month m, INTEGER y) = round2(hours(p, c, m, y)/hoursMonthly(p, c)) >= 0.95;
 setHours100 (Project p, Category c, Month m, INTEGER y) = round2(hours(p, c, m, y)/hoursMonthly(p, c)) >= 1.0;
 
-WHEN (SET (setHours90(Project p, Month m, INTEGER y)) OR SET (setHours95(p, m, y)) OR SET (setHours100(p, m, y))) DO {
+WHEN (SET (setHours90(Project p, extractMonth(currentDate()), currentYear())) OR SET (setHours95(p, extractMonth(currentDate()), currentYear())) 
+    OR SET (setHours100(p, extractMonth(currentDate()), currentYear()))) DO {
     
     FOR assigned(p, Employee e) DO {
     EMAIL 
-        SUBJECT CONCAT ' ', nameCustomer(p) + ':', 'израсходовано ' + round0(hours(p, m, y)/hoursMonthly(p) * 100) + '% времени, включённого в оплату'
+        SUBJECT CONCAT ' ', nameCustomer(p) + ':', 'израсходовано ' + round0(hours(p,  extractMonth(currentDate()), currentYear())/hoursMonthly(p) * 100) + '% времени, включённого в оплату'
         TO email(e)
-        BODY 'Здравствуйте!<br><br>Обратите внимание что у клиента ' + nameCustomer(p) + ' израсходованно ' + round0(hours(p, m, y)/hoursMonthly(p) * 100) + 
+        BODY 'Здравствуйте!<br><br>Обратите внимание что у клиента ' + nameCustomer(p) + ' израсходованно ' + 
+            round0(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p) * 100) + 
             '% времени, включённого в оплату в текущем периоде.<br><br>С уважением,<br><br>Ваша CRM система!';
     }
 }
 
-WHEN (SET (setHours90(Project p, Category c, Month m, INTEGER y)) OR SET (setHours95(p, c, m, y)) OR SET (setHours100(p, c, m, y))) DO {
+WHEN (SET (setHours90(Project p, Category c, extractMonth(currentDate()), currentYear())) OR SET (setHours95(p, c, extractMonth(currentDate()), currentYear())) 
+    OR SET (setHours100(p, c, extractMonth(currentDate()), currentYear()))) DO {
     
     FOR assigned(p, Employee e) DO {
     EMAIL 
-        SUBJECT CONCAT ' ', nameCustomer(p) + ':', name(c) + ':', 'израсходовано ' + round0(hours(p, c, m, y)/hoursMonthly(p, c) * 100) + '% времени, включённого в оплату'
+        SUBJECT CONCAT ' ', nameCustomer(p) + ':', name(c) + ':', 'израсходовано ' + round0(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c) * 100) + '% времени, включённого в оплату'
         TO email(e)
-        BODY 'Здравствуйте!<br><br>Обратите внимание что у клиента ' + nameCustomer(p) + ' израсходованно ' + round0(hours(p, c, m, y)/hoursMonthly(p, c) * 100) + 
+        BODY 'Здравствуйте!<br><br>Обратите внимание что у клиента ' + nameCustomer(p) + ' израсходованно ' + 
+            round0(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c) * 100) + 
             '% времени специалиста ' + name(c) + ', включённого в оплату в текущем периоде.<br><br>С уважением,<br><br>Ваша CRM система!';
     }
 }
