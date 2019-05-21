@@ -184,6 +184,10 @@ DESIGN options {
     }
 }
 
+sendLimitEmails 'Получать уведомления о приближении к лимиту часов' = DATA BOOLEAN (Employee, Project);
+
+EXTEND FORM customer PROPERTIES sendLimitEmails(e, p);
+
 sent90 = DATA BOOLEAN (Project, Month, INTEGER);
 sent95 = DATA BOOLEAN (Project, Month, INTEGER);
 sent100 = DATA BOOLEAN (Project, Month, INTEGER);
@@ -196,7 +200,7 @@ sendEmailLimitHoursProjects 'Разослать письма о приближе
                           (NOT sent95(p, extractMonth(currentDate()), currentYear()) AND round2(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p)) >= 0.95) OR 
                           (NOT sent100(p, extractMonth(currentDate()), currentYear()) AND round2(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p)) >= 1.0);
         
-    FOR toSend(Project p) AND assigned(p, Employee e) DO {
+    FOR toSend(Project p) AND assigned(p, Employee e) AND sendLimitEmails(e, p) DO {
         EMAIL 
             SUBJECT CONCAT ' ', nameCustomer(p) + ':', 'израсходовано ' + 
                 round0(hours(p,  extractMonth(currentDate()), currentYear())/hoursMonthly(p) * 100) + '% времени, включённого в оплату'
@@ -223,7 +227,7 @@ sendEmailLimitHoursCategories 'Разослать письма о приближ
                                       (NOT sent95(p, c, extractMonth(currentDate()), currentYear()) AND round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 0.95) OR 
                                       (NOT sent100(p, c, extractMonth(currentDate()), currentYear()) AND round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 1.0);
         
-    FOR toSend(Project p, Category c) AND assigned(p, Employee e) DO {
+    FOR toSend(Project p, Category c) AND assigned(p, Employee e) AND sendLimitEmails(e, p) DO {
         EMAIL 
             SUBJECT CONCAT ' ', nameCustomer(p) + ':', name(c) + ':', 'израсходовано ' + 
                 round0(hours(p,  c, extractMonth(currentDate()), currentYear())/hoursMonthly(p) * 100) + '% времени, включённого в оплату'

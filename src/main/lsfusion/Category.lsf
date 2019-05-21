@@ -82,7 +82,8 @@ nameOverCategory 'Категория' (Employee e, Project p) = name(overCategor
 EXTEND FORM customer 
     OBJECTS e = Employee
     PROPERTIES name(e) READONLY, nameCategory(e, p) 
-    FILTERS category(e) == cc
+    FILTERS assigned(p, e)
+    FILTERGROUP category FILTER 'По категории' category(e) == cc
     FILTERGROUP cat FILTER 'Неосновные категории' NOT category(e) == category(e, p)
 ;
 
