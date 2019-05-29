@@ -64,7 +64,7 @@ sumMonthly (Invoice i) <- sumMonthly(project(i)) WHEN CHANGED(project(i));
 sum 'Сумма, руб.' (Invoice i, Task t) = hours(i, t) * rate(i, t);
 sum 'Сумма, руб.' (Invoice i) = GROUP SUM sum(i, Task t);
 
-hoursMonthly 'Часов в абонентской плате'  = DATA NUMERIC[14,2](Project, Category);
+hoursMonthly 'Часов в абонентской плате'  = DATA NUMERIC[14,1](Project, Category);
 hoursMonthly 'Часов в абонентской плате' (Invoice i, Category c) = hoursMonthly(project(i), c);
 
 hoursMonthlyCategory 'Часов в абонентской плате по категориям' (Invoice i) = GROUP SUM hoursMonthly(i, Category c);
@@ -78,6 +78,7 @@ hoursPay 'Часов к оплате' (Invoice i, Category c) = GROUP SUM hoursP
 
 sumPay 'Сумма к оплате' (Invoice i, Task t) = hoursPay(i,t) * rate(i, t);
 sumPay 'Сумма к оплате' (Invoice i) = GROUP SUM sumPay(i, Task t);
+sumPay 'Сумма к оплате' (Invoice i, Category c) = hoursPay(i,c) * rate(project(i), c);
 
 CONSTRAINT extractMonth(fromDate(Invoice i)) != extractMonth(toDate(i)) AND hoursMonthly(i) MESSAGE 'Запрещено выставлять счет за несколько месяцев одновременно';
 
