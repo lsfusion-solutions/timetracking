@@ -1,6 +1,6 @@
 MODULE InvoiceDashboard;
 
-REQUIRE Invoice, Dashboard, InvoiceWord;
+REQUIRE Invoice, Dashboard, InvoiceWord, TimeEntryWord;
 
 NAMESPACE Invoice;
 
@@ -31,7 +31,7 @@ FORM invoiceDashboard 'Выставление счетов'
     
     OBJECTS i = Invoice
     PROPERTIES(i) READONLY date, series, number, nameCustomer, nameProject, fromDate, toDate, hours, nameAuthor
-    PROPERTIES(i) generateWord TOOLBAR
+    PROPERTIES(i) TOOLBAR generateTimeEntriesWord, generateWord
     PROPERTIES(i) NEWSESSION EDIT, DELETE
     FILTERS assigned(project(i), currentEmployee())
     FILTERGROUP customer

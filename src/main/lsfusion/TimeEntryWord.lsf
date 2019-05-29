@@ -1,0 +1,128 @@
+MODULE TimeEntryWord;
+
+REQUIRE TimeEntry, Word, Invoice;
+
+NAMESPACE TimeEntry;
+
+// Генерация шаблона
+generateTimeEntriesTemplate 'Создать шаблон для трудозатрат' ()  { 
+    NEWSESSION {
+        NEW t = Template {
+            name(t) <- 'Трудозатраты';
+            NEW e = TemplateEntry {
+                template(e) <- t;
+                key(e) <- 'TABLE_TIME_ENTRY';
+                type(e) <- Word.Type.table;
+                dataFirstRow(e) <- 1;
+                dataColumnSeparator(e) <- 'lsFusionCSep';
+                dataRowSeparator(e) <- 'lsFusionRSep';
+                description(e) <- 'Таблица трудозатрат';
+            }
+
+            NEW e = TemplateEntry {
+                template(e) <- t;
+                key(e) <- 'TABLE_CATEGORY_MONTHLY';
+                type(e) <- Word.Type.table;
+                dataFirstRow(e) <- 1;
+                dataColumnSeparator(e) <- 'lsFusionCSep';
+                dataRowSeparator(e) <- 'lsFusionRSep';
+                description(e) <- 'Таблица часов в абонентской плате';
+            }
+            
+            NEW e = TemplateEntry {
+                template(e) <- t;
+                key(e) <- 'TABLE_CATEGORY_PAY';
+                type(e) <- Word.Type.table;
+                dataFirstRow(e) <- 1;
+                dataColumnSeparator(e) <- 'lsFusionCSep';
+                dataRowSeparator(e) <- 'lsFusionRSep';
+                description(e) <- 'Таблица часов вне абонентской платы';
+            }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'CATEGORY_LIST'; description(e) <- 'Трудозатраты по категориям'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'INVOICE_DATE'; description(e) <- 'Дата счета'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SERIES'; description(e) <- 'Серия счета'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'NUMBER'; description(e) <- 'Номер счета'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'CUSTOMER_NAME'; description(e) <- 'Наименование клиента'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'PROJECT_NAME'; description(e) <- 'Наименование проекта'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'FROM_DATE'; description(e) <- 'Дата с'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'TO_DATE'; description(e) <- 'Дата по'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_INIT'; description(e) <- 'Сумма в рублях'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_MONTHLY'; description(e) <- 'Сумма абонентской платы'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_HOURS'; description(e) <- 'Сумма к оплате'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_PAY'; description(e) <- 'Сумма к оплате (всего)'; }
+            DIALOG template OBJECTS t = t DO {
+                SEEK templates.t = t;
+            }
+        }
+    }
+}
+
+timeEntriesTemplateWord = DATA Template();
+nameTimeEntriesTemplateWord 'Шаблон для трудозатрат' () = name(timeEntriesTemplateWord());
+
+EXTEND FORM options PROPERTIES nameTimeEntriesTemplateWord();
+DESIGN options {
+    commons {
+        MOVE PROPERTY (nameTimeEntriesTemplateWord());
+    }
+}
+
+formatPrice = FORMULA 'ltrim(to_char($1, \'999 999 999\'))';
+
+rowTimeEntry (TimeEntry t) = CONCAT 'lsFusionCSep', toDateDDMMYY(dateStart(t)), '-', '-', (OVERRIDE comment(t), ''), (OVERRIDE hours(t), 0), '-', '-';
+
+rowTask (Invoice i, Task t) = CONCAT 'lsFusionCSep',
+    toDateDDMMYY(dateTimeStart(t)),
+    (OVERRIDE nameEmployee(t), ''),
+    (OVERRIDE description(t), name(t), ''),
+    '-',
+    (OVERRIDE hours(t), 0),
+    (OVERRIDE TEXT (formatPrice(rate(i, t))), ''),
+    (OVERRIDE TEXT (formatPrice(sumPay(i, t))), '');
+
+tableTimeEntryTaskText(Invoice i, Task t) = GROUP CONCAT rowTimeEntry(TimeEntry te) IF invoice(te) == i AND task(te) == t, 'lsFusionRSep' ORDER dateStart(te), te;
+tableTaskText(Invoice i, Task t) = CONCAT 'lsFusionRSep', tableTimeEntryTaskText(i, t), rowTask(i, t);
+tableTaskText (Invoice i) = GROUP CONCAT tableTaskText(i, Task t) IF hours(i, t), 'lsFusionRSep' ORDER dateTimeStart(t), t;
+
+categoryList (Invoice i) = GROUP CONCAT (name(Category c) + ': ' +  hoursPay(i, c) + ' ч') IF hoursPay(i, c), '\n' ORDER name(c), c;
+
+rowCategoryMonthly 'Часов в абонплате' (Invoice i, Category c) = CONCAT 'lsFusionCSep', 
+    (OVERRIDE name(c), ''), 
+    (OVERRIDE 'Блок ' + round0(hoursMonthly(i, c)) + ' часов', ''), 
+    (OVERRIDE hoursMonthly(i, c), 0), '', ''; 
+    
+rowCategoryPay 'Часов вне абонплаты' (Invoice i, Category c) = CONCAT 'lsFusionCSep', 
+    (OVERRIDE name(c), ''), 
+    '1 час', 
+    (OVERRIDE hoursPay(i, c), 0), 
+    (OVERRIDE TEXT (formatPrice(rate(project(i), c))) + ' ₽', ''), 
+    (OVERRIDE TEXT (formatPrice(sumPay(i, c))) + ' ₽', '0,00 ₽'); 
+
+tableCategoryMonthly (Invoice i) = GROUP CONCAT rowCategoryMonthly(i, Category c) IF hoursMonthly(i, c), 'lsFusionRSep' ORDER name(c), c;
+tableCategoryPay (Invoice i) = GROUP CONCAT rowCategoryPay(i, Category c) IF hoursPay(i, c) OR sumPay(i, c), 'lsFusionRSep' ORDER name(c), c;
+
+generateTimeEntriesWord 'Трудозатраты (Word)' (Invoice i)  { 
+    IF timeEntriesTemplateWord() THEN {
+        value(TemplateEntry detail) <- NULL;
+        FOR template (TemplateEntry detail) == timeEntriesTemplateWord() DO {
+            value(detail) <- TEXT(toDateDDMMYY(date(i))) WHERE key(detail) == 'INVOICE_DATE';
+            value(detail) <- TEXT(series(i)) WHERE key(detail) == 'SERIES';
+            value(detail) <- TEXT(number(i)) WHERE key(detail) == 'NUMBER';
+            value(detail) <- TEXT(nameCustomer(i)) WHERE key(detail) == 'CUSTOMER_NAME';
+            value(detail) <- TEXT(nameProject(i)) WHERE key(detail) == 'PROJECT_NAME';
+            value(detail) <- TEXT(toDateDDMMYY(fromDate(i))) WHERE key(detail) == 'FROM_DATE';
+            value(detail) <- TEXT(toDateDDMMYY(toDate(i))) WHERE key(detail) == 'TO_DATE';
+            value(detail) <- tableTaskText(i) WHERE key(detail) == 'TABLE_TIME_ENTRY';
+            value(detail) <- categoryList(i) WHERE key(detail) == 'CATEGORY_LIST';
+            value(detail) <- tableCategoryMonthly(i) WHERE key(detail) == 'TABLE_CATEGORY_MONTHLY';
+            value(detail) <- tableCategoryPay(i) WHERE key(detail) == 'TABLE_CATEGORY_PAY';
+            value(detail) <- TEXT(formatPrice(sum(i))) WHERE key(detail) == 'SUM_INIT';
+            value(detail) <- TEXT(formatPrice(sumMonthly(i))) WHERE key(detail) == 'SUM_MONTHLY';
+            value(detail) <- TEXT(formatPrice(sumPay(i))) WHERE key(detail) == 'SUM_HOURS';
+            value(detail) <- TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))) WHERE key(detail) == 'SUM_PAY';
+        }
+        process(timeEntriesTemplateWord());
+        open(resultTemplate());
+    } ELSE
+        MESSAGE 'Не выбран шаблон для трудозатрат';
+}
