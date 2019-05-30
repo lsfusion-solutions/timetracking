@@ -1,6 +1,6 @@
 MODULE Doc;
 
-REQUIRE MasterData, Word;
+REQUIRE SystemEvents, MasterData, Word;
 
 ruText 'Родительный падеж месяца' = DATA STRING[20] (Month);
 onStarted() + { 

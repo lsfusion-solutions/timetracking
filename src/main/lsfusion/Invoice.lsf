@@ -1,6 +1,6 @@
 MODULE Invoice;
 
-REQUIRE Customer, Employee, Category,
+REQUIRE SystemEvents, Customer, Employee, Category,
         TimeEntry, 
         Numerator, Utils;
 
