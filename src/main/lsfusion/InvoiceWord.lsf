@@ -12,7 +12,6 @@ generateInvoiceTemplate 'Создать шаблон для счета' ()  {
                 template(e) <- t;
                 key(e) <- 'TABLE';
                 type(e) <- Word.Type.table;
-                dataFirstRow(e) <- 1;
                 dataColumnSeparator(e) <- 'lsFusionCSep';
                 dataRowSeparator(e) <- 'lsFusionRSep';
             }

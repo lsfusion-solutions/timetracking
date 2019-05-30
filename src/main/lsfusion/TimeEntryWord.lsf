@@ -13,7 +13,6 @@ generateTimeEntriesTemplate 'Создать шаблон для трудозат
                 template(e) <- t;
                 key(e) <- 'TABLE_TIME_ENTRY';
                 type(e) <- Word.Type.table;
-                dataFirstRow(e) <- 1;
                 dataColumnSeparator(e) <- 'lsFusionCSep';
                 dataRowSeparator(e) <- 'lsFusionRSep';
                 description(e) <- 'Таблица трудозатрат';
@@ -23,7 +22,6 @@ generateTimeEntriesTemplate 'Создать шаблон для трудозат
                 template(e) <- t;
                 key(e) <- 'TABLE_CATEGORY_MONTHLY';
                 type(e) <- Word.Type.table;
-                dataFirstRow(e) <- 1;
                 dataColumnSeparator(e) <- 'lsFusionCSep';
                 dataRowSeparator(e) <- 'lsFusionRSep';
                 description(e) <- 'Таблица часов в абонентской плате';
@@ -33,7 +31,6 @@ generateTimeEntriesTemplate 'Создать шаблон для трудозат
                 template(e) <- t;
                 key(e) <- 'TABLE_CATEGORY_PAY';
                 type(e) <- Word.Type.table;
-                dataFirstRow(e) <- 1;
                 dataColumnSeparator(e) <- 'lsFusionCSep';
                 dataRowSeparator(e) <- 'lsFusionRSep';
                 description(e) <- 'Таблица часов вне абонентской платы';
