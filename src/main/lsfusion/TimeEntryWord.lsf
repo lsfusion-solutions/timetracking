@@ -68,24 +68,26 @@ formatPrice = FORMULA 'ltrim(to_char($1, \'999 999 999\'))';
 
 rowTimeEntry (TimeEntry t) = CONCAT 'lsFusionCSep', toDateDDMMYY(dateStart(t)), '-', '-', (OVERRIDE comment(t), ''), (OVERRIDE hours(t), 0), '-', '-';
 
+bold (TEXT t) =  '<b>' + t + '</b>';
+
 rowTask (Invoice i, Task t) = CONCAT 'lsFusionCSep',
-    toDateDDMMYY(dateTimeStart(t)),
-    (OVERRIDE nameEmployee(t), ''),
-    (OVERRIDE description(t), name(t), ''),
-    '-',
-    (OVERRIDE hours(t), 0),
-    (OVERRIDE TEXT (formatPrice(rate(i, t))), ''),
-    (OVERRIDE TEXT (formatPrice(sumPay(i, t))), '');
+    bold(toDateDDMMYY(dateTimeStart(t))),
+    bold(OVERRIDE nameEmployee(t), ''),
+    bold(OVERRIDE description(t), name(t), ''),
+    '',
+    bold(TEXT (OVERRIDE hours(t), 0)),
+    bold(OVERRIDE TEXT (formatPrice(rate(i, t))), ''),
+    bold(OVERRIDE TEXT (formatPrice(sumPay(i, t))), '');
 
 tableTimeEntryTaskText(Invoice i, Task t) = GROUP CONCAT rowTimeEntry(TimeEntry te) IF invoice(te) == i AND task(te) == t, 'lsFusionRSep' ORDER dateStart(te), te;
-tableTaskText(Invoice i, Task t) = CONCAT 'lsFusionRSep', tableTimeEntryTaskText(i, t), rowTask(i, t);
+tableTaskText(Invoice i, Task t) = CONCAT 'lsFusionRSep', rowTask(i, t), tableTimeEntryTaskText(i, t);
 tableTaskText (Invoice i) = GROUP CONCAT tableTaskText(i, Task t) IF hours(i, t), 'lsFusionRSep' ORDER dateTimeStart(t), t;
 
 categoryList (Invoice i) = GROUP CONCAT (name(Category c) + ': ' +  hoursPay(i, c) + ' ч') IF hoursPay(i, c), '\n' ORDER name(c), c;
 
 rowCategoryMonthly 'Часов в абонплате' (Invoice i, Category c) = CONCAT 'lsFusionCSep', 
     (OVERRIDE name(c), ''), 
-    (OVERRIDE 'Блок ' + round0(hoursMonthly(i, c)) + ' часов', ''), 
+    (OVERRIDE 'Блок ' + round1(hoursMonthly(i, c)) + ' часов', ''), 
     (OVERRIDE hoursMonthly(i, c), 0), '', ''; 
     
 rowCategoryPay 'Часов вне абонплаты' (Invoice i, Category c) = CONCAT 'lsFusionCSep', 
