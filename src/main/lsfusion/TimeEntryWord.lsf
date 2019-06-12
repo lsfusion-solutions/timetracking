@@ -64,7 +64,7 @@ DESIGN options {
     }
 }
 
-formatPrice = FORMULA 'ltrim(to_char($1, \'999 999 999\'))';
+formatPrice = FORMULA 'ltrim(to_char($1, \'999 999 999.99\'))';
 
 rowTimeEntry (TimeEntry t) = CONCAT 'lsFusionCSep', toDateDDMMYY(dateStart(t)), '-', '-', (OVERRIDE comment(t), ''), (OVERRIDE hours(t), 0), '-', '-';
 
@@ -112,13 +112,13 @@ generateTimeEntriesWord 'Трудозатраты (Word)' (Invoice i)  {
             value(detail) <- TEXT(toDateDDMMYY(fromDate(i))) WHERE key(detail) == 'FROM_DATE';
             value(detail) <- TEXT(toDateDDMMYY(toDate(i))) WHERE key(detail) == 'TO_DATE';
             value(detail) <- tableTaskText(i) WHERE key(detail) == 'TABLE_TIME_ENTRY';
-            value(detail) <- categoryList(i) WHERE key(detail) == 'CATEGORY_LIST';
-            value(detail) <- tableCategoryMonthly(i) WHERE key(detail) == 'TABLE_CATEGORY_MONTHLY';
-            value(detail) <- tableCategoryPay(i) WHERE key(detail) == 'TABLE_CATEGORY_PAY';
-            value(detail) <- TEXT(formatPrice(sum(i))) WHERE key(detail) == 'SUM_INIT';
-            value(detail) <- TEXT(formatPrice(sumMonthly(i))) WHERE key(detail) == 'SUM_MONTHLY';
-            value(detail) <- TEXT(formatPrice(sumPay(i))) WHERE key(detail) == 'SUM_HOURS';
-            value(detail) <- TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))) WHERE key(detail) == 'SUM_PAY';
+            value(detail) <- (OVERRIDE categoryList(i), '') WHERE key(detail) == 'CATEGORY_LIST';
+            value(detail) <- (OVERRIDE tableCategoryMonthly(i), '') WHERE key(detail) == 'TABLE_CATEGORY_MONTHLY';
+            value(detail) <- (OVERRIDE tableCategoryPay(i), '') WHERE key(detail) == 'TABLE_CATEGORY_PAY';
+            value(detail) <- (OVERRIDE TEXT(formatPrice(sum(i))), '0.00') WHERE key(detail) == 'SUM_INIT';
+            value(detail) <- (OVERRIDE TEXT(formatPrice(sumMonthly(i))), '0.00') WHERE key(detail) == 'SUM_MONTHLY';
+            value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i))), '0.00') WHERE key(detail) == 'SUM_HOURS';
+            value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))), '0.00') WHERE key(detail) == 'SUM_PAY';
         }
         process(timeEntriesTemplateWord());
         open(resultTemplate());
