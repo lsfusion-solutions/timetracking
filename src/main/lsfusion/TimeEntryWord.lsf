@@ -66,7 +66,7 @@ DESIGN options {
 
 formatPrice = FORMULA 'ltrim(to_char($1, \'999 999 999.99\'))';
 
-rowTimeEntry (TimeEntry t) = CONCAT 'lsFusionCSep', toDateDDMMYY(dateStart(t)), '-', '-', (OVERRIDE comment(t), ''), (OVERRIDE hours(t), 0), '-', '-';
+rowTimeEntry (TimeEntry t) = CONCAT 'lsFusionCSep', toDateDDMMYY(dateStart(t)), '-', '-', (OVERRIDE comment(t) + '\r', ''), (OVERRIDE hours(t), 0), '-', '-';
 
 bold (TEXT t) =  '<b>' + t + '</b>';
 
