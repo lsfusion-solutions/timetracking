@@ -83,7 +83,8 @@ tableTimeEntryTaskText(Invoice i, Task t) = GROUP CONCAT rowTimeEntry(TimeEntry 
 tableTaskText(Invoice i, Task t) = CONCAT 'lsFusionRSep', rowTask(i, t), tableTimeEntryTaskText(i, t);
 tableTaskText (Invoice i) = GROUP CONCAT tableTaskText(i, Task t) IF hours(i, t), 'lsFusionRSep' ORDER dateTimeStart(t), t;
 
-categoryList (Invoice i) = GROUP CONCAT (name(Category c) + ': ' +  hoursPay(i, c) + ' ч') IF hoursPay(i, c), '\n' ORDER name(c), c;
+categoryList (Invoice i) = 
+    GROUP CONCAT (CONCAT ' ', (name(Category c) + ': ' +  hours(i, c)) IF hours(i, c), '(' + hoursPay(i, c) + ')' IF hoursPay(i, c)) + ' ч', '\n' ORDER name(c), c;
 
 rowCategoryMonthly 'Часов в абонплате' (Invoice i, Category c) = CONCAT 'lsFusionCSep', 
     (OVERRIDE name(c), ''), 

@@ -51,6 +51,7 @@ fromDate 'Дата с' = GROUP MIN dateStart(TimeEntry e) BY invoice(e), task(e)
 
 hours 'Часов' = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY invoice(e) MATERIALIZED;
 hours 'Часов' (Invoice i, Task t) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY invoice(e), task(e) MATERIALIZED;
+hours 'Часов' (Invoice i, Category c) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY invoice(e), category(task(e)) MATERIALIZED;
 
 rate 'Ставка, руб.' = DATA NUMERIC[14,2] (Invoice, Task);
 rate(Invoice i, Task t) <- rate(project(i), category(t)) WHEN SET(hours(i, t)) OR CHANGED(category(t));
