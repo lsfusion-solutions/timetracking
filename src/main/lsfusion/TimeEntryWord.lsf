@@ -74,8 +74,8 @@ rowTask (Invoice i, Task t) = CONCAT 'lsFusionCSep',
     bold(toDateDDMMYY(dateTimeStart(t))),
     bold(OVERRIDE nameEmployee(t), ''),
     bold(OVERRIDE name(t), ''),
-    (OVERRIDE description(t), ''),
-    bold(CONCAT ' ', (OVERRIDE hours(t), 0), '(' + (hoursPay(i, t) + ')' IF hoursPay(i, t) != hours(t))), 
+    (OVERRIDE description(t) + '\r', ''),
+    bold(CONCAT ' ', (OVERRIDE hours(i, t), 0), '(' + (hoursPay(i, t) + ')' IF hoursPay(i, t) != hours(i, t))), 
     bold(OVERRIDE TEXT (formatPrice(rate(i, t))), ''),
     bold(OVERRIDE TEXT (formatPrice(sumPay(i, t))), '');
 
