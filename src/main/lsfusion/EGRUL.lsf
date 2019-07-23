@@ -1,0 +1,270 @@
+MODULE EGRUL;
+
+REQUIRE Project;
+
+dadataEndpoint 'Dadata Endpoint' = DATA STRING ();  // http://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/party
+dadataAPIkey 'API-ключ Dadata' = DATA STRING ();   // 005696e4128027d2399c8440e8501438f4245459 - наш ключ (бесплатный, лимит на 10 тысяч обращений в день)
+dadataAPIsecret 'Секретный ключ для стандартизации Dadata' = DATA STRING ();   // 065b071fdd53781786d41b66a5882425a16788bd
+dadataAuth 'Authorization' = 'Token ' + dadataAPIkey();
+dadataHeader (STRING name) = CASE // in Comments Dadata fields
+    WHEN name == 'Authorization' THEN dadataAuth() // 
+    WHEN name == 'Content-Type' THEN 'application/json';
+
+EXTEND FORM integrationData  //  Выводим значения ключей на форму настройки параметров приложения
+    PROPERTIES() dadataEndpoint, dadataAPIkey, dadataAPIsecret
+;
+
+DESIGN integrationData {  //  Just Design настройки
+    pane {
+        NEW egrul {
+            caption = 'Интеграция ЕГРЮЛ';
+            MOVE PROPERTY(dadataEndpoint());
+            MOVE PROPERTY(dadataAPIkey());
+            MOVE PROPERTY(dadataAPIsecret());
+        }
+    }
+}
+
+GROUP params 'Параметры';
+
+legalName 'Краткое наименование без ОПФ и кавычек' = DATA ISTRING(Customer) IN params;  // Контейнер под краткое фирменное наименование без указания ОПФ и кавычек
+legalPure 'Полное наименование без ОПФ и кавычек' = DATA ISTRING(Customer) IN params;  // Контейнер под полное фирменное наименование без указания ОПФ и кавычек
+legalLatin 'Наименование на латинице' = DATA ISTRING(Customer) IN params;  // Контейнер под наименование на латинском, по факту API его не отдаёт
+legalShort 'Краткое наименование' = DATA ISTRING(Customer) IN params;  // Контейнер под краткое фирменное наименование
+legalLong 'Полное наименование' = DATA ISTRING(Customer) IN params;  // Контейнер под полное фирменное наименование
+inn 'ИНН' = DATA ISTRING (Customer) IN params; // Контейнер под ИНН
+kpp 'КПП' = DATA ISTRING (Customer) IN params; // Контейнер под КПП
+ogrn 'ОГРН' = DATA ISTRING (Customer) IN params; // Контейнер под ОГРН
+address 'Адрес' = DATA ISTRING (Customer) IN params; // Контейнер под Адрес
+director 'ФИО директора' = DATA ISTRING(Customer) IN params; // Контейнер под ФИО директора
+zipcode 'Почтовый индекс' = DATA ISTRING(Customer) IN params; // Контейнер под Почтовый Индекс
+
+EXTEND FORM customer PROPERTIES (c) legalName, legalPure, legalLatin, legalShort, legalLong, inn, kpp, ogrn, address, director, zipcode;
+
+DESIGN customer {
+    tabPane {
+        MOVE GROUP (params,c) { type = CONTAINERV; }
+    }
+}
+
+legalName = DATA LOCAL ISTRING(INTEGER);  // Контейнер под краткое фирменное наименование без указания ОПФ и кавычек
+legalPure = DATA LOCAL ISTRING(INTEGER);  // Контейнер под полное фирменное наименование без указания ОПФ и кавычек
+legalLatin = DATA LOCAL ISTRING(INTEGER);  // Контейнер под наименование на латинском, по факту API его не отдаёт
+legalShort = DATA LOCAL ISTRING(INTEGER);  // Контейнер под краткое фирменное наименование
+legalLong = DATA LOCAL ISTRING(INTEGER);  // Контейнер под полное фирменное наименование
+inn = DATA LOCAL ISTRING (INTEGER); // Контейнер под ИНН
+kpp = DATA LOCAL ISTRING (INTEGER); // Контейнер под КПП
+ogrn = DATA LOCAL ISTRING (INTEGER); // Контейнер под ОГРН
+address = DATA LOCAL ISTRING (INTEGER); // Контейнер под Адрес
+director = DATA LOCAL ISTRING(INTEGER); // Контейнер под ФИО директора
+zipcode = DATA LOCAL ISTRING(INTEGER); // Контейнер под Почтовый Индекс
+
+GROUP data; // в этих группах выдержка из структура JSON, задокументированного по ссылке:
+GROUP management : data;  // https://dadata.ru/api/find-party/
+GROUP name : data;  // выведены пути только к тому, чем пользуемся
+GROUP address : data;
+GROUP adata EXTID 'data' : address;
+
+FORM dadata   // форма для разбора JSON, ее можно использовать в разных вызовах
+    OBJECTS suggestions = INTEGER 
+    PROPERTIES IN data inn = inn(suggestions), kpp = kpp(suggestions), ogrn_date = ogrn(suggestions)
+    PROPERTIES IN management name = director(suggestions)
+    PROPERTIES IN name short = legalName(suggestions), full = legalPure(suggestions), latin = legalLatin(suggestions), short_with_opf = legalShort(suggestions), full_with_opf = legalLong(suggestions)
+    PROPERTIES IN adata source = address(suggestions), postal_code = zipcode(suggestions)
+;
+
+CLASS EgrulLog 'Лог расхождений с ЕГРЮЛ';
+TABLE egrulLog (EgrulLog);
+
+customer = DATA Customer(EgrulLog);
+nameCustomer 'Клиент' (EgrulLog l) = name(customer(l));
+
+property 'Параметр' = DATA ISTRING[250](EgrulLog) CHARWIDTH 30;
+value 'Значение на' = DATA ISTRING[250](EgrulLog) CHARWIDTH 20;
+prevValue 'Значение с' = DATA ISTRING[250](EgrulLog) CHARWIDTH 20;
+dateTime 'Дата/время' = DATA DATETIME (EgrulLog);
+date 'Дата' (EgrulLog l) = DATE (dateTime(l));
+time 'Время' (EgrulLog l) = TIME (dateTime(l));
+
+user = DATA User(EgrulLog);
+nameUser 'Пользователь' (EgrulLog l) = name(user(l));
+
+FORM egrulLog 'Лог расхождений с ЕГРЮЛ'
+    OBJECTS o = EgrulLog PANEL
+    PROPERTIES(o) nameCustomer, dateTime, nameUser, property, prevValue, value
+    
+    EDIT EgrulLog OBJECT o
+;
+
+FORM egrulLogs 'Лог расхождений с ЕГРЮЛ'
+    OBJECTS o = EgrulLog
+    PROPERTIES(o) READONLY nameCustomer, date, time, nameUser, property, prevValue, value
+    ORDER date(o), time(o)
+    
+    LIST EgrulLog OBJECT o
+;
+
+egrul 'Импорт из ЕГРЮЛ' = DATA BOOLEAN (EgrulLog);
+egrul = DATA LOCAL BOOLEAN ();
+
+EXTEND FORM customer
+    OBJECTS l = EgrulLog LAST 
+    PROPERTIES(l) READONLY nameCustomer, date, time, nameUser, property, prevValue, value, egrul
+    ORDER date(l), time(l)
+    FILTERS customer(l) == c
+;
+
+DESIGN customer {
+    tabPane {
+        NEW params {
+            caption = 'Параметры';
+            fill = 1;
+            MOVE GROUP (params,c) { alignment = STRETCH; }
+            MOVE BOX (l);
+        }
+    }
+}
+
+getEgrulData 'Импорт из ЕГРЮЛ' (Customer a) {
+    NEWSESSION {
+        LOCAL result = FILE();
+        EXTERNAL HTTP POST dadataEndpoint() HEADERS dadataHeader PARAMS JSONFILE ('\{"query": "'+ogrn(a)+'"\}') TO result;
+        IMPORT dadata JSON FROM result();
+        egrul() <- TRUE;
+        FOR inn(INTEGER suggestions) DO {
+             inn(a) <- inn(suggestions);
+             kpp(a) <- kpp(suggestions);
+             director(a) <- director(suggestions);
+             legalName(a) <- legalName(suggestions);
+             legalPure(a) <- legalPure(suggestions);
+             legalLatin(a) <- legalLatin(suggestions);
+             legalLong(a) <- legalLong(suggestions);
+             legalShort(a) <- legalShort(suggestions);
+             address(a) <- address(suggestions);
+             zipcode(a) <- zipcode(suggestions);
+        }
+        APPLY;
+    }
+} CONFIRM IN params;
+
+EXTEND FORM customer PROPERTIES getEgrulData(c);
+
+getEgrulData () {
+    FOR ogrn(Customer c) DO {
+        getEgrulData(c);
+    }
+    APPLY;
+}
+
+WHEN SETCHANGED (inn(Customer c)) AND PREV (inn(c)) DO NEW d = EgrulLog {
+    customer(d) <- c;
+    dateTime(d) <- currentDateTime();
+    property(d) <- 'ИНН';
+    prevValue(d) <- inn(c);
+    value(d) <- PREV (inn(c));
+    user(d) <- currentUser();
+    egrul(d) <- egrul();
+}
+WHEN SETCHANGED (kpp(Customer c)) AND PREV (kpp(c)) DO NEW d = EgrulLog {
+    customer(d) <- c;
+    dateTime(d) <- currentDateTime();
+    property(d) <- 'КПП';
+    prevValue(d) <- kpp(c);
+    value(d) <- PREV (kpp(c));
+    user(d) <- currentUser();
+    egrul(d) <- egrul();
+}
+WHEN SETCHANGED (kpp(Customer c)) AND PREV (kpp(c)) DO NEW d = EgrulLog {
+    customer(d) <- c;
+    dateTime(d) <- currentDateTime();
+    property(d) <- 'ФИО директора';
+    prevValue(d) <- director(c);
+    value(d) <- director(c);
+    user(d) <- currentUser();
+    egrul(d) <- egrul();
+}
+WHEN SETCHANGED (kpp(Customer c)) AND PREV (kpp(c)) DO NEW d = EgrulLog {
+    customer(d) <- c;
+    dateTime(d) <- currentDateTime();
+    property(d) <- 'Краткое наименование без ОПФ и кавычек';
+    prevValue(d) <- legalName(c);
+    value(d) <- legalName(c);
+    user(d) <- currentUser();
+    egrul(d) <- egrul();
+}
+WHEN SETCHANGED (legalPure(Customer c)) AND PREV (legalPure(c)) DO NEW d = EgrulLog {
+    customer(d) <- c;
+    dateTime(d) <- currentDateTime();
+    property(d) <- 'Полное наименование без ОПФ и кавычек';
+    prevValue(d) <- legalPure(c);
+    value(d) <- PREV (legalPure(c));
+    user(d) <- currentUser();
+    egrul(d) <- egrul();
+}
+WHEN SETCHANGED (legalLatin(Customer c)) AND PREV (legalLatin(c)) DO NEW d = EgrulLog {
+    customer(d) <- c;
+    dateTime(d) <- currentDateTime();
+    property(d) <- 'Наименование на латинице';
+    prevValue(d) <- legalLatin(c);
+    value(d) <- PREV (legalLatin(c));
+    user(d) <- currentUser();
+    egrul(d) <- egrul();
+}
+WHEN SETCHANGED (legalLong(Customer c)) AND PREV (legalLong(c)) DO NEW d = EgrulLog {
+    customer(d) <- c;
+    dateTime(d) <- currentDateTime();
+    property(d) <- 'Полное наименование';
+    prevValue(d) <- legalLong(c);
+    value(d) <- PREV (legalLong(c));
+    user(d) <- currentUser();
+    egrul(d) <- egrul();
+}
+WHEN SETCHANGED (legalShort(Customer c)) AND PREV (legalShort(c)) DO NEW d = EgrulLog {
+    customer(d) <- c;
+    dateTime(d) <- currentDateTime();
+    property(d) <- 'Краткое наименование';
+    prevValue(d) <- legalShort(c);
+    value(d) <- PREV (legalShort(c));
+    user(d) <- currentUser();
+    egrul(d) <- egrul();
+}
+WHEN SETCHANGED (address(Customer c)) AND PREV (address(c)) DO NEW d = EgrulLog {
+    customer(d) <- c;
+    dateTime(d) <- currentDateTime();
+    property(d) <- 'Адрес';
+    prevValue(d) <- address(c);
+    value(d) <- PREV (address(c));
+    user(d) <- currentUser();
+    egrul(d) <- egrul();
+}
+WHEN SETCHANGED (zipcode(Customer c)) AND PREV (zipcode(c)) DO NEW d = EgrulLog {
+    customer(d) <- c;
+    dateTime(d) <- currentDateTime();
+    property(d) <- 'Почтовый индекс';
+    prevValue(d) <- zipcode(c);
+    value(d) <- PREV (zipcode(c));
+    user(d) <- currentUser();
+    egrul(d) <- egrul();
+}
+
+toSend (Customer c) = GROUP SUM 1 IF SET (EgrulLog l IS EgrulLog) BY customer(l);
+
+sendEmailEgrul 'Отправлять email-ы об изменении параметров клиентов' = DATA BOOLEAN ();
+
+EXTEND FORM options PROPERTIES sendEmailEgrul();
+DESIGN options {
+    commons {
+        MOVE PROPERTY (sendEmailEgrul());
+    }
+}
+
+WHEN SET (toSend(Customer c)) AND sendEmailEgrul() DO {
+    FOR email(Employee e) AND [GROUP SUM 1 IF assigned(Project p, e) BY customer(p)](c) DO {
+    EMAIL 
+        SUBJECT name(c) + ': Внести в базу изменения ЕГРЮЛ от ' + currentDate()
+        TO email(e)
+        BODY 'Здравствуйте!<br><br>Для клиента ' + name(c) + ' необходимо внести в базу 1С следующие изменения ЕГРЮЛ от ' + toDateDDMMYY(currentDate()) + '<br><br>' +
+            (GROUP CONCAT 'Атрибут: ' + property(EgrulLog l) + '<br>Стало: ' + value(l) + '<br>Было: ' + prevValue(l) IF SET (l IS EgrulLog) AND customer(l) == c, '<br><br>' ORDER l) +
+            '<br><br>Внесение данных изменений может иметь большое значение при выставлении официальных документов, а так же уберечь нашу компанию от крупных штрафов!<br><br>С уважением,<br><br>Ваша CRM система!';
+    }
+}
