@@ -126,34 +126,42 @@ DESIGN customer {
 }
 
 getEgrulData 'Импорт из ЕГРЮЛ' (Customer a) {
-    NEWSESSION {
-        LOCAL result = FILE();
-        EXTERNAL HTTP POST dadataEndpoint() HEADERS dadataHeader PARAMS JSONFILE ('\{"query": "'+ogrn(a)+'"\}') TO result;
-        IMPORT dadata JSON FROM result();
-        egrul() <- TRUE;
-        FOR inn(INTEGER suggestions) DO {
-             inn(a) <- inn(suggestions);
-             kpp(a) <- kpp(suggestions);
-             director(a) <- director(suggestions);
-             legalName(a) <- legalName(suggestions);
-             legalPure(a) <- legalPure(suggestions);
-             legalLatin(a) <- legalLatin(suggestions);
-             legalLong(a) <- legalLong(suggestions);
-             legalShort(a) <- legalShort(suggestions);
-             address(a) <- address(suggestions);
-             zipcode(a) <- zipcode(suggestions);
-        }
+    LOCAL result = FILE();
+    EXTERNAL HTTP POST dadataEndpoint() HEADERS dadataHeader PARAMS JSONFILE ('\{"query": "' + (OVERRIDE inn(a), ogrn(a)) + '"\}') TO result;
+    IMPORT dadata JSON FROM result();
+    egrul() <- TRUE;
+    FOR inn(INTEGER suggestions) DO {
+         inn(a) <- inn(suggestions);
+         kpp(a) <- kpp(suggestions);
+         director(a) <- director(suggestions);
+         legalName(a) <- legalName(suggestions);
+         legalPure(a) <- legalPure(suggestions);
+         legalLatin(a) <- legalLatin(suggestions);
+         legalLong(a) <- legalLong(suggestions);
+         legalShort(a) <- legalShort(suggestions);
+         address(a) <- address(suggestions);
+         zipcode(a) <- zipcode(suggestions);
+    }
+}
+
+getEgrulDataUser 'Импорт из ЕГРЮЛ' (Customer c) {
+    IF NOT ogrn(c) THEN {
+        MESSAGE 'Не задан ОГРН';
+    } ELSE NEWSESSION {
+        getEgrulData(c);
         APPLY;
     }
 } CONFIRM IN params;
 
-EXTEND FORM customer PROPERTIES getEgrulData(c);
+EXTEND FORM customer PROPERTIES getEgrulDataUser(c);
 
 getEgrulData () {
-    FOR ogrn(Customer c) DO {
-        getEgrulData(c);
+    NEWSESSION {
+        FOR ogrn(Customer c) DO {
+            getEgrulData(c);
+        }
+        APPLY;
     }
-    APPLY;
 }
 
 WHEN SETCHANGED (inn(Customer c)) AND PREV (inn(c)) DO NEW d = EgrulLog {
@@ -249,17 +257,44 @@ WHEN SETCHANGED (zipcode(Customer c)) AND PREV (zipcode(c)) DO NEW d = EgrulLog 
 
 toSend (Customer c) = GROUP SUM 1 IF SET (EgrulLog l IS EgrulLog) BY customer(l);
 
-sendEmailEgrul 'Отправлять email-ы об изменении параметров клиентов' = DATA BOOLEAN ();
+sendEmailEgrul 'Отправлять email об изменении параметров клиента' = DATA BOOLEAN (Customer, Employee);
 
-EXTEND FORM options PROPERTIES sendEmailEgrul();
-DESIGN options {
-    commons {
-        MOVE PROPERTY (sendEmailEgrul());
+EXTEND FORM customer 
+    OBJECTS ee = Employee
+    PROPERTIES sendEmailEgrul(c, ee), name(ee) READONLY
+    ORDER name(ee)
+;
+
+DESIGN customer {
+    params {
+        NEW tabParams {
+            type = TABBED;
+            fill = 1;
+            MOVE BOX (l) { caption = 'Журнал изменений'; }
+            MOVE BOX (ee) { caption = 'Сотрудники'; }
+        }
     }
 }
 
-WHEN SET (toSend(Customer c)) AND sendEmailEgrul() DO {
-    FOR email(Employee e) AND [GROUP SUM 1 IF assigned(Project p, e) BY customer(p)](c) DO {
+EXTEND FORM employee
+    OBJECTS c = Customer
+    PROPERTIES sendEmailEgrul(c, e), name(c) READONLY
+    ORDER name(c)
+;
+
+DESIGN employee {
+    OBJECTS {
+        NEW tab AFTER BOX (e) {
+            type = TABBED;
+            fill = 1;
+            MOVE BOX (p) { caption = 'Проекты'; }
+            MOVE BOX (c) { caption = 'Клиенты'; }
+        }
+    }
+}
+
+WHEN SET (toSend(Customer c)) DO {
+    FOR email(Employee e) AND sendEmailEgrul(c, e) DO {
     EMAIL 
         SUBJECT name(c) + ': Внести в базу изменения ЕГРЮЛ от ' + currentDate()
         TO email(e)
@@ -268,3 +303,27 @@ WHEN SET (toSend(Customer c)) AND sendEmailEgrul() DO {
             '<br><br>Внесение данных изменений может иметь большое значение при выставлении официальных документов, а так же уберечь нашу компанию от крупных штрафов!<br><br>С уважением,<br><br>Ваша CRM система!';
     }
 }
+
+fillOGRN 'Импорт ОГРН' () {
+    
+    LOCAL name = TEXT (INTEGER);
+    LOCAL name2 = TEXT (INTEGER);
+    LOCAL inn = ISTRING[100](INTEGER);
+    LOCAL kpp = ISTRING[100](INTEGER);
+    LOCAL ogrn = ISTRING[100](INTEGER);
+    
+    INPUT f = EXCELFILE DO {
+        IMPORT XLS FROM f TO name, name2, inn = D, kpp, ogrn;
+        
+        FOR lower(trim(name(Customer c))) == lower(trim(name(INTEGER i))) OR lower(trim(name(c))) == lower(trim(name2(i))) DO {
+            inn(c) <- inn(i);
+            kpp(c) <- kpp(i);
+            ogrn(c) <- ogrn(i);
+        }
+    }
+}
+
+EXTEND FORM customers 
+    PROPERTIES (c) READONLY inn, kpp, ogrn
+    PROPERTIES fillOGRN() DRAW c TOOLBAR
+;
