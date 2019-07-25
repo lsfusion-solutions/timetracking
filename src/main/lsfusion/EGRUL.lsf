@@ -157,7 +157,7 @@ EXTEND FORM customer PROPERTIES getEgrulDataUser(c);
 
 getEgrulData () {
     NEWSESSION {
-        FOR ogrn(Customer c) DO {
+        FOR inn(Customer c) OR ogrn(c) DO {
             getEgrulData(c);
         }
         APPLY;
