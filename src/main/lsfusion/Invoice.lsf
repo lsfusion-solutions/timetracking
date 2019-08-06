@@ -98,6 +98,7 @@ FORM invoice 'Счет'
     PROPERTIES(t) READONLY nameProject, codeEmployee, nameCategoryEmployee, nameEmployee, nameTaskType
     PROPERTIES(i, t) fromDate READONLY, hours READONLY, hoursPay READONLY, rate, sum READONLY, sumPay READONLY
     PROPERTIES(t) READONLY name, description PANEL
+    PROPERTIES (t) NEWSESSION EDIT
     FILTERS hours(i, t),
             assigned(project(t), currentEmployee())
     

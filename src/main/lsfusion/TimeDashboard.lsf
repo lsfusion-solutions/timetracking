@@ -207,6 +207,10 @@ NAVIGATOR {
 filterEmployee = DATA LOCAL Employee();
 nameFilterEmployee 'Сотрудник' () = name(filterEmployee()) CHARWIDTH 30;
 
+editTask 'Редактировать задачу' (TimeEntry te) {
+    NEWSESSION SHOW task OBJECTS t = task(te) DOCKED;
+} IMAGE 'edit.png';
+
 FORM timeEntriesEmployee 'Просмотр трудозатрат'
     OBJECTS dates = (df = DATE, dt = DATE) PANEL 
     PROPERTIES 'Дата с' = VALUE (df), 'Дата по' = VALUE (dt), nameFilterEmployee() DRAW dates
@@ -214,6 +218,7 @@ FORM timeEntriesEmployee 'Просмотр трудозатрат'
     OBJECTS t = TimeEntry
     PROPERTIES (t) READONLY nameEmployee SHOWIF NOT filterEmployee(), nameCustomerProject, nameProject, dateStart, dateFinish, 
                             nameTaskType, nameTask, nameActivity, comment, hours
+    PROPERTIES editTask(t) TOOLBAR            
     FILTERS employee(t) == filterEmployee() OR NOT filterEmployee(),
             dateFinish(t) >= df AND dateStart(t) <= dt
     
