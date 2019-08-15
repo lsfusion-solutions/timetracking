@@ -124,7 +124,7 @@ children 'Дети' (Person p) = GROUP CONCAT name(Child c), ', ' ORDER birthday
 
 FORM person 'Физическое лицо'
     OBJECTS p = Person PANEL 
-    PROPERTIES (p) nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, 
+    PROPERTIES (p) nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, email,
                    seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank,
                    openFileSnils SHOWIF TRUE IF fileSnils(p), loadFileSnils,
                    openFilePassport SHOWIF TRUE IF filePassport(p), loadFilePassport,
@@ -180,6 +180,7 @@ DESIGN person {
                     MOVE PROPERTY (birthday(p));
                     MOVE PROPERTY (address(p));
                     MOVE PROPERTY (phone(p));
+                    MOVE PROPERTY (email(p));
                 }
             }
             NEW docs {
@@ -239,7 +240,7 @@ DESIGN person {
 
 FORM persons 'Физические лица'
     OBJECTS p = Person 
-    PROPERTIES (p) READONLY nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, children,
+    PROPERTIES (p) READONLY nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, email, children,
                    seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank
     PROPERTIES (p) NEWSESSION NEW, EDIT, DELETE
     ORDER lastName(p)
@@ -247,11 +248,20 @@ FORM persons 'Физические лица'
     LIST Person OBJECT p
 ;
 
+addPerson 'Добавить' (Customer c) {
+    NEWSESSION NEW p = Person {
+        customer(p) <- c;
+        SHOW person OBJECTS p = p DOCKED;
+    }
+} IMAGE 'add.png';
+
 EXTEND FORM customer
     OBJECTS r = Person
     
-    PROPERTIES(r) lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, children,
-                  seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank, NEW, DELETE
+    PROPERTIES(r) READONLY lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, email, children,
+                  seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank
+    PROPERTIES addPerson(c) DRAW r TOOLBAR 
+    PROPERTIES (r) NEWSESSION EDIT, DELETE
     FILTERS customer(r) == c
     ORDER lastName(r)
 ;

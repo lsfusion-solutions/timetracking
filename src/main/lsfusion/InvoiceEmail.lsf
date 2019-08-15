@@ -1,0 +1,102 @@
+MODULE InvoiceEmail;
+
+REQUIRE Invoice, TimeEntryWord, Person;
+
+NAMESPACE Invoice;
+
+checkHoursLimit 'Проверять приближение к лимиту часов' = DATA BOOLEAN ();
+
+EXTEND FORM options PROPERTIES checkHoursLimit();
+DESIGN options {
+    commons {
+        MOVE PROPERTY (checkHoursLimit());
+    }
+}
+
+sendLimitEmails 'Получать уведомления о приближении к лимиту часов' = DATA BOOLEAN (Employee, Project);
+sendLimitEmails 'Получать уведомления о приближении к лимиту часов' = DATA BOOLEAN (Person, Project);
+
+EXTEND FORM customer PROPERTIES sendLimitEmails(e, p), sendLimitEmails(r, p) BEFORE lastName(r);
+
+rowCategoryMonthly 'Часов в абонплате' (Project p, Category c) = CONCAT '   ', 
+    (OVERRIDE name(c) + ': ', ''), 
+    (OVERRIDE hoursMonthly(p, c), 0) + ' ч'; 
+
+hoursPay 'Часов к оплате' (Project p, Category c) = hours(p, c, extractMonth(currentDate()), currentYear()) (-) hoursMonthly(p, c);
+sumPay 'Сумма к оплате' (Project p, Category c) = hoursPay(p, c) * rate(p, c);
+
+rowCategoryPay 'Часов вне абонплаты' (Project p, Category c) = CONCAT ' ', 
+    (OVERRIDE name(c) + ': ', ''), 
+    (OVERRIDE hoursPay(p, c), 0), 
+    (OVERRIDE 'Ставка: ' + TEXT (formatPrice(rate(p, c))) + ' ₽', ''), 
+    (OVERRIDE 'Сумма: ' + TEXT (formatPrice(sumPay(p, c))) + ' ₽', '0,00 ₽'); 
+
+tableCategoryMonthly (Project p) = GROUP CONCAT rowCategoryMonthly(p, Category c) IF hoursMonthly(p, c), '<br>' ORDER name(c), c;
+tableCategoryPay (Project p) = GROUP CONCAT rowCategoryPay(p, Category c) IF hoursPay(p, c) > 0 OR sumPay(p, c) > 0, '<br>' ORDER name(c), c;
+
+sent90 = DATA BOOLEAN (Project, Month, INTEGER);
+sent95 = DATA BOOLEAN (Project, Month, INTEGER);
+sent100 = DATA BOOLEAN (Project, Month, INTEGER);
+
+sendEmailLimitHoursProjects 'Разослать письма о приближении к лимиту по проекту' () {
+    
+    LOCAL email = TEXT ();
+    LOCAL toSend = BOOLEAN (Project);
+    
+    toSend (Project p) <- (NOT sent90(p, extractMonth(currentDate()), currentYear()) AND round2(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p)) >= 0.90) OR 
+                          (NOT sent95(p, extractMonth(currentDate()), currentYear()) AND round2(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p)) >= 0.95) OR 
+                          (NOT sent100(p, extractMonth(currentDate()), currentYear()) AND round2(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p)) >= 1.0);
+    
+    FOR toSend(Project p) DO {
+        email() <- CONCAT ';', (GROUP CONCAT email(Employee e) IF assigned(p, e) AND sendLimitEmails(e, p), ';'), 
+                               (GROUP CONCAT email(Person r) IF sendLimitEmails(r, p), ';');
+        IF email() THEN EMAIL 
+            SUBJECT CONCAT ' ', nameCustomer(p) + ':', 'израсходовано ' + 
+                round0(hours(p,  extractMonth(currentDate()), currentYear())/hoursMonthly(p) * 100) + '% времени, включённого в оплату'
+            TO email()
+            BODY 'Здравствуйте!<br><br>Обратите внимание что у клиента ' + nameCustomer(p) + ' израсходовано ' + 
+                round0(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p) * 100) + 
+                '% времени, включённого в оплату в текущем периоде.<br><br>С уважением,<br><br>Ваша CRM система!';
+    }
+    sent90(Project p, Month m, INTEGER y) <- round2(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p)) >= 0.90 WHERE m = extractMonth(currentDate()) AND y = currentYear();
+    sent95(Project p, Month m, INTEGER y) <- round2(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p)) >= 0.95 WHERE m = extractMonth(currentDate()) AND y = currentYear();
+    sent100(Project p, Month m, INTEGER y) <- round2(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p)) >= 1.0 WHERE m = extractMonth(currentDate()) AND y = currentYear();
+    APPLY;
+}
+
+sent90 = DATA BOOLEAN (Project, Category, Month, INTEGER);
+sent95 = DATA BOOLEAN (Project, Category, Month, INTEGER);
+sent100 = DATA BOOLEAN (Project, Category, Month, INTEGER);
+
+sendEmailLimitHoursCategories 'Разослать письма о приближении к лимиту по категории' () {
+    
+    LOCAL email = TEXT ();
+    LOCAL toSend = BOOLEAN (Project, Category);
+    
+    toSend (Project p, Category c) <- (NOT sent90(p, c, extractMonth(currentDate()), currentYear()) AND round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 0.90) OR 
+                                      (NOT sent95(p, c, extractMonth(currentDate()), currentYear()) AND round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 0.95) OR 
+                                      (NOT sent100(p, c, extractMonth(currentDate()), currentYear()) AND round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 1.0);
+        
+    FOR toSend(Project p, Category c) DO {
+        email() <- CONCAT ';', (GROUP CONCAT email(Employee e) IF assigned(p, e) AND sendLimitEmails(e, p), ';'), 
+                               (GROUP CONCAT email(Person r) IF sendLimitEmails(r, p), ';');
+        IF email() THEN EMAIL 
+            SUBJECT CONCAT ' ', nameCustomer(p) + ':', name(c) + ':', 'израсходовано ' + 
+                round0(hours(p,  c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c) * 100) + '% времени, включённого в оплату'
+            TO email()
+            BODY 'Здравствуйте!<br><br>Обратите внимание что у клиента ' + nameCustomer(p) + ' израсходовано ' + 
+                round0(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c) * 100) + 
+                '% времени специалиста ' + name(c) + ', включённого в оплату в текущем периоде.' + 
+                (OVERRIDE '<br><br>В абонентской плате:<br><br>' + tableCategoryMonthly(p), '') + 
+                (OVERRIDE '<br><br>Вне абонентской платы:<br><br>' + tableCategoryPay(p), '') + '<br><br>С уважением,<br><br>Ваша CRM система!';
+    }
+    sent90(Project p, Category c, Month m, INTEGER y) <- round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 0.90 WHERE m = extractMonth(currentDate()) AND y = currentYear(); 
+    sent95(Project p, Category c, Month m, INTEGER y) <- round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 0.95 WHERE m = extractMonth(currentDate()) AND y = currentYear();
+    sent100(Project p, Category c, Month m, INTEGER y) <- round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 1.0 WHERE m = extractMonth(currentDate()) AND y = currentYear();
+    APPLY;
+}
+
+sendEmailLimitHours 'Разослать письма о приближении к лимиту' () {
+    sendEmailLimitHoursProjects();
+    sendEmailLimitHoursCategories();
+}
