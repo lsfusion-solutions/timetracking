@@ -18,25 +18,38 @@ sendLimitEmails 'Получать уведомления о приближени
 
 EXTEND FORM customer PROPERTIES sendLimitEmails(e, p), sendLimitEmails(r, p) BEFORE lastName(r);
 
-rowCategoryMonthly 'Часов в абонплате' (Project p, Category c) = CONCAT '   ', 
-    (OVERRIDE name(c) + ': ', ''), 
-    (OVERRIDE hoursMonthly(p, c), 0) + ' ч'; 
-
 hoursPay 'Часов к оплате' (Project p, Category c) = hours(p, c, extractMonth(currentDate()), currentYear()) (-) hoursMonthly(p, c);
 sumPay 'Сумма к оплате' (Project p, Category c) = hoursPay(p, c) * rate(p, c);
-
-rowCategoryPay 'Часов вне абонплаты' (Project p, Category c) = CONCAT ' ', 
-    (OVERRIDE name(c) + ': ', ''), 
-    (OVERRIDE hoursPay(p, c), 0), 
-    (OVERRIDE 'Ставка: ' + TEXT (formatPrice(rate(p, c))) + ' ₽', ''), 
-    (OVERRIDE 'Сумма: ' + TEXT (formatPrice(sumPay(p, c))) + ' ₽', '0,00 ₽'); 
-
-tableCategoryMonthly (Project p) = GROUP CONCAT rowCategoryMonthly(p, Category c) IF hoursMonthly(p, c), '<br>' ORDER name(c), c;
-tableCategoryPay (Project p) = GROUP CONCAT rowCategoryPay(p, Category c) IF hoursPay(p, c) > 0 OR sumPay(p, c) > 0, '<br>' ORDER name(c), c;
+sumPay 'Сумма к оплате' (Project p) = GROUP SUM sumPay(p, Category c);
 
 sent90 = DATA BOOLEAN (Project, Month, INTEGER);
 sent95 = DATA BOOLEAN (Project, Month, INTEGER);
 sent100 = DATA BOOLEAN (Project, Month, INTEGER);
+
+sumTotal 'Сумма (всего)' (Project p) = sumMonthly(p) (+) sumPay(p);
+percentHours 'Израсходовано часов, %' (Project p, Category c, DATE d) = round0(hours(p, c, extractMonth(d), extractYear(d))/hoursMonthly(p, c) * 100);
+
+FORM messageTableCategory 'Таблица оплаты по категориям'
+    OBJECTS pcd = (p = Project, c = Category, d = DATE) PANEL 
+    PROPERTIES READONLY sumMonthly = (OVERRIDE formatPrice(sumMonthly(p)) + ' ₽', '0,00 ₽'), 
+                        sumPay = (OVERRIDE formatPrice(sumPay(p)) + ' ₽', '0,00 ₽'), 
+                        sumTotal = (OVERRIDE formatPrice(sumTotal(p)) + ' ₽', '0,00 ₽'), nameCustomer(p)
+    PROPERTIES READONLY name(c), percentHours(p, c, d)
+    
+    OBJECTS c1 = Category
+    PROPERTIES (c1) READONLY name
+    PROPERTIES (p, c1) READONLY hoursMonthly
+    FILTERS hoursMonthly(p, c1)
+    ORDER name(c1)
+    
+    OBJECTS c2 = Category
+    PROPERTIES (c2) READONLY name
+    PROPERTIES READONLY hoursPay(p, c2), 
+                        rate = (OVERRIDE formatPrice(rate(p, c2)) + ' ₽', '0,00 ₽'), 
+                        sumPay2 = (OVERRIDE formatPrice(sumPay(p, c2)) + ' ₽', '0,00 ₽')
+    FILTERS hoursPay(p, c2) > 0 OR sumPay(p, c2) > 0
+    ORDER name(c2)
+;
 
 sendEmailLimitHoursProjects 'Разослать письма о приближении к лимиту по проекту' () {
     
@@ -78,17 +91,17 @@ sendEmailLimitHoursCategories 'Разослать письма о приближ
                                       (NOT sent100(p, c, extractMonth(currentDate()), currentYear()) AND round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 1.0);
         
     FOR toSend(Project p, Category c) DO {
+        
+        LOCAL bodyFile = FILE ();
+        PRINT messageTableCategory OBJECTS p = p, c = c, d = currentDate() HTML TO bodyFile;
+        
         email() <- CONCAT ';', (GROUP CONCAT email(Employee e) IF assigned(p, e) AND sendLimitEmails(e, p), ';'), 
                                (GROUP CONCAT email(Person r) IF sendLimitEmails(r, p), ';');
         IF email() THEN EMAIL 
             SUBJECT CONCAT ' ', nameCustomer(p) + ':', name(c) + ':', 'израсходовано ' + 
                 round0(hours(p,  c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c) * 100) + '% времени, включённого в оплату'
             TO email()
-            BODY 'Здравствуйте!<br><br>Обратите внимание что у клиента ' + nameCustomer(p) + ' израсходовано ' + 
-                round0(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c) * 100) + 
-                '% времени специалиста ' + name(c) + ', включённого в оплату в текущем периоде.' + 
-                (OVERRIDE '<br><br>В абонентской плате:<br><br>' + tableCategoryMonthly(p), '') + 
-                (OVERRIDE '<br><br>Вне абонентской платы:<br><br>' + tableCategoryPay(p), '') + '<br><br>С уважением,<br><br>Ваша CRM система!';
+            BODY bodyFile();
     }
     sent90(Project p, Category c, Month m, INTEGER y) <- round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 0.90 WHERE m = extractMonth(currentDate()) AND y = currentYear(); 
     sent95(Project p, Category c, Month m, INTEGER y) <- round2(hours(p, c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c)) >= 0.95 WHERE m = extractMonth(currentDate()) AND y = currentYear();

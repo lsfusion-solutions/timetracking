@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.4.3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Таблица оплаты по категориям" pageWidth="555" pageHeight="842" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="1b89bb10-92df-41b9-b71d-c721b19ee95c">
+	<property name="net.sf.jasperreports.export.xls.print.page.width" value="842"/>
+	<property name="net.sf.jasperreports.export.xls.print.page.height" value="595"/>
+	<style name="DefaultStyle" isDefault="true" vTextAlign="Middle" fontName="lsf.TimesNewRoman" fontSize="10">
+		<box>
+			<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+		</box>
+		<paragraph leftIndent="2" rightIndent="2"/>
+	</style>
+	<style name="GroupCellStyle2" vTextAlign="Middle" fontName="lsf.TimesNewRoman" fontSize="10">
+		<box>
+			<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+		</box>
+		<paragraph leftIndent="2" rightIndent="2"/>
+	</style>
+	<style name="GroupCellStyle1" mode="Opaque" backcolor="#DFDFDF" vTextAlign="Middle" fontName="lsf.TimesNewRoman" fontSize="10">
+		<box>
+			<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+		</box>
+		<paragraph leftIndent="2" rightIndent="2"/>
+	</style>
+	<parameter name="c1_report" class="net.sf.jasperreports.engine.JasperReport"/>
+	<parameter name="c1_source" class="net.sf.jasperreports.engine.JRDataSource"/>
+	<parameter name="c1_params" class="java.util.Map"/>
+	<parameter name="c2_report" class="net.sf.jasperreports.engine.JasperReport"/>
+	<parameter name="c2_source" class="net.sf.jasperreports.engine.JRDataSource"/>
+	<parameter name="c2_params" class="java.util.Map"/>
+	<field name="p.object" class="java.lang.Long"/>
+	<field name="c.object" class="java.lang.Long"/>
+	<field name="d.object" class="java.util.Date"/>
+	<field name="sumMonthly" class="java.lang.String"/>
+	<field name="sumPay" class="java.lang.String"/>
+	<field name="sumTotal" class="java.lang.String"/>
+	<field name="nameCustomer(p)" class="java.lang.String"/>
+	<field name="name(c)" class="java.lang.String"/>
+	<field name="percentHours(p,c,d)" class="java.math.BigDecimal"/>
+	<group name="designGroup12950">
+		<groupExpression><![CDATA[String.valueOf($F{p.object})+" "+String.valueOf($F{c.object})+" "+String.valueOf($F{d.object})]]></groupExpression>
+	</group>
+	<title>
+		<band height="100">
+			<textField>
+				<reportElement x="0" y="0" width="555" height="100" uuid="e8f6fb42-17b6-43e0-ace9-425868dae141">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="lsf.Arial" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Здравствуйте!\n\nОбратите внимание что у клиента " + $F{nameCustomer(p)} + " израсходовано " + $F{percentHours(p,c,d)}.stripTrailingZeros().toPlainString() + 
+"% времени специалиста " + $F{name(c)} + ", включённого в оплату в текущем периоде.\n\n"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="18">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="0" y="0" width="200" height="18" uuid="cc0fa5a9-d6fb-4607-921c-b297c8ac1a7d"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font fontName="lsf.Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Вид услуг"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="200" y="0" width="115" height="18" uuid="a802e885-4cfe-4d53-b6f7-238a41e0c8f7"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font fontName="lsf.Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Единицы"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="315" y="0" width="80" height="18" uuid="3f2d99a7-9cef-4237-864e-365edd3e2dfb"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font fontName="lsf.Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Объём"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="395" y="0" width="80" height="18" uuid="0c47fb33-40d0-4d90-8e4a-2bdd584c2574"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font fontName="lsf.Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Ставка"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="475" y="0" width="80" height="18" uuid="55612655-539a-48c9-b3b5-d850fa1246f3"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font fontName="lsf.Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Сумма"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<subreport>
+				<reportElement stretchType="RelativeToBandHeight" mode="Transparent" x="0" y="0" width="0" height="0" backcolor="#D9D9D9" uuid="fcfdbd4c-bacd-448f-b4eb-57e49f3d61a9"/>
+				<parametersMapExpression><![CDATA[$P{c1_params}]]></parametersMapExpression>
+				<dataSourceExpression><![CDATA[$P{c1_source}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{c1_report}]]></subreportExpression>
+			</subreport>
+		</band>
+		<band>
+			<subreport>
+				<reportElement stretchType="RelativeToBandHeight" mode="Transparent" x="0" y="0" width="0" height="0" backcolor="#D9D9D9" uuid="60538fef-b394-4be3-b238-6f72d279dfb5"/>
+				<parametersMapExpression><![CDATA[$P{c2_params}]]></parametersMapExpression>
+				<dataSourceExpression><![CDATA[$P{c2_source}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{c2_report}]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<summary>
+		<band height="82">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="0" width="395" height="18" backcolor="#D9D9D9" uuid="f45f5661-d191-46c9-a22b-e9f866eecea0"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font fontName="lsf.Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Итого к оплате:"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" mode="Opaque" x="395" y="0" width="160" height="18" backcolor="#D9D9D9" uuid="6cca5dfd-3451-4282-9f54-98f0b7d7fbe0">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font fontName="lsf.Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sumTotal}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="30" width="555" height="52" uuid="8e67532b-02cc-430a-8323-8556dff8b6e2">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="lsf.Arial" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA["С уважением,\n\nВаша CRM система!"]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>
