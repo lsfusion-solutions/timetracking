@@ -160,15 +160,19 @@ DESIGN legalEntity {
         }
         NEW numbers {
             caption = 'Информация';
-            type = COLUMNS;
-            columns = 4;
-            MOVE PROPERTY (inn(o));
-            MOVE PROPERTY (kpp(o));
-            MOVE PROPERTY (okpo(o));
-            MOVE PROPERTY (okato(o));
-            MOVE PROPERTY (oktmo(o));
-            MOVE PROPERTY (okved(o));
-            MOVE PROPERTY (ogrn(o));
+            NEW line1 {
+                type = CONTAINERH;
+                MOVE PROPERTY (inn(o));
+                MOVE PROPERTY (kpp(o));
+                MOVE PROPERTY (ogrn(o));
+            }
+            NEW line2 {
+                type = CONTAINERH;
+                MOVE PROPERTY (okpo(o));
+                MOVE PROPERTY (okved(o));
+                MOVE PROPERTY (okato(o));
+                MOVE PROPERTY (oktmo(o));
+            } 
         }
     }
 }
