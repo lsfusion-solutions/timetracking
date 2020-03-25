@@ -281,7 +281,7 @@ NAVIGATOR {
 
 seriesMarriage 'Серия свидетельства о браке' = DATA ISTRING[50] (Person) CHARWIDTH 10;
 dateMarriage 'Дата заключения брака' = DATA DATE (Person);
-nameSpause 'ФИО супруга' = DATA ISTRING[200] (Person) CHARWIDTH 30;
+nameSpouse 'ФИО супруга' = DATA ISTRING[200] (Person) CHARWIDTH 30;
 authorityMarriage 'Орган, выдавший свидетельство' = DATA ISTRING[200] (Person) CHARWIDTH 20;
 
 fileMarriage = DATA FILE (Person);
@@ -292,7 +292,7 @@ loadfileMarriage 'Загрузить' (Person c) {
 }
 
 EXTEND FORM person
-    PROPERTIES(p) seriesMarriage, dateMarriage, nameSpause, authorityMarriage, openfileMarriage, loadfileMarriage
+    PROPERTIES(p) seriesMarriage, dateMarriage, nameSpouse, authorityMarriage, openfileMarriage, loadfileMarriage
 ;
 
 DESIGN person {
@@ -302,7 +302,7 @@ DESIGN person {
             fill = 1;
             MOVE PROPERTY(seriesMarriage(p));
             MOVE PROPERTY(dateMarriage(p));
-            MOVE PROPERTY(nameSpause(p));
+            MOVE PROPERTY(nameSpouse(p));
             MOVE PROPERTY(authorityMarriage(p));
             NEW marriageFile {
                 type = CONTAINERH;
