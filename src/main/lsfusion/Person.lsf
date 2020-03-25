@@ -278,3 +278,37 @@ NAVIGATOR {
         NEW persons;
     }
 }
+
+seriesMarriage 'Серия свидетельства о браке' = DATA ISTRING[50] (Person) CHARWIDTH 10;
+dateMarriage 'Дата заключения брака' = DATA DATE (Person);
+nameSpause 'ФИО супруга' = DATA ISTRING[200] (Person) CHARWIDTH 30;
+authorityMarriage 'Орган, выдавший свидетельство' = DATA ISTRING[200] (Person) CHARWIDTH 20;
+
+fileMarriage = DATA FILE (Person);
+openfileMarriage 'Открыть' (Person c) { open(fileMarriage(c)); }
+loadfileMarriage 'Загрузить' (Person c) { 
+    INPUT f=fileMarriage(c) CHANGE DO {
+    } 
+}
+
+EXTEND FORM person
+    PROPERTIES(p) seriesMarriage, dateMarriage, nameSpause, authorityMarriage, openfileMarriage, loadfileMarriage
+;
+
+DESIGN person {
+    docs {
+        NEW marriage {
+            caption = 'Свидетельство о браке';
+            fill = 1;
+            MOVE PROPERTY(seriesMarriage(p));
+            MOVE PROPERTY(dateMarriage(p));
+            MOVE PROPERTY(nameSpause(p));
+            MOVE PROPERTY(authorityMarriage(p));
+            NEW marriageFile {
+                type = CONTAINERH;
+                MOVE PROPERTY(loadfileMarriage(p));
+                MOVE PROPERTY(openfileMarriage(p));
+            }
+        }
+    }
+}
