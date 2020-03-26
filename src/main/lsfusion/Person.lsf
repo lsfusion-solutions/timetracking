@@ -37,10 +37,10 @@ TABLE bank (Bank);
 id 'Код' = DATA STRING[15] (Bank) MATERIALIZED INDEXED CHARWIDTH 5 IN id;
 bank (id) = GROUP AGGR Bank b BY id (b);
 
-name 'Название' = DATA ISTRING[250](Bank) CHARWIDTH 15;
+name 'Название' = DATA ISTRING[250](Bank) CHARWIDTH 20;
 bic 'БИК' = DATA STRING[11](Bank) CHARWIDTH 11 IN id;
 swift 'SWIFT' = DATA ISTRING[50] (Bank) CHARWIDTH 15 IN id;
-numberAccount 'Корреспондентский счёт' = DATA ISTRING[50](Bank) CHARWIDTH 15;
+numberAccount 'Корреспондентский счёт' = DATA ISTRING[50](Bank) CHARWIDTH 20;
 
 bank = DATA Bank(Person);
 nameBank 'Банк' (Person p) = name(bank(p));
@@ -312,3 +312,122 @@ DESIGN person {
         }
     }
 }
+
+nameEng 'Название (англ)' = DATA ISTRING[250](Bank) CHARWIDTH 15;
+address 'юр. адрес' = DATA ISTRING[250] (Bank) CHARWIDTH 50;
+
+GROUP SWBICS;
+GROUP BICDirectoryEntry;
+GROUP participantInfo EXTID 'ParticipantInfo';
+
+GROUP rstrList EXTID 'RstrList' : participantInfo;
+GROUP rstrList1 EXTID 'RstrList' : rstrList;
+GROUP accounts EXTID 'Accounts';
+GROUP accounts1 EXTID 'Accounts' : accounts;
+GROUP accRstrList1 EXTID 'AccRstrList' : accounts1;
+
+SWBIC = DATA LOCAL STRING(INTEGER);
+defaultSWBIC = DATA LOCAL STRING(INTEGER);
+englName = DATA LOCAL STRING(INTEGER);
+rstr = DATA LOCAL STRING(INTEGER);
+rstrDate = DATA LOCAL STRING(INTEGER);
+rstr1 = DATA LOCAL STRING(INTEGER);
+rstrDate1 = DATA LOCAL STRING(INTEGER);
+regN = DATA LOCAL STRING(INTEGER);
+prntBIC = DATA LOCAL STRING(INTEGER);
+nameP = DATA LOCAL STRING(INTEGER);
+cntrCd = DATA LOCAL STRING(INTEGER);
+rgn = DATA LOCAL STRING(INTEGER);
+ind = DATA LOCAL STRING(INTEGER);
+tnp = DATA LOCAL STRING(INTEGER);
+nnp = DATA LOCAL STRING(INTEGER);
+adr = DATA LOCAL STRING(INTEGER);
+dateIn = DATA LOCAL STRING(INTEGER);
+ptType = DATA LOCAL STRING(INTEGER);
+srvcs = DATA LOCAL STRING(INTEGER);
+xchType = DATA LOCAL STRING(INTEGER);
+UID = DATA LOCAL STRING(INTEGER);
+NPSParticipant = DATA LOCAL STRING(INTEGER);
+participantStatus = DATA LOCAL STRING(INTEGER);
+BICDirectoryEntryAccRstrList = DATA LOCAL INTEGER(INTEGER);
+accRstr = DATA LOCAL STRING(INTEGER);
+accRstrDate = DATA LOCAL STRING(INTEGER);
+accRstrList = DATA LOCAL STRING(INTEGER);
+account = DATA LOCAL STRING(INTEGER);
+regulationAccountType = DATA LOCAL STRING(INTEGER);
+CK = DATA LOCAL STRING(INTEGER);
+accountCBRBIC = DATA LOCAL STRING(INTEGER);
+dateIn1 = DATA LOCAL STRING(INTEGER);
+accountStatus = DATA LOCAL STRING(INTEGER);
+accRstr1 = DATA LOCAL STRING(INTEGER);
+accRstrDate1 = DATA LOCAL STRING(INTEGER);
+dateOut = DATA LOCAL STRING(INTEGER);
+account1 = DATA LOCAL STRING(INTEGER);
+regulationAccountType1 = DATA LOCAL STRING(INTEGER);
+CK1 = DATA LOCAL STRING(INTEGER);
+accountCBRBIC1 = DATA LOCAL STRING(INTEGER);
+dateIn2 = DATA LOCAL STRING(INTEGER);
+accountStatus1 = DATA LOCAL STRING(INTEGER);
+BIC = DATA LOCAL STRING(INTEGER);
+EDNo = DATA LOCAL STRING();
+EDDate = DATA LOCAL STRING();
+EDAuthor = DATA LOCAL STRING();
+creationReason = DATA LOCAL STRING();
+creationDateTime = DATA LOCAL STRING();
+infoTypeCode = DATA LOCAL STRING();
+businessDay = DATA LOCAL STRING();
+directoryVersion = DATA LOCAL STRING();
+
+FORM ED807
+PROPERTIES() EDNo ATTR, EDDate ATTR, EDAuthor ATTR, creationReason EXTID 'CreationReason' ATTR, creationDateTime EXTID 'CreationDateTime' ATTR, infoTypeCode EXTID 'InfoTypeCode' ATTR, businessDay EXTID 'BusinessDay' ATTR, directoryVersion EXTID 'DirectoryVersion' ATTR
+
+OBJECTS BICDirectoryEntry = INTEGER
+PROPERTIES(BICDirectoryEntry) BIC ATTR
+PROPERTIES(BICDirectoryEntry) IN SWBICS SWBIC ATTR, defaultSWBIC EXTID 'DefaultSWBIC' ATTR
+
+OBJECTS participantInfo = INTEGER EXTID 'ParticipantInfo' IN BICDirectoryEntry
+PROPERTIES(BICDirectoryEntry) IN participantInfo englName EXTID 'EnglName' ATTR, regN EXTID 'RegN' ATTR, prntBIC EXTID 'PrntBIC' ATTR, nameP EXTID 'NameP' ATTR, cntrCd EXTID 'CntrCd' ATTR, rgn EXTID 'Rgn' ATTR, ind EXTID 'Ind' ATTR, tnp EXTID 'Tnp' ATTR, nnp EXTID 'Nnp' ATTR, adr EXTID 'Adr' ATTR, dateIn EXTID 'DateIn' ATTR, ptType EXTID 'PtType' ATTR, srvcs EXTID 'Srvcs' ATTR, xchType EXTID 'XchType' ATTR, UID ATTR, NPSParticipant ATTR, participantStatus EXTID 'ParticipantStatus' ATTR
+
+OBJECTS rstrList = INTEGER EXTID 'RstrList' IN participantInfo
+PROPERTIES(BICDirectoryEntry) IN rstrList rstr1 EXTID 'Rstr' ATTR, rstrDate1 EXTID 'RstrDate' ATTR
+PROPERTIES(BICDirectoryEntry) IN rstrList1 rstr EXTID 'Rstr' ATTR, rstrDate EXTID 'RstrDate' ATTR
+
+OBJECTS accounts = INTEGER EXTID 'Accounts' IN BICDirectoryEntry
+PROPERTIES(BICDirectoryEntry) IN accounts account EXTID 'Account' ATTR, regulationAccountType EXTID 'RegulationAccountType' ATTR, CK ATTR, accountCBRBIC EXTID 'AccountCBRBIC' ATTR, dateIn1 EXTID 'DateIn' ATTR, accountStatus EXTID 'AccountStatus' ATTR
+
+OBJECTS accRstrList = INTEGER EXTID 'AccRstrList' IN accounts
+FILTERS BICDirectoryEntryAccRstrList(accRstrList) == BICDirectoryEntry
+PROPERTIES(accRstrList) accRstr EXTID 'AccRstr' ATTR, accRstrDate EXTID 'AccRstrDate' ATTR
+
+OBJECTS accounts1 = INTEGER EXTID 'Accounts' IN accounts
+PROPERTIES(BICDirectoryEntry) IN accounts1 dateOut EXTID 'DateOut' ATTR, account1 EXTID 'Account' ATTR, regulationAccountType1 EXTID 'RegulationAccountType' ATTR, CK1 EXTID 'CK' ATTR, accountCBRBIC1 EXTID 'AccountCBRBIC' ATTR, dateIn2 EXTID 'DateIn' ATTR, accountStatus1 EXTID 'AccountStatus' ATTR
+PROPERTIES(BICDirectoryEntry) IN accRstrList1 accRstr1 EXTID 'AccRstr' ATTR, accRstrDate1 EXTID 'AccRstrDate' ATTR;
+
+
+WHEN LOCAL FORMS bank SETCHANGED(bic(Bank b)) DO {
+    file() <- NULL;
+    LOCAL found = BOOLEAN();
+    found() <- NULL;
+    EXTERNAL HTTP GET 'http://old.cbr.ru/s/newbik' TO file;
+    unzipping()<-file();
+    makeUnzipFile();
+    FOR unzipped(STRING[100] s) DO {            
+        IMPORT ED807 XML FROM unzipped(s);
+        FOR BIC(INTEGER i) == bic(b) DO {
+            name(b) <- nameP(i);
+            nameEng(b) <- englName(i);
+            address(b) <- CONCAT ', ', ind(i), tnp(i), nnp(i), adr(i);
+            numberAccount(b) <- account(i);
+            swift(b) <- SWBIC(i);
+            found() <- TRUE;
+        }
+    } 
+    
+    IF NOT found() THEN {
+        MESSAGE 'БИК не найден';
+    }
+}
+
+EXTEND FORM bank
+    PROPERTIES(o) nameEng, address
+;
