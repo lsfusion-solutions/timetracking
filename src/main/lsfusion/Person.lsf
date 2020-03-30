@@ -34,7 +34,7 @@ numberAccount 'Банковский счёт' = DATA ISTRING[50](Person) CHARWID
 CLASS Bank 'Банк';
 TABLE bank (Bank);
 
-id 'Код' = DATA STRING[15] (Bank) MATERIALIZED INDEXED CHARWIDTH 5 IN id;
+id 'Код' = DATA STRING[25] (Bank) MATERIALIZED INDEXED CHARWIDTH 5 IN id;
 bank (id) = GROUP AGGR Bank b BY id (b);
 
 name 'Название' = DATA ISTRING[250](Bank) CHARWIDTH 20;
@@ -47,7 +47,7 @@ nameBank 'Банк' (Person p) = name(bank(p));
 
 FORM bank 'Банк'
     OBJECTS o = Bank PANEL
-    PROPERTIES(o) id, name, bic, swift, numberAccount
+    PROPERTIES(o) bic, id, name, swift, numberAccount
     
     EDIT Bank OBJECT o
 ;
@@ -414,9 +414,10 @@ WHEN LOCAL FORMS bank SETCHANGED(bic(Bank b)) DO {
     FOR unzipped(STRING[100] s) DO {            
         IMPORT ED807 XML FROM unzipped(s);
         FOR BIC(INTEGER i) == bic(b) DO {
+            id(b) <- STRING[25](nameP(i));
             name(b) <- nameP(i);
             nameEng(b) <- englName(i);
-            address(b) <- CONCAT ', ', ind(i), tnp(i), nnp(i), adr(i);
+            address(b) <- CONCAT ', ', ind(i), (tnp(i) + ' ' + nnp(i)), adr(i);
             numberAccount(b) <- account(i);
             swift(b) <- SWBIC(i);
             found() <- TRUE;
