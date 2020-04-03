@@ -414,7 +414,7 @@ WHEN LOCAL FORMS bank SETCHANGED(bic(Bank b)) DO {
     FOR unzipped(STRING[100] s) DO {            
         IMPORT ED807 XML FROM unzipped(s);
         FOR BIC(INTEGER i) == bic(b) DO {
-            id(b) <- STRING[25](nameP(i));
+            id(b) <- (IF wordCount(nameP(i), '"') > 1 THEN getWord(nameP(i), '"', 2) ELSE getWord(nameP(i), '"', 1)); 
             name(b) <- nameP(i);
             nameEng(b) <- englName(i);
             address(b) <- CONCAT ', ', ind(i), (tnp(i) + ' ' + nnp(i)), adr(i);
