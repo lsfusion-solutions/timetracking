@@ -92,3 +92,29 @@ DESIGN customer {
         MOVE BOX (e) AFTER BOX (cc);
     }
 }
+
+include 'Вкл' = DATA LOCAL BOOLEAN (Employee);
+
+EXTEND FORM dialogEmployee
+    PROPERTIES(e) include BEFORE firstName(e)
+;
+
+addEmployees 'Добавить сотрудников' (Project p) {
+    NEWSESSION {
+        DIALOG dialogEmployee DO {
+            FOR include(Employee e) DO assigned(p, e) <- TRUE;
+            APPLY;
+        }
+    }
+}
+
+deleteEmployee 'Удалить сотрудника' (Project p,Employee e) {
+    NEWSESSION {
+        assigned(p, e) <- NULL;
+        APPLY;
+    }
+}
+
+EXTEND FORM customer
+    PROPERTIES addEmployees(p) DRAW e TOOLBAR, deleteEmployee(p, e)  DRAW e TOOLBAR
+;
