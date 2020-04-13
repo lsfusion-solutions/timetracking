@@ -118,3 +118,15 @@ deleteEmployee 'Удалить сотрудника' (Project p,Employee e) {
 EXTEND FORM customer
     PROPERTIES addEmployees(p) DRAW e TOOLBAR, deleteEmployee(p, e)  DRAW e TOOLBAR
 ;
+
+maxAmountMonthly 'Не более чем' = DATA NUMERIC[15,2] (Project);
+
+EXTEND FORM customer
+    PROPERTIES(p) maxAmountMonthly PANEL AFTER sumMonthly(p)
+;
+
+DESIGN customer {
+    header {
+        MOVE PROPERTY(maxAmountMonthly(p)) AFTER PROPERTY(sumMonthly(p));
+    }
+}

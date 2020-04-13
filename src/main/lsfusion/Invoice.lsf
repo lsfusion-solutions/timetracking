@@ -78,7 +78,9 @@ hoursPay 'Часов к оплате' (Invoice i) = GROUP SUM hoursPay(i, Task t
 hoursPay 'Часов к оплате' (Invoice i, Category c) = GROUP SUM hoursPay(i, Task t) BY category(t);
 
 sumPay 'Сумма к оплате' (Invoice i, Task t) = hoursPay(i,t) * rate(i, t);
-sumPay 'Сумма к оплате' (Invoice i) = GROUP SUM sumPay(i, Task t);
+sumPay 'Сумма к оплате' (Invoice i) = IF maxAmountMonthly(project(i)) 
+    THEN min((GROUP SUM sumPay(i, Task t)), maxAmountMonthly(project(i)))
+    ELSE GROUP SUM sumPay(i, Task t);
 sumPay 'Сумма к оплате' (Invoice i, Category c) = hoursPay(i,c) * rate(project(i), c);
 
 CONSTRAINT extractMonth(fromDate(Invoice i)) != extractMonth(toDate(i)) AND hoursMonthly(i) MESSAGE 'Запрещено выставлять счет за несколько месяцев одновременно';
