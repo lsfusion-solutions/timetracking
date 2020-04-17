@@ -130,3 +130,19 @@ DESIGN customer {
         MOVE PROPERTY(maxAmountMonthly(p)) AFTER PROPERTY(sumMonthly(p));
     }
 }
+
+DESIGN customer {
+    BOX(e) {
+        TOOLBARLEFT(e) {
+            //type = CONTAINERV;
+            NEW toolbar {
+                type = CONTAINERH;
+                MOVE FILTERGROUP(category);
+                MOVE FILTERGROUP(cat);
+                MOVE PROPERTY(addEmployees(p));
+                MOVE PROPERTY(deleteEmployee(p, e));
+            }
+            TOOLBARSYSTEM(e) {align = START; }
+        }
+    }
+}
