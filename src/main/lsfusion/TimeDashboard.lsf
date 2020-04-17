@@ -188,11 +188,13 @@ restart 'Возобновить выбранную' (Task t)  {
 EXTEND FORM timeDashboard
     PROPERTIES(ce) finish, pause SHOWIF inProcess(ce) 
     PROPERTIES(fe) restart SHOWIF NOT ce
+    PROPERTIES(fe) finish SHOWIF NOT ce
 ;
 
 DESIGN timeDashboard {
     current {
         MOVE PROPERTY(finish(ce)) { alignment = STRETCH; fontStyle = 'bold'; }
+        MOVE PROPERTY(finish(fe)) { alignment = STRETCH; fontStyle = 'bold'; }
         MOVE PROPERTY(pause(ce)) { alignment = STRETCH; }
         MOVE PROPERTY(restart(fe)) { alignment = STRETCH; fontStyle = 'bold'; }
     }
