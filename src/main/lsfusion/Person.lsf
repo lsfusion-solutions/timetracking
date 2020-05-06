@@ -139,105 +139,6 @@ FORM person 'Физическое лицо'
     EDIT Person OBJECT p
 ;
 
-DESIGN person {
-    OBJECTS {
-        BOX (p) {
-            NEW names {
-                type = CONTAINERH;
-                NEW names1 {
-                    caption = 'ФИО (Им. падеж)';
-                    fill = 1;
-                    MOVE PROPERTY (lastName(p)) { charWidth = 20; }
-                    MOVE PROPERTY (firstName(p));
-                    MOVE PROPERTY (middleName(p));
-                }
-                NEW names2 {
-                    caption = 'ФИО (Род. падеж)';
-                    fill = 1;
-                    MOVE PROPERTY (lastNameRp(p)) { caption = 'Фамилия';  charWidth = 20; }
-                    MOVE PROPERTY (firstNameRp(p)) { caption = 'Имя'; }
-                    MOVE PROPERTY (middleNameRp(p)) { caption = 'Отчество'; }
-                }
-            }
-            NEW other {
-                type = CONTAINERH;
-                NEW otherRigth {
-                    NEW customer {
-                        caption = 'Клиент';
-                        fill = 1;
-                        MOVE PROPERTY (nameCustomer(p)) { charWidth = 20; }
-                    }
-                    NEW account {
-                        caption = 'Банковский счёт';
-                        fill = 1;
-                        MOVE PROPERTY (numberAccount(p)) { caption = 'Номер'; }
-                        MOVE PROPERTY (nameBank(p));
-                    }
-                }
-                NEW info {
-                    caption = 'Информация';
-                    fill = 1;
-                    MOVE PROPERTY (birthday(p));
-                    MOVE PROPERTY (address(p));
-                    MOVE PROPERTY (phone(p));
-                    MOVE PROPERTY (email(p));
-                }
-            }
-            NEW docs {
-                NEW passport {
-                    caption = 'Паспорт';
-                    NEW seriesNumber {
-                        type = CONTAINERH;
-                        fill = 1;
-                        MOVE PROPERTY (seriesPassport(p)) { caption = 'Серия'; }
-                        MOVE PROPERTY (numberPassport(p)) { caption = 'Номер'; }
-                    }
-                    MOVE PROPERTY (dateIssuePassport(p)) { caption = 'Дата выдачи'; }
-                    MOVE PROPERTY (authorityPassport(p));
-                    MOVE PROPERTY (codeUnitPassport(p)) { caption = 'Код подразделения'; }
-                    NEW passportFile {
-                        type = CONTAINERH;
-                        MOVE PROPERTY (loadFilePassport(p));
-                        MOVE PROPERTY (openFilePassport(p));
-                    }
-                }
-                NEW others {
-                    type = CONTAINERH;
-                    NEW snils {
-                        caption = 'СНИЛС';
-                        fill = 1;
-                        MOVE PROPERTY (snils(p));
-                        NEW snilsFile {
-                            type = CONTAINERH;
-                            MOVE PROPERTY (loadFileSnils(p));
-                            MOVE PROPERTY (openFileSnils(p));
-                        }
-                    }
-                    NEW inn {
-                        caption = 'ИНН';
-                        fill = 1;
-                        MOVE PROPERTY (inn(p));
-                        NEW innFile {
-                            type = CONTAINERH;
-                            MOVE PROPERTY (loadFileINN(p));
-                            MOVE PROPERTY (openFileINN(p));
-                        }
-                    }
-                    NEW military {
-                        caption = 'Военный билет';
-                        fill = 1;
-                        type = CONTAINERH;
-                        MOVE PROPERTY (openFileMilitary(p));
-                        MOVE PROPERTY (loadFileMilitary(p));
-                    }
-                }
-            }
-        }
-        fill = 1;
-        MOVE BOX (c) { caption = 'Дети'; fill = 1; }
-    }
-}
-
 FORM persons 'Физические лица'
     OBJECTS p = Person 
     PROPERTIES (p) READONLY nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, email, children,
@@ -294,24 +195,6 @@ loadfileMarriage 'Загрузить' (Person c) {
 EXTEND FORM person
     PROPERTIES(p) seriesMarriage, dateMarriage, nameSpouse, authorityMarriage, openfileMarriage, loadfileMarriage
 ;
-
-DESIGN person {
-    docs {
-        NEW marriage {
-            caption = 'Свидетельство о браке';
-            fill = 1;
-            MOVE PROPERTY(seriesMarriage(p));
-            MOVE PROPERTY(dateMarriage(p));
-            MOVE PROPERTY(nameSpouse(p));
-            MOVE PROPERTY(authorityMarriage(p));
-            NEW marriageFile {
-                type = CONTAINERH;
-                MOVE PROPERTY(loadfileMarriage(p));
-                MOVE PROPERTY(openfileMarriage(p));
-            }
-        }
-    }
-}
 
 nameEng 'Название (англ)' = DATA ISTRING[250](Bank) CHARWIDTH 15;
 address 'юр. адрес' = DATA ISTRING[250] (Bank) CHARWIDTH 50;
@@ -432,3 +315,180 @@ WHEN LOCAL FORMS bank SETCHANGED(bic(Bank b)) DO {
 EXTEND FORM bank
     PROPERTIES(o) nameEng, address
 ;
+
+notes 'Примечание' = DATA STRING (Person) CHARWIDTH 50;
+
+address2 'Адрес' = DATA ISTRING[250](Person) CHARWIDTH 20;
+phone2 'Телефон' = DATA STRING[100] (Person) CHARWIDTH 10;
+email2 'E-mail'= DATA STRING[400] (Contact) CHARWIDTH 20 REGEXP '[-!#-\'*+/-9=?A-Z^-~]+(\\.[-!#-\'*+/-9=?A-Z^-~]+)*@[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?(\\.[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?)+' '<html>{authentication.email.contact.incorrect}</html>';
+
+address3 'Адрес' = DATA ISTRING[250](Person) CHARWIDTH 20;
+phone3 'Телефон' = DATA STRING[100] (Person) CHARWIDTH 10;
+email3 'E-mail'= DATA STRING[400] (Contact) CHARWIDTH 20 REGEXP '[-!#-\'*+/-9=?A-Z^-~]+(\\.[-!#-\'*+/-9=?A-Z^-~]+)*@[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?(\\.[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?)+' '<html>{authentication.email.contact.incorrect}</html>';
+
+CLASS Interraction 'Взаимодействие';
+
+CLASS InterractionType 'Тип события';
+name 'Тип события' = DATA STRING[50] (InterractionType);
+
+FORM interractionType 'Тип события'
+    OBJECTS i = InterractionType PANEL 
+    PROPERTIES(i) name
+    
+    EDIT InterractionType OBJECT i
+;
+
+FORM interractionTypes 'Типы события'
+    OBJECTS t = InterractionType
+    PROPERTIES READONLY name(t)
+    PROPERTIES(t) NEWSESSION NEW, EDIT, DELETE 
+    
+    LIST InterractionType OBJECT t
+;
+
+person = DATA Person (Interraction);
+dateTime 'Дата/время' = DATA DATETIME (Interraction);
+type 'Тип события' = DATA InterractionType (Interraction);
+nameType 'Тип события' (Interraction i) = name(type(i));
+description 'Описание события' = DATA STRING (Interraction);
+
+EXTEND FORM person
+    PROPERTIES(p) notes, address2, address3, phone2, phone3, email2, email3
+    
+    OBJECTS i = Interraction
+    PROPERTIES(i) dateTime, nameType, description
+    PROPERTIES NEW(i), DELETE(i)
+    FILTERS person(i) == p
+;
+
+DESIGN person {
+    OBJECTS {
+        NEW body {
+            fill = 1;
+            type = TABBED;
+            NEW main {
+                caption = 'Основные';
+                type = CONTAINERH;
+                NEW names1 {
+                    caption = 'ФИО (Им. падеж)';
+                    MOVE PROPERTY (lastName(p)) { charWidth = 20; }
+                    MOVE PROPERTY (firstName(p));
+                    MOVE PROPERTY (middleName(p));
+                }
+                NEW names2 {
+                    caption = 'ФИО (Род. падеж)';
+                    MOVE PROPERTY (lastNameRp(p)) { caption = 'Фамилия';  charWidth = 20; }
+                    MOVE PROPERTY (firstNameRp(p)) { caption = 'Имя'; }
+                    MOVE PROPERTY (middleNameRp(p)) { caption = 'Отчество'; }
+                }
+                NEW customer {
+                    caption = 'Клиент';
+                    MOVE PROPERTY (nameCustomer(p)) { charWidth = 20; }
+                }
+            }
+            NEW contacts {
+                caption = 'Контакты';
+                NEW info {
+                    type = CONTAINERH;
+                    NEW info1 {
+                        caption = 'Информация';
+                        MOVE PROPERTY (birthday(p));
+                        MOVE PROPERTY (address(p));
+                        MOVE PROPERTY (phone(p));
+                        MOVE PROPERTY (email(p));
+                    }
+                    NEW info2 {
+                        caption = 'Доп информация';
+                        MOVE PROPERTY (address2(p));
+                        MOVE PROPERTY (phone2(p));
+                        MOVE PROPERTY (email2(p));
+                    }
+                    NEW info3 {
+                        caption = 'Доп информация';
+                        MOVE PROPERTY (address3(p));
+                        MOVE PROPERTY (phone3(p));
+                        MOVE PROPERTY (email3(p));
+                    }
+                }
+                MOVE PROPERTY(notes(p)) { flex = 0; align = START; }
+            }
+            NEW legal {
+                caption = 'Юридические';
+                NEW top {
+                    type = CONTAINERH;
+                    NEW left {
+                        NEW account {
+                            fill = 1;
+                            caption = 'Банковский счёт';
+                            MOVE PROPERTY (numberAccount(p)) { caption = 'Номер'; }
+                            MOVE PROPERTY (nameBank(p));
+                        }
+                        NEW passport {
+                            caption = 'Паспорт';
+                            NEW seriesNumber {
+                                type = CONTAINERH;
+                                MOVE PROPERTY (seriesPassport(p)) { caption = 'Серия'; }
+                                MOVE PROPERTY (numberPassport(p)) { caption = 'Номер'; }
+                            }
+                            MOVE PROPERTY (dateIssuePassport(p)) { caption = 'Дата выдачи'; }
+                            MOVE PROPERTY (authorityPassport(p));
+                            MOVE PROPERTY (codeUnitPassport(p)) { caption = 'Код подразделения'; }
+                            NEW passportFile {
+                                type = CONTAINERH;
+                                MOVE PROPERTY (loadFilePassport(p));
+                                MOVE PROPERTY (openFilePassport(p));
+                            }
+                        }
+                    }
+                    NEW right {
+                        NEW others {
+                            type = CONTAINERH;
+                            NEW snils {
+                                caption = 'СНИЛС';
+                                MOVE PROPERTY (snils(p));
+                                NEW snilsFile {
+                                    type = CONTAINERH;
+                                    MOVE PROPERTY (loadFileSnils(p));
+                                    MOVE PROPERTY (openFileSnils(p));
+                                }
+                            }
+                            NEW inn {
+                                caption = 'ИНН';
+                                MOVE PROPERTY (inn(p));
+                                NEW innFile {
+                                    type = CONTAINERH;
+                                    MOVE PROPERTY (loadFileINN(p));
+                                    MOVE PROPERTY (openFileINN(p));
+                                }
+                            }
+                            NEW military {
+                                caption = 'Военный билет';
+                                type = CONTAINERH;
+                                MOVE PROPERTY (openFileMilitary(p));
+                                MOVE PROPERTY (loadFileMilitary(p));
+                            }
+                        }
+                        NEW marriage {
+                            caption = 'Свидетельство о браке';
+                            MOVE PROPERTY(seriesMarriage(p));
+                            MOVE PROPERTY(dateMarriage(p));
+                            MOVE PROPERTY(nameSpouse(p));
+                            MOVE PROPERTY(authorityMarriage(p));
+                            NEW marriageFile {
+                                type = CONTAINERH;
+                                MOVE PROPERTY(loadfileMarriage(p));
+                                MOVE PROPERTY(openfileMarriage(p));
+                            }
+                        }
+                    }
+                }
+                MOVE BOX (c) { caption = 'Дети'; }
+            }
+        }
+        NEW interractions {
+            caption = 'Журнал взаимодействия';
+            fill = 1;
+            MOVE BOX(i) { caption = ''; }
+        }
+    }
+}
