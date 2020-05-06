@@ -114,3 +114,76 @@ NAVIGATOR {
     }
 }
 
+dataHoursSet 'Кол-во установленных рабочих часов' = DATA NUMERIC[10,2] () CHARWIDTH 5;
+sendNotification 'Отправлять уведомление' = DATA BOOLEAN (Employee);
+
+EXTEND FORM options
+    PROPERTIES dataHoursSet()
+    
+    OBJECTS e = Employee
+    PROPERTIES(e) READONLY firstName, lastName, login, nameMainRole, email
+    PROPERTIES sendNotification(e)
+;
+
+DESIGN options {
+    pane {
+        NEW employeeMailing {
+            caption = 'Рассылка для сотрудников';
+            MOVE PROPERTY(dataHoursSet()) { flex = 0; align = START; }
+            MOVE BOX(e);
+        }
+    }
+}
+
+isDayoff 'Выходной' = DATA BOOLEAN (DATE);
+
+FORM workDays 'Производственный календарь'
+    OBJECTS df = DATE PANEL, dt = DATE PANEL
+    PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'по' = VALUE(dt)
+    
+    OBJECTS d = DATE 
+    PROPERTIES date 'Дата' = VALUE(d), extractMonthName(d), extractDOWName(d), isDayoff(d)
+    FILTERS iterate(d, df, dt)
+;
+
+DESIGN workDays {
+    OBJECTS {
+        NEW header {
+            type = CONTAINERH;
+            MOVE PROPERTY(dFrom);
+            MOVE PROPERTY(dTo);
+        }
+        MOVE BOX(d);
+    }
+}
+
+NAVIGATOR {
+    masterData {
+        NEW workDays;
+    }
+}
+
+hoursSet 'Кол-во установленных рабочих часов' () = OVERRIDE dataHoursSet(), 6.0;
+prevWorkDate (DATE d) = GROUP LAST DATE dd IF NOT isDayoff(dd) AND iterate(dd, 2020_01_01, sum(d, -1)) ORDER dd;
+
+sendNotifications 'Отправить уведомление' () {
+    IF NOT isDayoff(currentDate()) THEN {
+        
+        FOR sendNotification(Employee e) AND (hours(e, prevWorkDate(currentDate())) < hoursSet() OR NOT hours(e, prevWorkDate(currentDate()))) AND email(e) DO {
+            EMAIL
+                SUBJECT 'Напоминание о дополнительном внесении времени'
+                TO email(e)
+                BODY firstName(e) + ', привет!<br /><br />Пожалуйста, проверьте, и, если нужно, откорректируйте количество учтённого времени за ' 
+                    + prevWorkDate(currentDate()) + '<br /><br />Я тут заметила, что ' + prevWorkDate(currentDate()) + 
+                    ' учтёно времени меньше обычного. Мне очень-очень важно знать распределение вашего времени. Это поможет мне автоматизировать процессы и тем самым убрать скучную рутину из вашей работы.<br />' +
+                    'А для этого мне нужно понимать как распределено ваше время. Воможно вы закрутились и забыли учесть часть времени?<br /><br />' +
+                    'Поэтому, буду очень благодарна, если вы сможете проверить, и, если нужно, откорректировать количество учтённого времени за ' +
+                    prevWorkDate(currentDate()) + '<br /><br />' + 'Катерина,<br /> Ваша CRM система'
+            ;
+        }
+    }
+}
+
+EXTEND FORM options
+    PROPERTIES sendNotifications() DRAW e TOOLBAR
+;
