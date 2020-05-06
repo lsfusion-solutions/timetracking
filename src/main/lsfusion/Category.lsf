@@ -93,12 +93,6 @@ DESIGN customer {
     }
 }
 
-include 'Вкл' = DATA LOCAL BOOLEAN (Employee);
-
-EXTEND FORM dialogEmployee
-    PROPERTIES(e) include BEFORE firstName(e)
-;
-
 addEmployees 'Добавить сотрудников' (Project p) {
     NEWSESSION {
         DIALOG dialogEmployee DO {

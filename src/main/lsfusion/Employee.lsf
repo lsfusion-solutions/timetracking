@@ -83,3 +83,34 @@ EXTEND FORM employees
 EXTEND FORM employee
     PROPERTIES(e) namePractice
 ;
+
+managers 'Руководители' = DATA BOOLEAN (Employee, Employee);
+
+nameManagers 'Руководители' (Employee e) = 
+    GROUP CONCAT (CONCAT ' ',firstName(Employee manager), lastName(manager)), ', ' IF managers(e, manager) CHARWIDTH 40;
+nameEmployees 'Подчиненные' (Employee e) = 
+    GROUP CONCAT (CONCAT ' ',firstName(Employee employee), lastName(employee)), ', ' IF managers(employee, e) CHARWIDTH 40;
+    
+include 'Вкл' = DATA LOCAL BOOLEAN (Employee);
+
+EXTEND FORM dialogEmployee
+    PROPERTIES(e) include BEFORE firstName(e)
+;
+
+selectManagers (Employee e) {
+    include(Employee manager) <- managers(e, manager);
+    DIALOG dialogEmployee DO {      
+        managers(e, Employee manager) <- include(manager);
+    }
+}
+
+selectEmployees (Employee e) {
+    include(Employee employee) <- managers(employee, e);
+    DIALOG dialogEmployee DO {      
+        managers(Employee emloyee, e) <- include(emloyee);
+    }
+}
+    
+EXTEND FORM employee
+    PROPERTIES nameManagers(e) ON CHANGE selectManagers(e), nameEmployees(e) ON CHANGE selectEmployees(e)
+;
