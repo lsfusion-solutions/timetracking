@@ -16,9 +16,27 @@ WHEN LOCAL SET(Customer c IS Customer) DO {
     }
 }
 
+CLASS ProjectType 'Тип проекта' {
+    type1 'значение №1',
+    type2 'значение №2',
+    type3 'значение №3'
+}
+
+name 'Тип проекта' (ProjectType t) = staticCaption(t);
+
+type 'Тип проекта' = DATA ProjectType (Project);
+nameType 'Тип проекта' (Project p) = name(type(p));
+
+FORM ProjectTypes 'Типы проектов'
+    OBJECTS t = ProjectType
+    PROPERTIES READONLY name(t)
+    
+    LIST ProjectType OBJECT t;
+;
+
 EXTEND FORM customer
     OBJECTS p = Project
-    PROPERTIES(p) name, NEW, DELETE
+    PROPERTIES(p) name, nameType, NEW, DELETE
     FILTERS customer(p) == c
 ;
 
