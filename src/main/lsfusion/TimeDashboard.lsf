@@ -55,7 +55,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     
     OBJECTS fe = Task
     PROPERTIES(fe) READONLY status BACKGROUND background(fe), nameCustomerProject, nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
-    PROPERTIES(fe) NEWSESSION NEW, EDIT READONLYIF isReadonlyTask(fe), DELETE READONLYIF isReadonlyTask(fe)
+    PROPERTIES(fe) NEWSESSION NEW, EDIT, DELETE READONLYIF isReadonlyTask(fe)
     //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
     ORDER nameCustomerProject(fe)
     FILTERGROUP project
