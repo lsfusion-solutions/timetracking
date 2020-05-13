@@ -22,8 +22,6 @@ startTimeEntry 'Начать новую задачу' (Project p, TaskType tt)  
         MESSAGE 'Вы должны быть залогинены под сотрудником, чтобы начать работу';
 }
 
-isReadonlyTask (Task t) = t IS Task AND NOT employee(t) == currentEmployee();
-
 FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES currentDateTime()
 
@@ -55,8 +53,8 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     
     OBJECTS fe = Task
     PROPERTIES(fe) READONLY status BACKGROUND background(fe), nameCustomerProject, nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
-    PROPERTIES(fe) NEWSESSION NEW, EDIT, DELETE READONLYIF isReadonlyTask(fe)
-    //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
+    PROPERTIES(fe) NEWSESSION NEW, EDIT, DELETE
+    FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
     ORDER nameCustomerProject(fe)
     FILTERGROUP project
         FILTER 'По проекту' project(fe) == p 'F9'
@@ -188,9 +186,9 @@ restart 'Возобновить выбранную' (Task t)  {
 }
 
 EXTEND FORM timeDashboard
-    PROPERTIES(ce) READONLYIF isReadonlyTask(ce) finish, pause SHOWIF inProcess(ce) 
-    PROPERTIES(fe) READONLYIF isReadonlyTask(fe) restart SHOWIF NOT ce
-    PROPERTIES(fe) READONLYIF isReadonlyTask(fe) finish SHOWIF NOT ce
+    PROPERTIES(ce) finish, pause SHOWIF inProcess(ce) 
+    PROPERTIES(fe) restart SHOWIF NOT ce
+    PROPERTIES(fe) finish SHOWIF NOT ce
 ;
 
 DESIGN timeDashboard {
