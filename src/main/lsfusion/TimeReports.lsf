@@ -187,3 +187,60 @@ sendNotifications 'Отправить уведомление' () {
 EXTEND FORM options
     PROPERTIES sendNotifications() DRAW e TOOLBAR
 ;
+
+sendNotificationManager 'Уведомления для руководителя' = DATA BOOLEAN (Employee);
+dataNotificationPeriod 'Период уведомлений для руководителя, дни' = DATA INTEGER ();
+notificationPeriod () = OVERRIDE dataNotificationPeriod(), 7;
+
+isManager (Employee manager) = GROUP SUM 1 IF managers(Employee employee, manager);
+
+EXTEND FORM options
+    PROPERTIES sendNotificationManager(e) READONLYIF NOT isManager(e), dataNotificationPeriod()
+;
+
+DESIGN options {
+    employeeMailing {
+        MOVE PROPERTY(dataNotificationPeriod()) AFTER PROPERTY(dataHoursSet()) { flex = 0; align = START; }
+    }
+}
+
+
+isTimeShortage (Employee e) = 
+    GROUP SUM 1 IF (hours(e, DATE d) < hoursSet() OR NOT hours(e, d)) AND NOT isDayoff(d) AND iterate(d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1));
+isTimeShortageEmployees (Employee manager) = GROUP SUM 1 IF managers(Employee e, manager) AND isTimeShortage(e);
+timeShortageNumeric (Employee e, DATE d) = hoursSet() (-) hours(e, d);
+timeShortageString (Employee e, DATE d) = CONCAT '', INTEGER(trunc(timeShortageNumeric(e, d), 0)), ' час(ов) ', 
+    round0(60 * (timeShortageNumeric(e, d) - INTEGER(trunc(timeShortageNumeric(e, d), 0)))), ' минут(а)';
+    
+messageManager = DATA LOCAL STRING (Employee);
+
+sendNotificationsManager 'Уведомления для руководителя' () {
+    IF NOT isDayoff(currentDate()) THEN {
+        
+        FOR sendNotificationManager(Employee e) AND isManager(e) AND email(e) AND isTimeShortageEmployees(e) DO {
+            FOR managers(Employee employee, e) AND isTimeShortage(employee) DO {
+                messageManager(employee) <- NULL;
+                messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
+                FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND (hours(e, d) < hoursSet() OR NOT hours(e, d)) DO {
+                    messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
+                }
+                messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
+            }
+            
+            LOCAL body = STRING ();
+            body() <- 'Здравствуйте!<br /><br />Пожалуйста, проверьте со следующими сотрудниками заполняемость трудозатрат.<br /><br />В пердыдущий период следующие сотрудники внесли недостаточно трудозатрат:<br /><br />';
+            body() <- CONCAT '', body(), (GROUP CONCAT messageManager(Employee employee), '' IF managers(employee, e));
+            body() <- CONCAT '', body(), 'Спасибо,<br /> Ваша CRM система';
+            
+            EMAIL
+                SUBJECT 'Еженедельное информирование руководителя'
+                TO email(e)
+                BODY body()
+            ;
+        }
+    }
+}
+
+EXTEND FORM options
+    PROPERTIES sendNotificationsManager() DRAW e TOOLBAR
+;
