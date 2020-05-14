@@ -214,7 +214,7 @@ timeShortageString (Employee e, DATE d) = CONCAT '', INTEGER(trunc(timeShortageN
     
 messageManager = DATA LOCAL STRING (Employee);
 
-sendNotificationsManager 'Уведомления для руководителя' () {
+sendNotificationsManager 'Уведомления для руководителей' () {
     IF NOT isDayoff(currentDate()) THEN {
         
         FOR sendNotificationManager(Employee e) AND isManager(e) AND email(e) AND isTimeShortageEmployees(e) DO {
