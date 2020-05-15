@@ -1,0 +1,77 @@
+MODULE TaskMonitoringWord;
+
+REQUIRE TimeReports, Word, Time;
+
+NAMESPACE Time;
+
+generateTaskMonitoringTemplate 'Создать шаблон для мониторинга задач по проекту' ()  { 
+    NEWSESSION {
+        NEW t = Template {
+            NEW e = TemplateEntry {
+                template(e) <- t;
+                key(e) <- 'TABLE';
+                type(e) <- Word.Type.table;
+                dataColumnSeparator(e) <- 'lsFusionCSep';
+                dataRowSeparator(e) <- 'lsFusionRSep';
+            }
+            
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'PROJECT_NAME'; description(e) <- 'Проект'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'FROM_DATE'; description(e) <- 'Дата с'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'TO_DATE'; description(e) <- 'Дата по'; }
+
+            DIALOG template OBJECTS t = t DO {
+                SEEK templates.t = t;
+            }
+        }
+    }
+}
+
+rowText (TimeEntry e) = CONCAT 'lsFusionCSep', [FORMULA TEXT 'to_char(($1),\'DD.MM.YY\')'](dateStart(e)),
+                        [FORMULA TEXT 'to_char(($1),\'DD.MM.YY\')'](dateFinish(e)),
+                        (OVERRIDE status(e), ''),
+                        (OVERRIDE nameTask(e), ''),
+                        (OVERRIDE nameTaskType(e), ''),
+                        (OVERRIDE nameEmployee(e), ''),
+                        (OVERRIDE nameResponsible(e), ''),
+                        (OVERRIDE TEXT(hours(e)), ''),
+                        (OVERRIDE TEXT(rate(e)), ''),
+                        (OVERRIDE TEXT(sum(e)), '');
+
+tableText (DATE df, DATE dt) = GROUP CONCAT rowText(TimeEntry t), 'lsFusionRSep' IF project(t) == filterProject() AND
+    dateStart(t) >= df AND dateFinish(t) <= dt;
+
+taskMonitoringTemplateWord = DATA Template();
+nameTaskMonitoringTemplateWord 'Шаблон для мониторинга задач' () = name(taskMonitoringTemplateWord());
+
+EXTEND FORM options PROPERTIES nameTaskMonitoringTemplateWord(), generateTaskMonitoringTemplate();
+DESIGN options {
+    commons {
+        MOVE PROPERTY (nameTaskMonitoringTemplateWord());
+        MOVE PROPERTY (generateTaskMonitoringTemplate());
+    }
+}
+
+generateWordTaskMonitoring 'Сформировать (WORD)' (DATE df, DATE dt, Project p) {
+    IF taskMonitoringTemplateWord() THEN {
+        value(TemplateEntry detail) <- NULL;
+        FOR template (TemplateEntry detail) == taskMonitoringTemplateWord() DO {
+            value(detail) <- tableText(df, dt) WHERE key(detail) == 'TABLE';
+            value(detail) <- TEXT(name(p)) WHERE key(detail) == 'PROJECT_NAME';
+            value(detail) <- TEXT(toDateDDMMYY(df)) WHERE key(detail) == 'FROM_DATE';
+            value(detail) <- TEXT(toDateDDMMYY(dt)) WHERE key(detail) == 'TO_DATE';
+        }
+        process(taskMonitoringTemplateWord());
+        open(resultTemplate());
+    } ELSE
+          MESSAGE 'Не выбран шаблон для мониторинга задач';
+}
+
+EXTEND FORM taskMonitoring
+    PROPERTIES generateWordTaskMonitoring(df, dt, p) 
+;
+
+DESIGN taskMonitoring {
+    header {
+        MOVE PROPERTY(generateWordTaskMonitoring(df, dt, p));
+    }
+}

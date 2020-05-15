@@ -244,3 +244,44 @@ sendNotificationsManager 'Уведомления для руководителе
 EXTEND FORM options
     PROPERTIES sendNotificationsManager() DRAW e TOOLBAR
 ;
+
+filterProject 'Проект' = DATA LOCAL Project ();
+nameFilterProject 'Проект' = name(filterProject());
+
+status 'Статус задачи' (TimeEntry e) = status(task(e));
+rate 'Ставка руб.' (TimeEntry e) = rate(project(e), category(task(e)));
+sum 'Сумма руб.' (TimeEntry e) = round2(hours(e) * rate(e));
+
+nameResponsible 'Ответственный за проект' (TimeEntry e) = nameResponsible(project(e));
+
+FORM taskMonitoring 'Мониторинг задач по проекту'
+    OBJECTS df = DATE PANEL, dt = DATE PANEL
+    PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'Дата по' = VALUE(dt), nameFilterProject()
+    
+    OBJECTS p = Project
+    FILTERS p == filterProject()
+    
+    OBJECTS t = TimeEntry
+    PROPERTIES(t) READONLY dateStart, dateFinish, status, nameTask, nameTaskType, nameEmployee, nameResponsible, hours, 
+        rate, sum
+    FILTERS project(t) == filterProject(),
+            dateStart(t) >= df AND dateFinish(t) <= dt
+;
+
+DESIGN taskMonitoring {
+    OBJECTS {
+        NEW header {
+            type = CONTAINERH;
+            MOVE PROPERTY(dFrom);
+            MOVE PROPERTY(dTo);
+            MOVE PROPERTY(nameFilterProject());
+        }
+        MOVE BOX(t);
+    }
+}
+
+NAVIGATOR {
+    reports {
+        NEW taskMonitoring;
+    }
+}

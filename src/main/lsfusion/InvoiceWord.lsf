@@ -98,7 +98,7 @@ tableText (Invoice i) = GROUP CONCAT rowText(i, Task t), 'lsFusionRSep' ORDER fr
 hoursMonthlyWord (Invoice i) = CONCAT '', TEXT (formatHours(hoursMonthly(i))), '\n', 
     (GROUP CONCAT (CONCAT ' ', TEXT (formatHours(hoursMonthly(i, Category c))) + ' часов', name(c)) IF hoursMonthly(i, c), '\n' ORDER hoursMonthly(i, c), c);
 
-generateWord 'Сгенерировать (Word)' (Invoice i)  { 
+generateWord 'Сгенерировать (Word)' (Invoice i) { 
     IF templateWord(i) THEN {
         value(TemplateEntry detail) <- NULL;
         FOR template (TemplateEntry detail) == templateWord(i) DO {

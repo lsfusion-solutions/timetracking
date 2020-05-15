@@ -77,3 +77,24 @@ DESIGN employee {
         MOVE BOX(p) AFTER BOX(e);
     }
 }
+
+responsible = DATA Employee (Project);
+nameResponsible 'Ответственный за проект' (Project p) = CONCAT ', ', lastName(responsible(p)), firstName(responsible(p));
+
+changeResponsible (Project p) {
+    DIALOG dialogEmployee OBJECTS e INPUT DO {
+        responsible(p) <- e;
+    }
+}
+
+FORM projects 'Проекты'
+    OBJECTS p = Project
+    PROPERTIES(p) nameCustomer, name, nameType, nameResponsible ON CHANGE changeResponsible(p)
+    PROPERTIES(p) NEW, DELETE
+;
+
+NAVIGATOR {
+    masterData {
+        NEW projects;
+    }
+}
