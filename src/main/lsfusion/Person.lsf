@@ -176,7 +176,7 @@ addPerson 'Добавить' (Customer c) {
 deletePerson 'Удалить' (Customer c, Person p) {
     NEWSESSION {
         dataIn(c, p) <- NULL;
-        customer(p) <- NULL;
+        IF customer(p) == c THEN customer(p) <- NULL;
         APPLY;
     }   
 } IMAGE 'delete.png';
