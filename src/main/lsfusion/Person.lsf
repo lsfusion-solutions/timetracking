@@ -161,21 +161,32 @@ FORM persons 'Физические лица'
     LIST Person OBJECT p
 ;
 
+dataIn = DATA BOOLEAN (Customer, Person);
+in (Customer c, Person p) = OVERRIDE dataIn(c, p), customer(p) == c;
+
 addPerson 'Добавить' (Customer c) {
-    NEWSESSION NEW p = Person {
-        customer(p) <- c;
-        SHOW person OBJECTS p = p DOCKED;
+    NEWSESSION {
+        DIALOG persons OBJECTS p INPUT DO {
+            dataIn (c, p) <- TRUE;
+        }
+        APPLY;
     }
 } IMAGE 'add.png';
+
+deletePerson 'Удалить' (Customer c, Person p) {
+    NEWSESSION {
+        dataIn(c, p) <- NULL;
+        APPLY;
+    }   
+} IMAGE 'delete.png';
 
 EXTEND FORM customer
     OBJECTS r = Person
     
-    PROPERTIES(r) READONLY lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, email, children,
-                  seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank
+    PROPERTIES(r) READONLY lastName, firstName, middleName,  email, phone
     PROPERTIES addPerson(c) DRAW r TOOLBAR 
-    PROPERTIES (r) NEWSESSION EDIT, DELETE
-    FILTERS customer(r) == c
+    PROPERTIES NEWSESSION EDIT(r), deletePerson(c, r) DRAW r TOOLBAR 
+    FILTERS in(c, r)
     ORDER lastName(r)
 ;
 
@@ -506,3 +517,52 @@ DESIGN person {
         }
     }
 }
+
+CLASS Position 'Должность';
+
+id 'Номер' = DATA STRING[25] (Position) CHARWIDTH 10;
+name 'Должность' = DATA STRING[200] (Position);
+
+position (id) = GROUP AGGR Position p BY id (p);
+
+FORM positions 'Должности'
+    OBJECTS p = Position
+    PROPERTIES READONLY id(p), name(p)
+    ORDER id(p)
+    
+    LIST Position OBJECT p
+;
+
+FORM position
+    OBJECTS p = Position PANEL 
+    PROPERTIES id(p), name(p)
+    
+    EDIT Position OBJECT p;
+;
+
+EXTEND FORM options
+    OBJECTS p = Position
+    PROPERTIES READONLY id(p), name(p)
+    ORDER id(p)
+    PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE 
+;
+
+DESIGN options {
+    pane {
+        NEW positions {
+            caption = 'Должности';
+            fill = 1;
+            MOVE BOX(p);
+        }
+    }
+}
+
+position 'Должность' = DATA Position (Customer, Person);
+namePosition 'Должность' (Customer c, Person p) = name(position(c, p));
+
+EXTEND FORM customer
+    PROPERTIES namePosition(c, r);
+;
+
+CONSTRAINT SET(Person p IS Person) AND firstName(p) == firstName(Person pp) AND lastName(p) == lastName(pp) AND
+    middleName(p) == middleName(pp) AND NOT pp == p MESSAGE 'Физ. лицо с таким ФИО уже существует';
