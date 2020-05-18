@@ -35,21 +35,20 @@ form = DATA Form(LegalEntity);
 nameFrom 'Форма хозяйства' (LegalEntity l) = name(form(l));
 shortNameFrom 'Форма хозяйства' (LegalEntity l) = shortName(form(l));
 
-address 'Юридический адрес' = DATA ISTRING[250](LegalEntity) CHARWIDTH 20;
+GROUP params 'Параметры';
+
+address 'Юридический адрес' = DATA ISTRING[250](LegalEntity) CHARWIDTH 20 IN params;
 
 representative = DATA Person(LegalEntity);
 nameRepresentative 'Представитель по умолчанию' (LegalEntity l) = name(representative(l)) CHARWIDTH 20;
 baseRepresentative 'Основание представителя' = DATA ISTRING[250](LegalEntity) CHARWIDTH 20;
 positionRepresentative 'Должность представителя' = DATA ISTRING[250](LegalEntity) CHARWIDTH 20;
 
-inn 'ИНН' = DATA ISTRING[10](LegalEntity) CHARWIDTH 10;
-kpp 'КПП' = DATA ISTRING[10](LegalEntity) CHARWIDTH 10;
 phone 'Номер телефона' = DATA ISTRING[50](LegalEntity) CHARWIDTH 15;
 okpo 'ОКПО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
 okato 'ОКАТО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
 oktmo 'ОКТМО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
 okved 'ОКВЭД' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
-ogrn 'ОГРН' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
 
 CONSTRAINT representative(LegalEntity l) AND NOT customer(representative(l)) == customer(l) CHECKED BY representative[LegalEntity] 
     MESSAGE 'Клиент представителя не совпадает с клиентом организации';
@@ -109,8 +108,8 @@ NAVIGATOR {
 
 FORM legalEntity 'Юридическое лицо'
     OBJECTS o = LegalEntity PANEL
-    PROPERTIES(o) id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, 
-                  nameRepresentative, positionRepresentative, baseRepresentative, phone, inn, kpp, okpo, okato, oktmo, okved, ogrn, numberAccount
+    PROPERTIES(o) id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, addr = address, 
+                  nameRepresentative, positionRepresentative, baseRepresentative, phone, okpo, okato, oktmo, okved, numberAccount
     ORDER shortName(o)
     
     OBJECTS a=Account
@@ -123,56 +122,59 @@ FORM legalEntity 'Юридическое лицо'
 
 DESIGN legalEntity {
     BOX (o) {
-        NEW first {
-            type = CONTAINERH;
-            caption = 'Основые параметры';
-            MOVE PROPERTY (id(o));
-            MOVE PROPERTY (nameCustomer(o));
-            MOVE PROPERTY (shortNameFrom(o));
-        }
-        NEW names {
-            type = CONTAINERH;
-            NEW nameRus {
-                caption = 'Название';
-                MOVE PROPERTY (shortName(o)) { caption = 'Сокращенное'; }
-                MOVE PROPERTY (fullName(o))  { caption = 'Полное'; }
+        fill = 1;
+        NEW tabPane {
+            fill = 1;
+            type = TABBED;
+            NEW main {
+                caption = 'Главная';
+                NEW first {
+                    type = CONTAINERH;
+                    caption = 'Основые параметры';
+                    MOVE PROPERTY (id(o));
+                    MOVE PROPERTY (nameCustomer(o));
+                    MOVE PROPERTY (shortNameFrom(o));
+                }
+                NEW names {
+                    type = CONTAINERH;
+                    NEW nameRus {
+                        caption = 'Название';
+                        MOVE PROPERTY (shortName(o)) { caption = 'Сокращенное'; }
+                        MOVE PROPERTY (fullName(o))  { caption = 'Полное'; }
+                    }
+                    NEW nameLat {
+                        caption = 'Название (латиницей)';
+                        MOVE PROPERTY (shortNameLat(o)) { caption = 'Сокращенное'; }
+                        MOVE PROPERTY (fullNameLat(o))  { caption = 'Полное'; }
+                    }
+                }
+                NEW other {
+                    type = CONTAINERH;
+                    NEW info {
+                        caption = 'Контакты';
+                        MOVE PROPERTY (addr);
+                        MOVE PROPERTY (phone(o));
+                        MOVE PROPERTY (numberAccount(o));
+                    }
+                    NEW repres {
+                        caption = 'Представитель';
+                        MOVE PROPERTY (nameRepresentative(o)) { caption = 'Имя'; }
+                        MOVE PROPERTY (positionRepresentative(o)) { caption = 'Должность'; }
+                        MOVE PROPERTY (baseRepresentative(o)) { caption = 'Основание'; }
+                    }
+                }
+                NEW numbers {
+                    caption = 'Информация';
+                    NEW line2 {
+                        type = CONTAINERH;
+                        MOVE PROPERTY (okpo(o));
+                        MOVE PROPERTY (okved(o));
+                        MOVE PROPERTY (okato(o));
+                        MOVE PROPERTY (oktmo(o));
+                    } 
+                }
+                MOVE BOX(a) { fill = 1; }
             }
-            NEW nameLat {
-                caption = 'Название (латиницей)';
-                MOVE PROPERTY (shortNameLat(o)) { caption = 'Сокращенное'; }
-                MOVE PROPERTY (fullNameLat(o))  { caption = 'Полное'; }
-            }
-        }
-        NEW other {
-            type = CONTAINERH;
-            NEW info {
-                caption = 'Контакты';
-                MOVE PROPERTY (address(o));
-                MOVE PROPERTY (phone(o));
-                MOVE PROPERTY (numberAccount(o));
-            }
-            NEW repres {
-                caption = 'Представитель';
-                MOVE PROPERTY (nameRepresentative(o)) { caption = 'Имя'; }
-                MOVE PROPERTY (positionRepresentative(o)) { caption = 'Должность'; }
-                MOVE PROPERTY (baseRepresentative(o)) { caption = 'Основание'; }
-            }
-        }
-        NEW numbers {
-            caption = 'Информация';
-            NEW line1 {
-                type = CONTAINERH;
-                MOVE PROPERTY (inn(o));
-                MOVE PROPERTY (kpp(o));
-                MOVE PROPERTY (ogrn(o));
-            }
-            NEW line2 {
-                type = CONTAINERH;
-                MOVE PROPERTY (okpo(o));
-                MOVE PROPERTY (okved(o));
-                MOVE PROPERTY (okato(o));
-                MOVE PROPERTY (oktmo(o));
-            } 
         }
     }
 }
@@ -180,7 +182,7 @@ DESIGN legalEntity {
 FORM legalEntities 'Юридические лица'
     OBJECTS o = LegalEntity
     PROPERTIES(o) READONLY id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, nameRepresentative, 
-                           baseRepresentative, positionRepresentative, inn, kpp, phone, okpo, okato, oktmo, okved, ogrn, numberAccount
+                           baseRepresentative, positionRepresentative, phone, okpo, okato, oktmo, okved, numberAccount
     PROPERTIES (o) NEWSESSION NEW, EDIT, DELETE
     ORDER shortName(o)
 ;

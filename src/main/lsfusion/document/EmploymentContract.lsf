@@ -1,6 +1,6 @@
 MODULE EmploymentContract;
 
-REQUIRE Doc, OpenCV, LegalEntity, Person;
+REQUIRE Doc, OpenCV, EGRUL, Person;
 
 PRIORITY LegalEntity;
 
