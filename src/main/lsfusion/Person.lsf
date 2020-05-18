@@ -176,6 +176,7 @@ addPerson 'Добавить' (Customer c) {
 deletePerson 'Удалить' (Customer c, Person p) {
     NEWSESSION {
         dataIn(c, p) <- NULL;
+        customer(p) <- NULL;
         APPLY;
     }   
 } IMAGE 'delete.png';
@@ -398,22 +399,24 @@ DESIGN person {
                 type = TABBED;
                 NEW main {
                     caption = 'Основные';
-                    type = CONTAINERH;
-                    NEW names1 {
-                        caption = 'ФИО (Им. падеж)';
-                        MOVE PROPERTY (lastName(p)) { charWidth = 20; }
-                        MOVE PROPERTY (firstName(p));
-                        MOVE PROPERTY (middleName(p));
-                    }
-                    NEW names2 {
-                        caption = 'ФИО (Род. падеж)';
-                        MOVE PROPERTY (lastNameRp(p)) { caption = 'Фамилия';  charWidth = 20; }
-                        MOVE PROPERTY (firstNameRp(p)) { caption = 'Имя'; }
-                        MOVE PROPERTY (middleNameRp(p)) { caption = 'Отчество'; }
-                    }
-                    NEW customer {
-                        caption = 'Клиент';
-                        MOVE PROPERTY (nameCustomer(p)) { charWidth = 20; }
+                    NEW data {
+                        type = CONTAINERH;
+                        NEW names1 {
+                            caption = 'ФИО (Им. падеж)';
+                            MOVE PROPERTY (lastName(p)) { charWidth = 20; }
+                            MOVE PROPERTY (firstName(p));
+                            MOVE PROPERTY (middleName(p));
+                        }
+                        NEW names2 {
+                            caption = 'ФИО (Род. падеж)';
+                            MOVE PROPERTY (lastNameRp(p)) { caption = 'Фамилия';  charWidth = 20; }
+                            MOVE PROPERTY (firstNameRp(p)) { caption = 'Имя'; }
+                            MOVE PROPERTY (middleNameRp(p)) { caption = 'Отчество'; }
+                        }
+                        NEW customer {
+                            caption = 'Клиент';
+                            MOVE PROPERTY (nameCustomer(p)) { charWidth = 20; }
+                        }
                     }
                 }
                 NEW contacts {
@@ -564,5 +567,19 @@ EXTEND FORM customer
     PROPERTIES namePosition(c, r);
 ;
 
-CONSTRAINT SET(Person p IS Person) AND firstName(p) == firstName(Person pp) AND lastName(p) == lastName(pp) AND
-    middleName(p) == middleName(pp) AND NOT pp == p MESSAGE 'Физ. лицо с таким ФИО уже существует';
+id 'Код' = DATA STRING[25] (Person);
+person (id) = GROUP AGGR Person p BY id (p);
+
+EXTEND FORM persons
+    PROPERTIES(p) id BEFORE nameCustomer(p)
+;
+
+EXTEND FORM person
+    PROPERTIES(p) id
+;
+
+DESIGN person {
+    main {
+        MOVE PROPERTY(id(p)) FIRST {alignment = START; }
+    }
+}
