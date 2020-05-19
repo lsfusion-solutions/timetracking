@@ -340,7 +340,7 @@ EXTEND FORM bank
     PROPERTIES(o) nameEng, address
 ;
 
-notes 'Примечание' = DATA STRING (Person) CHARWIDTH 50;
+notes 'Примечание' = DATA TEXT (Person);
 
 CLASS Interraction 'Взаимодействие';
 
@@ -437,7 +437,7 @@ DESIGN person {
                             MOVE BOX(e) { height = 200; }
                         }
                     }
-                    MOVE PROPERTY(notes(p)) { flex = 0; align = START; }
+                    MOVE PROPERTY(notes(p)) { height = 60; width = 1320; align = START; }
                 }
                 NEW legal {
                     caption = 'Юридические';
