@@ -196,3 +196,53 @@ NAVIGATOR {
 form (LegalEntity c) <- Form.ooo WHEN SET (c IS LegalEntity);
 baseRepresentative (LegalEntity c) <- 'Устава' WHEN SET (c IS LegalEntity);
 positionRepresentative (LegalEntity c) <- 'Генеральный директор' WHEN SET (c IS LegalEntity);
+
+in 'Вкл' = DATA BOOLEAN (Person, LegalEntity);
+
+EXTEND FORM person
+    OBJECTS l = LegalEntity
+    PROPERTIES(l) READONLY shortNameFrom, fullName, address, phone
+    FILTERS in(p, l)
+;
+
+DESIGN person {
+    body {
+        NEW legalEntities {
+            caption = 'Юридические лица';
+            fill = 1;
+            MOVE BOX(l);
+        }
+    }
+}
+
+addPerson 'Добавить' (LegalEntity l) {
+    NEWSESSION {
+        DIALOG persons OBJECTS p INPUT DO {
+            in(p, l) <- TRUE;
+        }
+        APPLY;
+    }
+} IMAGE 'add.png';
+
+deletePerson 'Удалить' (LegalEntity l, Person p) {
+    NEWSESSION {
+        in(p, l) <- NULL;
+        APPLY;
+    }
+} IMAGE 'delete.png';
+
+EXTEND FORM legalEntity
+    OBJECTS p = Person
+    PROPERTIES(p) READONLY lastName, firstName, middleName, address, phone, email
+    PROPERTIES DRAW p TOOLBAR addPerson(o), deletePerson(o, p)
+    FILTERS in(p, o)
+;
+
+DESIGN legalEntity {
+    tabPane {
+        NEW persons {
+            caption = 'Физические лица';
+            MOVE BOX(p);
+        }
+    }
+}
