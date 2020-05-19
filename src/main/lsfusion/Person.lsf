@@ -583,3 +583,20 @@ DESIGN person {
         MOVE PROPERTY(id(p)) FIRST {alignment = START; }
     }
 }
+
+counterpartyPerson 'Контрагент' = DATA Person (Customer);
+nameCounterpartyPerson 'Контрагент' (Customer c) = STRING(fioName(counterpartyPerson(c)));
+
+WHEN LOCAL CHANGED(type(Customer c)) AND NOT type(c) == CounterpartyType.person DO {
+    counterpartyPerson(c) <- NULL;
+}
+
+EXTEND FORM customer
+    PROPERTIES(c) nameCounterpartyPerson SHOWIF NOT type(c) == CounterpartyType.legalEntity AFTER nameType(c)
+;
+
+DESIGN customer {
+    lane2 {
+        MOVE PROPERTY(nameCounterpartyPerson(c));
+    }
+}

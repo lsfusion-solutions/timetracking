@@ -22,7 +22,13 @@ DESIGN customer {
         type = SPLITH;
         NEW leftPane {
             fill = 1;
-            MOVE BOX(c);
+            MOVE BOX(c) {  
+                NEW lane1 {
+                    type = CONTAINERH;
+                    MOVE PROPERTY(name(c));
+                    MOVE PROPERTY(inactive(c));
+                }
+            }
         }
         NEW tabPane {
             fill = 2;
@@ -54,5 +60,35 @@ FORM dialogCustomer 'Выбор клиента'
 NAVIGATOR {
     masterData {
         NEW customers;
+    }
+}
+
+CLASS CounterpartyType 'Тип контрагента' {
+    person 'Физическое лицо',
+    legalEntity 'Юридическое лицо'
+}
+
+name 'Тип' (CounterpartyType t) = staticCaption(t);
+
+type = DATA CounterpartyType (Customer);
+nameType 'Тип контрагента' (Customer c) = name(type(c));
+
+FORM counterpartyType 'Тип контрагента'
+    OBJECTS t = CounterpartyType
+    PROPERTIES(t) READONLY name
+    
+    LIST CounterpartyType OBJECT t
+;
+
+EXTEND FORM customer
+    PROPERTIES nameType(c)
+;
+
+DESIGN customer {
+    BOX(c) {
+        NEW lane2 {
+            type = CONTAINERH;
+            MOVE PROPERTY(nameType(c));
+        }
     }
 }

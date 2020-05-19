@@ -246,3 +246,20 @@ DESIGN legalEntity {
         }
     }
 }
+
+counterpartyLegalEntity 'Контрагент' = DATA LegalEntity (Customer);
+nameCounterpartyLegalEntity 'Контрагент' (Customer c) = shortName(counterpartyLegalEntity(c));
+
+WHEN LOCAL CHANGED(type(Customer c)) AND NOT type(c) == CounterpartyType.legalEntity DO {
+    counterpartyLegalEntity(c) <- NULL;
+}
+
+EXTEND FORM customer
+    PROPERTIES(c) nameCounterpartyLegalEntity SHOWIF type(c) == CounterpartyType.legalEntity AFTER nameType(c)
+;
+
+DESIGN customer {
+    lane2 {
+        MOVE PROPERTY(nameCounterpartyLegalEntity(c));
+    }
+}
