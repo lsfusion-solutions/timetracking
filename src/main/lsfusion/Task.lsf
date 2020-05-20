@@ -62,7 +62,7 @@ nameTaskType 'Тип задачи' (Task t) = name(taskType(t));
 FORM task 'Задача'
     OBJECTS t = Task PANEL
     PROPERTIES(t) nameCustomerProject, nameProject, nameTaskType, name, description
-    ORDER nameCustomerProject(t)
+    ORDERS nameCustomerProject(t)
     
     EDIT Task OBJECT t
 ;

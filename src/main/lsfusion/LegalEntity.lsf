@@ -110,7 +110,7 @@ FORM legalEntity 'Юридическое лицо'
     OBJECTS o = LegalEntity PANEL
     PROPERTIES(o) id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, addr = address, 
                   nameRepresentative, positionRepresentative, baseRepresentative, phone, okpo, okato, oktmo, okved, numberAccount
-    ORDER shortName(o)
+    ORDERS shortName(o)
     
     OBJECTS a=Account
     PROPERTIES(a) number, nameBank, bicBank, swiftBank, NEW, DELETE GRID
@@ -184,7 +184,7 @@ FORM legalEntities 'Юридические лица'
     PROPERTIES(o) READONLY id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, nameRepresentative, 
                            baseRepresentative, positionRepresentative, phone, okpo, okato, oktmo, okved, numberAccount
     PROPERTIES (o) NEWSESSION NEW, EDIT, DELETE
-    ORDER shortName(o)
+    ORDERS shortName(o)
 ;
 
 NAVIGATOR {

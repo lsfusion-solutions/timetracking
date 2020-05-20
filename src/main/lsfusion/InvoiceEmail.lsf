@@ -40,7 +40,7 @@ FORM messageTableCategory 'Таблица оплаты по категориям
     PROPERTIES (c1) READONLY name
     PROPERTIES (p, c1) READONLY hoursMonthly
     FILTERS hoursMonthly(p, c1)
-    ORDER name(c1)
+    ORDERS name(c1)
     
     OBJECTS c2 = Category
     PROPERTIES (c2) READONLY name
@@ -48,7 +48,7 @@ FORM messageTableCategory 'Таблица оплаты по категориям
                         rate = (OVERRIDE formatPrice(rate(p, c2)) + ' ₽', '0,00 ₽'), 
                         sumPay2 = (OVERRIDE formatPrice(sumPay(p, c2)) + ' ₽', '0,00 ₽')
     FILTERS hoursPay(p, c2) > 0 OR sumPay(p, c2) > 0
-    ORDER name(c2)
+    ORDERS name(c2)
 ;
 
 sendEmailLimitHoursProjects 'Разослать письма о приближении к лимиту по проекту' () {

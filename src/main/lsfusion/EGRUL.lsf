@@ -97,7 +97,7 @@ FORM egrulLog 'Лог расхождений с ЕГРЮЛ'
 FORM egrulLogs 'Лог расхождений с ЕГРЮЛ'
     OBJECTS o = EgrulLog
     PROPERTIES(o) READONLY nameCustomer, date, time, nameUser, property, prevValue, value
-    ORDER date(o), time(o)
+    ORDERS date(o), time(o)
     
     LIST EgrulLog OBJECT o
 ;
@@ -108,7 +108,7 @@ egrul = DATA LOCAL BOOLEAN ();
 EXTEND FORM legalEntity
     OBJECTS l = EgrulLog LAST 
     PROPERTIES(l) READONLY nameCustomer, date, time, nameUser, property, prevValue, value, egrul
-    ORDER date(l), time(l)
+    ORDERS date(l), time(l)
     FILTERS legalEntity(l) == o
 ;
 
@@ -260,7 +260,7 @@ sendEmailEgrul 'Отправлять email об изменении параме�
 EXTEND FORM legalEntity 
     OBJECTS ee = Employee
     PROPERTIES sendEmailEgrul(o, ee), name(ee) READONLY
-    ORDER name(ee)
+    ORDERS name(ee)
 ;
 
 DESIGN legalEntity {
@@ -277,7 +277,7 @@ DESIGN legalEntity {
 EXTEND FORM employee
     OBJECTS c = LegalEntity
     PROPERTIES sendEmailEgrul(c, e), shortName(c) READONLY
-    ORDER shortName(c)
+    ORDERS shortName(c)
 ;
 
 DESIGN employee {

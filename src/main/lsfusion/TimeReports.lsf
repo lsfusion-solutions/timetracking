@@ -23,7 +23,7 @@ FORM projects 'По проектам'
     PROPERTIES(p) READONLY nameCustomer, name
     PROPERTIES READONLY hours(p, dFrom, dTo)
     FILTERS assigned(p, currentEmployee())
-    ORDER nameCustomer(p)
+    ORDERS nameCustomer(p)
     FILTERGROUP active FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
     
     PROPERTIES READONLY hours(p, d) COLUMNS (d) HEADER header(d)

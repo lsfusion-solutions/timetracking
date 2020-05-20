@@ -67,7 +67,7 @@ EXTEND FORM employee
     
     PROPERTIES assigned(p, e)
     PROPERTIES(p) READONLY nameCustomer, name
-    ORDER nameCustomer(p), name(p)
+    ORDERS nameCustomer(p), name(p)
     
     FILTERGROUP active FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
 ;

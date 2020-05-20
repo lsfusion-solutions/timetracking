@@ -112,7 +112,7 @@ FORM invoice 'Счет'
     OBJECTS c = Category
     PROPERTIES READONLY name(c), hoursMonthly(i, c), hoursPay(i, c)
     FILTERS hoursMonthly(i, c) OR hoursPay(i, c)
-    ORDER hoursMonthly(i, c) DESC 
+    ORDERS hoursMonthly(i, c) DESC 
     
     EDIT Invoice OBJECT i
 ;

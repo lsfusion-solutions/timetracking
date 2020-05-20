@@ -14,7 +14,7 @@ FORM invoiceDashboard 'Выставление счетов'
     OBJECTS p = Project
     PROPERTIES(p) READONLY nameCustomer, name, toInvoice
     FILTERS assigned(p, currentEmployee())
-    ORDER nameCustomer(p)
+    ORDERS nameCustomer(p)
     FILTERGROUP toInvoice
         FILTER 'Выставить счет' toInvoice(p) 'F11' DEFAULT
     FILTERGROUP active FILTER 'Активный' active(customer(p)) 'F5' DEFAULT

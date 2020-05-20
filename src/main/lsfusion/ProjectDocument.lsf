@@ -57,7 +57,7 @@ loadLastVersionAndApply 'Загрузить' (Document d)  {
 FORM document 'Документ'
     OBJECTS d = Document PANEL
     PROPERTIES(d) nameCustomer, name, openLastVersion SHOWIF lastVersion(d), loadLastVersion
-    ORDER nameCustomer(d)
+    ORDERS nameCustomer(d)
     
     OBJECTS v = Version
     PROPERTIES(v) dateTime, nameAuthor, open TOOLBAR, load TOOLBAR, DELETE

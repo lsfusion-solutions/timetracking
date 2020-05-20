@@ -68,13 +68,13 @@ FORM banks 'Банки'
     OBJECTS o = Bank
     PROPERTIES(o) READONLY id, name, bic, swift, numberAccount
     PROPERTIES(o) NEWSESSION NEW, EDIT, DELETE
-    ORDER name(o)
+    ORDERS name(o)
 ;
 
 FORM dialogBanks 'Банки'
     OBJECTS o = Bank
     PROPERTIES(o) READONLY id, name, bic, swift, numberAccount
-    ORDER name(o)
+    ORDERS name(o)
     
     LIST Bank OBJECT o
 ;
@@ -146,7 +146,7 @@ FORM person 'Физическое лицо'
     OBJECTS c = Child
     PROPERTIES (c) name, birthday, NEW, DELETE 
     FILTERS parent(c) == p
-    ORDER birthday(c)
+    ORDERS birthday(c)
     
     EDIT Person OBJECT p
 ;
@@ -156,7 +156,7 @@ FORM persons 'Физические лица'
     PROPERTIES (p) READONLY nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, email, children,
                    seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank
     PROPERTIES (p) NEWSESSION NEW, EDIT, DELETE
-    ORDER lastName(p)
+    ORDERS lastName(p)
     
     LIST Person OBJECT p
 ;
@@ -188,7 +188,7 @@ EXTEND FORM customer
     PROPERTIES addPerson(c) DRAW r TOOLBAR 
     PROPERTIES NEWSESSION EDIT(r), deletePerson(c, r) DRAW r TOOLBAR 
     FILTERS in(c, r)
-    ORDER lastName(r)
+    ORDERS lastName(r)
 ;
 
 DESIGN customer {
