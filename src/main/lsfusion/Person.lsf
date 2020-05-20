@@ -531,7 +531,7 @@ position (id) = GROUP AGGR Position p BY id (p);
 FORM positions 'Должности'
     OBJECTS p = Position
     PROPERTIES READONLY id(p), name(p)
-    ORDER id(p)
+    ORDERS id(p)
     
     LIST Position OBJECT p
 ;
@@ -546,7 +546,7 @@ FORM position
 EXTEND FORM options
     OBJECTS p = Position
     PROPERTIES READONLY id(p), name(p)
-    ORDER id(p)
+    ORDERS id(p)
     PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE 
 ;
 
