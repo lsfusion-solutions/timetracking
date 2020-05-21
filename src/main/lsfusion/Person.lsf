@@ -431,13 +431,15 @@ DESIGN person {
                         }
                         NEW additional {
                             caption = 'Доп информация';
-                            type = CONTAINERH;
-                            MOVE BOX(a) { height = 200; width = 450; }
-                            MOVE BOX(ph) { height = 200; width = 450; }
-                            MOVE BOX(e) { height = 200; width = 450; }
+                            NEW dataP {
+                                type = CONTAINERH;
+                                MOVE BOX(a) { height = 200; align = STRETCH; }
+                                MOVE BOX(ph) { height = 200; align = STRETCH; }
+                                MOVE BOX(e) { height = 200; align = STRETCH; }
+                            }
+                            MOVE PROPERTY(notes(p)) { align = STRETCH; panelCaptionAbove = TRUE; }
                         }
                     }
-                    MOVE PROPERTY(notes(p)) { height = 60; width = 1350; align = START; }
                 }
                 NEW legal {
                     caption = 'Юридические';
