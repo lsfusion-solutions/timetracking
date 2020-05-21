@@ -437,7 +437,7 @@ DESIGN person {
                                 MOVE BOX(ph) { height = 200; align = STRETCH; }
                                 MOVE BOX(e) { height = 200; align = STRETCH; }
                             }
-                            MOVE PROPERTY(notes(p)) { align = STRETCH; panelCaptionAbove = TRUE; }
+                            MOVE PROPERTY(notes(p)) { height = 70; align = STRETCH; panelCaptionAbove = TRUE; }
                         }
                     }
                 }
