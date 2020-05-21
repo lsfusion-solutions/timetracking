@@ -432,12 +432,12 @@ DESIGN person {
                         NEW additional {
                             caption = 'Доп информация';
                             type = CONTAINERH;
-                            MOVE BOX(a) { height = 200; }
-                            MOVE BOX(ph) { height = 200; }
-                            MOVE BOX(e) { height = 200; }
+                            MOVE BOX(a) { height = 200; width = 450; }
+                            MOVE BOX(ph) { height = 200; width = 450; }
+                            MOVE BOX(e) { height = 200; width = 450; }
                         }
                     }
-                    MOVE PROPERTY(notes(p)) { height = 60; width = 1320; align = START; }
+                    MOVE PROPERTY(notes(p)) { height = 60; width = 1350; align = START; }
                 }
                 NEW legal {
                     caption = 'Юридические';
