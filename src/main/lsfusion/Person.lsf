@@ -161,42 +161,25 @@ FORM persons 'Физические лица'
     LIST Person OBJECT p
 ;
 
-dataIn = DATA BOOLEAN (Customer, Person);
-in (Customer c, Person p) = OVERRIDE dataIn(c, p), customer(p) == c;
+//dataIn = DATA BOOLEAN (Customer, Person);
+//in (Customer c, Person p) = OVERRIDE dataIn(c, p), customer(p) == c;
 
-addPerson 'Добавить' (Customer c) {
-    NEWSESSION {
-        DIALOG persons OBJECTS p INPUT DO {
-            dataIn (c, p) <- TRUE;
-        }
-        APPLY;
-    }
-} IMAGE 'add.png';
-
-deletePerson 'Удалить' (Customer c, Person p) {
-    NEWSESSION {
-        dataIn(c, p) <- NULL;
-        IF customer(p) == c THEN customer(p) <- NULL;
-        APPLY;
-    }   
-} IMAGE 'delete.png';
-
-EXTEND FORM customer
-    OBJECTS r = Person
-    
-    PROPERTIES(r) READONLY lastName, firstName, middleName,  email, phone
-    PROPERTIES addPerson(c) DRAW r TOOLBAR 
-    PROPERTIES NEWSESSION EDIT(r), deletePerson(c, r) DRAW r TOOLBAR 
-    FILTERS in(c, r)
-    ORDERS lastName(r)
-;
-
-DESIGN customer {
-    tabPane {
-        caption = 'Контактные лица';
-        MOVE BOX(r);
-    }
-}
+//addPerson 'Добавить' (Customer c) {
+//    NEWSESSION {
+//        DIALOG persons OBJECTS p INPUT DO {
+//            dataIn (c, p) <- TRUE;
+//        }
+//        APPLY;
+//    }
+//} IMAGE 'add.png';
+//
+//deletePerson 'Удалить' (Customer c, Person p) {
+//    NEWSESSION {
+//        dataIn(c, p) <- NULL;
+//        IF customer(p) == c THEN customer(p) <- NULL;
+//        APPLY;
+//    }   
+//} IMAGE 'delete.png';
 
 NAVIGATOR {
     masterData {
@@ -534,6 +517,7 @@ FORM positions 'Должности'
     OBJECTS p = Position
     PROPERTIES READONLY id(p), name(p)
     ORDERS id(p)
+    PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE
     
     LIST Position OBJECT p
 ;
@@ -561,13 +545,6 @@ DESIGN options {
         }
     }
 }
-
-position 'Должность' = DATA Position (Customer, Person);
-namePosition 'Должность' (Customer c, Person p) = name(position(c, p));
-
-EXTEND FORM customer
-    PROPERTIES namePosition(c, r);
-;
 
 id 'Код' = DATA STRING[25] (Person);
 person (id) = GROUP AGGR Person p BY id (p);

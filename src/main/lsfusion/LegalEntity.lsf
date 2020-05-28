@@ -263,3 +263,25 @@ DESIGN customer {
         MOVE PROPERTY(nameCounterpartyLegalEntity(c));
     }
 }
+
+position 'Должность' = DATA Position (LegalEntity, Person);
+namePosition 'Должность' (LegalEntity c, Person p) = name(position(c, p));
+
+EXTEND FORM legalEntity
+    PROPERTIES namePosition(o, p);
+;
+
+EXTEND FORM customer
+    OBJECTS r = Person
+
+    PROPERTIES(r) READONLY lastName, firstName, middleName,  email, phone
+    ORDERS lastName(r)
+    FILTERS customer(r) == c OR (GROUP SUM 1 IF in(r, LegalEntity l) AND customer(l) == c)   
+;
+
+DESIGN customer {
+    tabPane {
+        caption = 'Контактные лица';
+        MOVE BOX(r);
+    }
+}

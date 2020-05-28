@@ -1,6 +1,6 @@
 MODULE InvoiceEmail;
 
-REQUIRE Invoice, TimeEntryWord, Person;
+REQUIRE Invoice, TimeEntryWord, LegalEntity;
 
 NAMESPACE Invoice;
 
@@ -16,7 +16,8 @@ DESIGN options {
 sendLimitEmails 'Получать уведомления о приближении к лимиту часов' = DATA BOOLEAN (Employee, Project);
 sendLimitEmails 'Получать уведомления о приближении к лимиту часов' = DATA BOOLEAN (Person, Project);
 
-EXTEND FORM customer PROPERTIES sendLimitEmails(e, p), sendLimitEmails(r, p) BEFORE lastName(r);
+EXTEND FORM customer PROPERTIES sendLimitEmails(e, p);
+EXTEND FORM customer PROPERTIES sendLimitEmails(r, p) BEFORE lastName(r);
 
 hoursPay 'Часов к оплате' (Project p, Category c) = hours(p, c, extractMonth(currentDate()), currentYear()) (-) hoursMonthly(p, c);
 sumPay 'Сумма к оплате' (Project p, Category c) = hoursPay(p, c) * rate(p, c);
