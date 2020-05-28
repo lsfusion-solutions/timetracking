@@ -118,7 +118,7 @@ loadFileINN 'Загрузить' (Person c) {
 }
 
 fileMilitary = DATA FILE (Person);
-openFileMilitary 'Открыть' (Person c) { open(fileMilitary(c)); }
+openFileMilitary 'Открыть' (Person c) { open[FILE](fileMilitary(c)); }
 loadFileMilitary 'Загрузить' (Person c) { 
     INPUT f=fileMilitary(c) CHANGE DO {
     } 

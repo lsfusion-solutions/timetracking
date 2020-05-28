@@ -9,6 +9,15 @@ toInvoice 'Часов' = GROUP SUM hours(TimeEntry e) IF NOT invoice(e) BY proje
 dateFrom 'Дата с' = DATA LOCAL DATE ();
 dateTo 'Дата по' = DATA LOCAL DATE ();
 
+skip = DATA BOOLEAN (TimeEntry);
+
+skipTimeEntry 'Удалить' (TimeEntry e) {
+    NEWSESSION {
+        skip(e) <- TRUE;
+        APPLY;
+    }
+}
+
 FORM invoiceDashboard 'Выставление счетов'
 
     OBJECTS p = Project
@@ -22,8 +31,10 @@ FORM invoiceDashboard 'Выставление счетов'
     PROPERTIES dateFrom(), dateTo()
     
     OBJECTS t = TimeEntry
-    PROPERTIES(t) READONLY namePractice, nameEmployee, nameTaskType, dateTimeStart, hours BACKGROUND userHours(t), nameTask, nameActivity, dateTimeFinish
+    PROPERTIES(t) READONLY namePractice, nameEmployee, nameTaskType, dateTimeStart, hours BACKGROUND userHours(t), nameTask, nameActivity, dateTimeFinish 
+    PROPERTIES skipTimeEntry(t) TOOLBAR
     FILTERS project(t) == p,
+            NOT skip(t),
             NOT inProcess(t),
             NOT invoice(t),
             assigned(project(t), currentEmployee()),
@@ -71,7 +82,7 @@ createInvoice 'Выставить счет' (Project p)  {
         NEW i = Invoice {
             project(i) <- p;
             author(i) <- currentEmployee();
-            invoice(TimeEntry e) <- i WHERE in(e) AND project(e) = p;
+            invoice(TimeEntry e) <- i WHERE in(e) AND project(e) = p AND NOT skip(e);
             DIALOG invoice OBJECTS i = i DO {
                 SEEK invoiceDashboard.i = i;
             }
@@ -84,7 +95,7 @@ createInvoiceDates 'Выставить счет за период' (Project p)  
         NEW i = Invoice {
             project(i) <- p;
             author(i) <- currentEmployee();
-            invoice(TimeEntry e) <- i WHERE NOT DATE (dateTimeFinish(e)) < dateFrom() AND NOT DATE (dateTimeFinish(e)) > dateTo() AND project(e) = p;
+            invoice(TimeEntry e) <- i WHERE NOT DATE (dateTimeFinish(e)) < dateFrom() AND NOT DATE (dateTimeFinish(e)) > dateTo() AND project(e) = p AND NOT skip(e);
             DIALOG invoice OBJECTS i = i DO {
                 SEEK invoiceDashboard.i = i;
             }
