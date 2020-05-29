@@ -16,7 +16,7 @@ DESIGN options {
 sendLimitEmails 'Получать уведомления о приближении к лимиту часов' = DATA BOOLEAN (Employee, Project);
 sendLimitEmails 'Получать уведомления о приближении к лимиту часов' = DATA BOOLEAN (Person, Project);
 
-EXTEND FORM customer PROPERTIES sendLimitEmails(e, p);
+EXTEND FORM customer PROPERTIES sendLimitEmails(e, p) AFTER name(e);
 EXTEND FORM customer PROPERTIES sendLimitEmails(r, p) BEFORE lastName(r);
 
 hoursPay 'Часов к оплате' (Project p, Category c) = hours(p, c, extractMonth(currentDate()), currentYear()) (-) hoursMonthly(p, c);

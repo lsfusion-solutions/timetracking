@@ -98,3 +98,5 @@ NAVIGATOR {
         NEW projects;
     }
 }
+
+projectManager 'Руководитель проекта' = DATA BOOLEAN (Employee, Project);
