@@ -221,16 +221,16 @@ sendNotificationsManager 'Уведомления для руководителе
             FOR managers(Employee employee, e) AND isTimeShortage(employee) DO {
                 messageManager(employee) <- NULL;
                 messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
-                FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND (hours(e, d) < hoursSet() OR NOT hours(e, d)) DO {
+                FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND (hours(employee, d) < hoursSet() OR NOT hours(employee, d)) DO {
                     messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
                 }
                 messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
             }
             
             LOCAL body = STRING ();
-            body() <- 'Здравствуйте!<br /><br />Пожалуйста, проверьте со следующими сотрудниками заполняемость трудозатрат.<br /><br />В пердыдущий период следующие сотрудники внесли недостаточно трудозатрат:<br /><br />';
+            body() <- 'Здравствуйте!<br /><br />Пожалуйста, проверьте со следующими сотрудниками заполняемость трудозатрат.<br /><br />В предыдущий период следующие сотрудники внесли недостаточно трудозатрат:<br /><br />';
             body() <- CONCAT '', body(), (GROUP CONCAT messageManager(Employee employee), '' IF managers(employee, e));
-            body() <- CONCAT '', body(), 'Спасибо,<br />    Ваша CRM система';
+            body() <- CONCAT '', body(), 'Спасибо,<br /> Ваша CRM система';
             
             EMAIL
                 SUBJECT 'Еженедельное информирование руководителя'
