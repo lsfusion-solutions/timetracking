@@ -1,6 +1,6 @@
 MODULE TimeReports;
 
-REQUIRE TimeEntry, Project, Reports;
+REQUIRE TimeEntry, Project, Reports, TimeDashboard;
 
 NAMESPACE Time;
 
@@ -284,4 +284,73 @@ NAVIGATOR {
     reports {
         NEW taskMonitoring;
     }
+}
+
+notified = DATA BOOLEAN (Employee, DATE);
+
+notifyYes 'Да, я заполнил всё время' () {
+    notified(currentUser(), currentDate()) <- TRUE; 
+    APPLY;
+    formClose();
+}
+
+notifyNo 'Нет, я не заполнил всё время.' () {
+    WHILE (hours(currentUser(), prevWorkDate(currentDate())) < hoursSet() OR NOT hours(currentUser(), prevWorkDate(currentDate()))) DO { 
+        DIALOG timeDashboard; 
+    }
+}
+
+FORM notify 'Уведомления'
+    PROPERTIES text = TEXT(firstName(currentUser()) + ', привет!\n\nПожалуйста, проверьте, и, если нужно, откорректируйте количество учтённого времени за ' 
+                      + prevWorkDate(currentDate()) + '\n\nЯ тут заметила, что ' + prevWorkDate(currentDate()) + 
+                      ' учтёно времени меньше обычного. Мне очень-очень важно знать распределение вашего времени. \nЭто поможет мне автоматизировать процессы и тем самым убрать скучную рутину из вашей работы.\n' +
+                      'А для этого мне нужно понимать как распределено ваше время. Воможно вы закрутились и забыли учесть часть времени?\n\n' +
+                      'Поэтому, буду очень благодарна, если вы сможете проверить, и, если нужно, откорректировать количество учтённого времени за ' +
+                      prevWorkDate(currentDate()) + '\n\n' + 'Катерина,\n Ваша CRM система')
+    PROPERTIES notifyYes(), notifyNo()
+    EVENTS ON CLOSE { IF NOT notified(currentUser(), currentDate()) THEN notifyNo(); }
+;
+
+DESIGN notify {
+    OBJECTS {
+        MOVE PROPERTY(text) { fill = 1; height = 230; width = 800; }
+        NEW actions {
+            type = CONTAINERH;
+            MOVE PROPERTY(notifyYes());
+            MOVE PROPERTY(notifyNo());
+        }
+    }
+    TOOLBARBOX {
+        showIf = NULL;
+    }
+}
+
+notify () {
+    IF NOT isDayoff(currentDate()) THEN {
+        IF NOT notified(currentUser(), currentDate()) AND sendNotification(currentUser()) AND 
+        (hours(currentUser(), prevWorkDate(currentDate())) < hoursSet() OR NOT hours(currentUser(), prevWorkDate(currentDate()))) THEN {
+            DIALOG notify;
+//            ASK firstName(currentUser()) + ', привет!\n\nПожалуйста, проверьте, и, если нужно, откорректируйте количество учтённого времени за ' 
+//                                        + prevWorkDate(currentDate()) + '\n\nЯ тут заметила, что ' + prevWorkDate(currentDate()) + 
+//                                        ' учтёно времени меньше обычного. Мне очень-очень важно знать распределение вашего времени. Это поможет мне автоматизировать процессы и тем самым убрать скучную рутину из вашей работы.\n' +
+//                                        'А для этого мне нужно понимать как распределено ваше время. Воможно вы закрутились и забыли учесть часть времени?\n\n' +
+//                                        'Поэтому, буду очень благодарна, если вы сможете проверить, и, если нужно, откорректировать количество учтённого времени за ' +
+//                                        prevWorkDate(currentDate()) + '\n\n' + 'Катерина,\n Ваша CRM система' q = YESNO DO {
+//                                            IF q THEN { notified(currentUser(), currentDate()) <- TRUE; APPLY; }
+//                                            ELSE {
+//                                                WHILE (hours(currentUser(), prevWorkDate(currentDate())) < hoursSet() OR NOT hours(currentUser(), prevWorkDate(currentDate()))) DO { DIALOG timeDashboard; }
+//                                            }
+//                                        }
+        }
+    }
+}
+
+onDesktopClientStarted () + {
+    //notified(currentUser(), currentDate()) <- NULL; APPLY;
+    notify();
+}
+
+onWebClientStarted () + {
+   //notified(currentUser(), currentDate()) <- NULL; APPLY;
+   notify();
 }
