@@ -123,3 +123,9 @@ DESIGN invoiceDashboard {
         }
     }   
 }
+
+hasChanged 'Вносились изменения' (Invoice i) = IF (GROUP SUM 1 IF invoice(InvoiceHistory h) == i) THEN TRUE;
+
+EXTEND FORM invoiceDashboard
+    PROPERTIES(i) READONLY hasChanged BEFORE date(i)
+;
