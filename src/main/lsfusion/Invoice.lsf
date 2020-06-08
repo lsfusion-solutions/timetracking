@@ -144,13 +144,18 @@ DESIGN invoice {
     NEW pane AFTER header {
         fill = 1;
         type = SPLITH;
-        MOVE BOX(t) { 
+        NEW tasks {
             fill = 3;
-            MOVE PROPERTY(description(t)) {
-                fill = 0.5;
-                panelCaptionAbove = TRUE;
-            } 
+            caption = 'Задачи';
+            MOVE BOX(t) { 
+                fill = 3;
+                MOVE PROPERTY(description(t)) {
+                    fill = 0.5;
+                    panelCaptionAbove = TRUE;
+                } 
+            }
         }
+        
         NEW right {
             fill = 1;
             MOVE BOX(e);
@@ -179,3 +184,73 @@ EXTEND FORM invoice
 
 hours 'Часов' (Project p, Month m, INTEGER y) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY project(e), extractMonth(dateStart(e)), extractYear(dateStart(e));
 hours 'Часов' (Project p, Category c, Month m, INTEGER y) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY project(e), overCategory(employee(e), project(e)), extractMonth(dateStart(e)), extractYear(dateStart(e));
+
+CLASS InvoiceHistory 'История изменений';
+invoice = DATA Invoice (InvoiceHistory);
+number 'Номер версии' = DATA STRING[100] (InvoiceHistory) CHARWIDTH 20 NONULL;
+date 'Дата версии' = DATA DATE (InvoiceHistory);
+employee = DATA Employee (InvoiceHistory);
+nameEmployee 'Сотрудник' (InvoiceHistory h) = CONCAT ', ', lastName(employee(h)), firstName(employee(h))  CHARWIDTH 25; 
+dateTime 'Дата и время изменения' = DATA DATETIME (InvoiceHistory);
+reason 'Причина изменения' = DATA STRING[150] (InvoiceHistory) NONULL;
+note 'Примечание' = DATA STRING[150] (InvoiceHistory);
+
+FORM history 'Изменение'
+    OBJECTS h = InvoiceHistory PANEL 
+    PROPERTIES(h) number, date, nameEmployee, dateTime, reason
+    
+    //EDIT InvoiceHistory OBJECT h;
+;
+
+EXTEND FORM invoice
+    OBJECTS h = InvoiceHistory
+    PROPERTIES(h) READONLY number, date, nameEmployee, dateTime, reason, note
+    FILTERS invoice(h) == i
+;
+
+DESIGN invoice {
+    tasks {
+        MOVE BOX(h);
+    }
+}
+
+history (Task t) {
+    MESSAGE 'Данная задача включена в счет. Необходимо указать причину изменений';
+    //INPUT q = STRING[150] DO 
+    DELETE InvoiceHistory h WHERE SET(h IS InvoiceHistory);
+    
+    FOR hours(Invoice i, t) AND NOT hours(i, t) == PREV(hours(i, t)) DO
+    NEW h = InvoiceHistory {
+        invoice(h) <- i;
+        date(h) <- currentDate();
+        employee(h) <- currentUser();
+        dateTime(h) <- currentDateTime();
+        note(h) <- 'Часы в счете изменились с ' + PREV(hours(i)) + ' на ' + hours(i);
+        DIALOG history OBJECTS h = h;    
+    }    
+}
+
+EXTEND FORM task
+    EVENTS
+        ON APPLY BEFORE { IF NOT hours(t) == PREV(hours(t)) THEN history(t); }
+;
+
+history (Invoice i) {
+    MESSAGE 'Сумма в счете изменилась. Необходимо указать причину изменений';
+    //INPUT q = STRING[150] DO 
+    DELETE InvoiceHistory h WHERE SET(h IS InvoiceHistory);
+    
+    NEW h = InvoiceHistory {
+        invoice(h) <- i;
+        date(h) <- currentDate();
+        employee(h) <- currentUser();
+        dateTime(h) <- currentDateTime();
+        note(h) <- 'Сумма в счете изменились с ' + round2(PREV(sum(i))) + ' на ' + round2(sum(i));
+        DIALOG history OBJECTS h = h;    
+    }    
+}
+
+EXTEND FORM invoice
+    EVENTS
+        ON APPLY BEFORE { IF NOT sum(i) == PREV(sum(i)) THEN history(i); }
+;
