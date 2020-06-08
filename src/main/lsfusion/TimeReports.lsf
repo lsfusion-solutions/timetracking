@@ -325,9 +325,15 @@ DESIGN notify {
     }
 }
 
+strictNotification 'Жёсткая блокировка' = DATA BOOLEAN (Employee);
+
+EXTEND FORM options
+    PROPERTIES strictNotification(e)
+;
+
 notify () {
     IF NOT isDayoff(currentDate()) THEN {
-        IF NOT notified(currentUser(), currentDate()) AND sendNotification(currentUser()) AND 
+        IF NOT notified(currentUser(), currentDate()) AND strictNotification(currentUser()) AND 
         (hours(currentUser(), prevWorkDate(currentDate())) < hoursSet() OR NOT hours(currentUser(), prevWorkDate(currentDate()))) THEN {
             DIALOG notify;
 //            ASK firstName(currentUser()) + ', привет!\n\nПожалуйста, проверьте, и, если нужно, откорректируйте количество учтённого времени за ' 
