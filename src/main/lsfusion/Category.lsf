@@ -1,6 +1,6 @@
 MODULE Category;
 
-REQUIRE Employee, Project;
+REQUIRE Employee, Project, Dashboard;
 
 CLASS Category 'Категория';
 TABLE category (Category);
@@ -139,5 +139,58 @@ DESIGN customer {
             }
             TOOLBARSYSTEM(e) {align = START; }
         }
+    }
+}
+
+FORM employeeHierarchy 'Cотрудник'
+    OBJECTS e = Employee PANEL
+    PROPERTIES(e) firstName, lastName, email, nameCategory, namePractice
+    ORDERS lastName(e)
+    
+    OBJECTS p = Project
+    PROPERTIES(p) READONLY name, nameCustomer
+    FILTERS assigned(p, e)
+    
+    OBJECTS manager = Employee
+    PROPERTIES(manager) READONLY firstName, lastName, nameCategory, namePractice
+    PROPERTIES NEWSESSION EDIT(manager)
+    FILTERS managers(e, manager)
+    
+    OBJECTS employee = Employee
+    PROPERTIES(employee) READONLY firstName, lastName, nameCategory, namePractice
+    PROPERTIES NEWSESSION EDIT(employee)
+    FILTERS managers(employee, e)
+;
+
+DESIGN employeeHierarchy {
+    OBJECTS {
+        NEW header {
+            MOVE BOX(e);
+        }
+        NEW tabs {
+            fill = 1;
+            type = TABBED;
+            MOVE BOX(p) { caption = 'Проекты'; }
+            MOVE BOX(manager) { caption = 'Руководители'; }
+            MOVE BOX(employee) { caption = 'Подчинённые'; }
+        }
+    }
+}
+
+editHierarchy 'Редактировать' (Employee e) {
+    SHOW employeeHierarchy OBJECTS e = e;
+}
+
+FORM employeeHierarchies 'Иерархия сотрудников'
+    OBJECTS e = Employee 
+    PROPERTIES(e) firstName ON CHANGE editHierarchy(e), lastName ON CHANGE editHierarchy(e), email ON CHANGE editHierarchy(e), 
+        nameCategory ON CHANGE editHierarchy(e), namePractice ON CHANGE editHierarchy(e)
+    PROPERTIES NEWSESSION editHierarchy(e) TOOLBAR 
+    ORDERS lastName(e)
+;
+
+NAVIGATOR {
+    dashboard {
+        NEW employeeHierarchies;
     }
 }
