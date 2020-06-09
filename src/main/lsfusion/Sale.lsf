@@ -1,0 +1,223 @@
+MODULE Sale;
+
+REQUIRE Employee, LegalEntity, Time;
+
+NAMESPACE Sale;
+
+CLASS Sale 'Продажа';
+
+name 'Название' = DATA STRING[250] (Sale) CHARWIDTH 30;
+
+CLASS SaleStage 'Этап продажи';
+
+name 'Название' = DATA STRING[250] (SaleStage);
+editSaleStage () = IF sid(mainRole(currentUser())) == 'admin' THEN TRUE;
+
+FORM saleStage 'Этап продажи'
+    OBJECTS s = SaleStage PANEL 
+    PROPERTIES name(s)
+    
+    EDIT SaleStage OBJECT s;
+;
+
+FORM saleStages 'Этапы продаж'
+    OBJECTS s = SaleStage
+    PROPERTIES READONLY name(s)
+    PROPERTIES(s) NEWSESSION SHOWIF editSaleStage() NEW, EDIT, DELETE
+    
+    LIST SaleStage OBJECT s;
+;
+
+NAVIGATOR {
+    masterData {
+        NEW saleStages;
+    }
+}
+
+FORM dialogSaleStages 'Этапы продаж'
+    OBJECTS s = SaleStage
+    PROPERTIES READONLY name(s)
+    PROPERTIES(s) NEWSESSION SHOWIF editSaleStage() NEW, EDIT, DELETE
+;
+
+stage = DATA SaleStage (Sale);
+nameStage 'Этап' (Sale s) = name(stage(s)) CHARWIDTH 25;
+
+owner = DATA Employee (Sale);
+nameOwner 'Владелец' (Sale s) = CONCAT ' ', lastName(owner(s)), firstName(owner(s)) CHARWIDTH 25;
+
+customer = DATA LegalEntity (Sale);
+nameCustomer 'Покупатель' (Sale s) = shortName(customer(s));
+
+amount 'Сумма' = DATA NUMERIC[16,2] (Sale);
+probability 'Вероятность, %' = DATA INTEGER (Sale);
+
+CONSTRAINT probability(Sale s) AND probability(s) < 0 OR probability(s) > 100 MESSAGE 'Вероятность должна быть от 0 до 100 %';
+
+creator = DATA Employee (Sale);
+nameCreator 'Создатель ' (Sale s) = CONCAT ' ', lastName(creator(s)), firstName(creator(s)) CHARWIDTH 25;
+
+WHEN LOCAL SET(Sale s IS Sale) DO creator(s) <- currentUser();
+
+CLASS SaleChannel 'Канал продажи';
+
+name 'Название' = DATA STRING[250] (SaleChannel);
+editSaleChannel () = IF sid(mainRole(currentUser())) == 'admin' THEN TRUE;
+
+FORM saleChannel 'Канал продажи'
+    OBJECTS s = SaleChannel PANEL 
+    PROPERTIES name(s)
+    
+    EDIT SaleChannel OBJECT s;
+;
+
+FORM saleChannels 'Каналы продаж'
+    OBJECTS s = SaleChannel
+    PROPERTIES READONLY name(s)
+    PROPERTIES(s) NEWSESSION SHOWIF editSaleChannel() NEW, EDIT, DELETE
+    
+    LIST SaleChannel OBJECT s;
+;
+
+NAVIGATOR {
+    masterData {
+        NEW saleChannels;
+    }
+}
+
+FORM dialogSaleChannels 'Каналы продаж'
+    OBJECTS s = SaleChannel
+    PROPERTIES READONLY name(s)
+    PROPERTIES(s) NEWSESSION SHOWIF editSaleChannel() NEW, EDIT, DELETE
+;
+
+channel = DATA SaleChannel (Sale);
+nameChannel 'Источник' (Sale s) = name(channel(s)) CHARWIDTH 25;
+
+note 'Заметки' = DATA TEXT (Sale);
+
+CLASS SaleRole 'Роль в продаже';
+
+name 'Название' = DATA STRING[250] (SaleRole);
+editSaleRole () = IF sid(mainRole(currentUser())) == 'admin' THEN TRUE;
+
+FORM saleRole 'Роль в продаже'
+    OBJECTS s = SaleRole PANEL 
+    PROPERTIES name(s)
+    
+    EDIT SaleRole OBJECT s;
+;
+
+FORM saleRoles 'Роли в продаже'
+    OBJECTS s = SaleRole
+    PROPERTIES READONLY name(s)
+    PROPERTIES(s) NEWSESSION SHOWIF editSaleRole() NEW, EDIT, DELETE
+    
+    LIST SaleRole OBJECT s;
+;
+
+NAVIGATOR {
+    masterData {
+        NEW saleRoles;
+    }
+}
+
+FORM dialogSaleRoles 'Роли в продаже'
+    OBJECTS s = SaleRole
+    PROPERTIES READONLY name(s)
+    PROPERTIES(s) NEWSESSION SHOWIF editSaleRole() NEW, EDIT, DELETE
+;
+
+role = DATA SaleRole (Person);
+nameRole 'Роль в продаже' (Person p) = name(role(p)) CHARWIDTH 25;
+
+CLASS StageHistory 'История этапов';
+
+sale = DATA Sale (StageHistory);
+newStage = DATA SaleStage (StageHistory);
+nameNewStage 'Новый статус' (StageHistory s) = name(newStage(s)) CHARWIDTH 25;
+amount 'Сумма' = DATA NUMERIC[16,2] (StageHistory);
+probability 'Вероятность, %' = DATA INTEGER (StageHistory);
+date 'Дата изменения' = DATA DATE (StageHistory);
+user = DATA Employee (StageHistory);
+nameUser 'Автор' (StageHistory s) = CONCAT ' ', lastName(user(s)), firstName(user(s)) CHARWIDTH 25;
+
+prev (StageHistory s) = PARTITION PREV s ORDER date(s), s BY sale(s);
+prevDate (StageHistory s) = date(prev(s));
+daysBetweenPrev 'Дней с прошлого изменения' (StageHistory s) = daysBetweenDates(prevDate(s), date(s));
+
+WHEN CHANGED(stage(Sale s)) DO {
+    NEW h = StageHistory {
+        sale(h) <- s;
+        newStage(h) <- stage(s);
+        amount(h) <- amount(s);
+        probability(h) <- probability(s);
+        date(h) <- currentDate();
+        user(h) <- currentUser();
+    }   
+}
+
+changeOwner (Sale s) {
+    DIALOG dialogEmployee OBJECTS e INPUT DO {
+        owner(s) <- e; 
+    } 
+}
+
+changeCreator (Sale s) {
+    DIALOG dialogEmployee OBJECTS e INPUT DO {
+        creator(s) <- e; 
+    } 
+}
+
+FORM sale 'Продажа'
+    OBJECTS s = Sale PANEL
+    PROPERTIES(s) name, nameStage, nameOwner ON CHANGE changeOwner(s), nameCustomer, amount, probability, 
+        nameCreator ON CHANGE changeCreator(s), nameChannel, note
+        
+    OBJECTS p = Person
+    PROPERTIES(p) READONLY lastName, firstName, middleName, address, phone, email
+    FILTERS in(p, customer(s))
+    
+    OBJECTS p2 = Person
+    PROPERTIES(p2) READONLY lastName, firstName, middleName
+    PROPERTIES(p2) nameRole
+    FILTERS in(p2, customer(s))
+    
+    OBJECTS h = StageHistory
+    PROPERTIES(h) READONLY nameNewStage, amount, probability, daysBetweenPrev, date, nameUser
+    FILTERS sale(h) == s
+    
+    EDIT Sale OBJECT s
+;
+
+DESIGN sale {
+    OBJECTS {
+        MOVE BOX(s);
+        NEW note {
+            align = STRETCH;
+            MOVE PROPERTY(note(s)) { panelCaptionAbove = TRUE; }
+        }
+        NEW body {
+            fill = 1;
+            type = TABBED;
+            MOVE BOX(p) { caption = 'Журнал взаимодействия'; }
+            MOVE BOX(p2) { caption = 'Роли в продаже'; }
+            MOVE BOX(h) { caption = 'История этапов'; }
+        }
+    }
+}
+
+FORM sales 'Продажи'
+    OBJECTS s = Sale 
+    PROPERTIES(s) READONLY name, nameStage, nameOwner, nameCustomer, amount, probability, nameCreator, nameChannel
+    PROPERTIES notes 'Заметки' = STRING(note(s))
+    PROPERTIES(s) NEWSESSION NEW, EDIT, DELETE 
+    
+    LIST Sale OBJECT s
+;
+
+NAVIGATOR {
+    NEW FOLDER sale 'Продажи' AFTER documents WINDOW toolbar {
+        NEW sales;
+    }
+}
