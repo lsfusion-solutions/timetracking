@@ -201,7 +201,7 @@ in 'Вкл' = DATA BOOLEAN (Person, LegalEntity);
 
 EXTEND FORM person
     OBJECTS l = LegalEntity
-    PROPERTIES(l) READONLY shortNameFrom, fullName, address, phone
+    PROPERTIES(l) ON CHANGE { NEWSESSION {SHOW legalEntity OBJECTS o = l; }} shortNameFrom, fullName, address, phone
     FILTERS in(p, l)
 ;
 
@@ -285,3 +285,17 @@ DESIGN customer {
         MOVE BOX(r);
     }
 }
+
+addLegalEntity 'Добавить' (Person p) {
+    NEWSESSION {
+        DIALOG legalEntities OBJECTS o INPUT DO {
+            in(p, o) <- TRUE;
+        }
+        APPLY;
+    }
+} IMAGE 'add.png';
+
+EXTEND FORM person 
+    PROPERTIES namePosition(l, p) AFTER fullName(l)
+    PROPERTIES DRAW l TOOLBAR addLegalEntity(p), deletePerson(l, p)
+;
