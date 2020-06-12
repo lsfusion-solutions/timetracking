@@ -46,6 +46,7 @@ generateTimeEntriesTemplate 'Создать шаблон для трудозат
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_INIT'; description(e) <- 'Сумма в рублях'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_MONTHLY'; description(e) <- 'Сумма абонентской платы'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_HOURS'; description(e) <- 'Сумма к оплате'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_MAX'; description(e) <- 'Максимальная стоимость внеабонентских услуг, всего'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_PAY'; description(e) <- 'Сумма к оплате (всего)'; }
             DIALOG template OBJECTS t = t DO {
                 SEEK templates.t = t;
@@ -119,6 +120,7 @@ generateTimeEntriesWord 'Трудозатраты (Word)' (Invoice i)  {
             value(detail) <- (OVERRIDE TEXT(formatPrice(sum(i))), '0.00') WHERE key(detail) == 'SUM_INIT';
             value(detail) <- (OVERRIDE TEXT(formatPrice(sumMonthly(i))), '0.00') WHERE key(detail) == 'SUM_MONTHLY';
             value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i))), '0.00') WHERE key(detail) == 'SUM_HOURS';
+            value(detail) <- (OVERRIDE TEXT(formatPrice(maxAmountMonthly(project(i)))), '0.00') WHERE key(detail) == 'SUM_MAX';
             value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))), '0.00') WHERE key(detail) == 'SUM_PAY';
         }
         process(timeEntriesTemplateWord());
