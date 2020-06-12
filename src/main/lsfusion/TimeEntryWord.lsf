@@ -128,3 +128,13 @@ generateTimeEntriesWord 'Трудозатраты (Word)' (Invoice i)  {
     } ELSE
         MESSAGE 'Не выбран шаблон для трудозатрат';
 }
+
+EXTEND FORM options
+    PROPERTIES generateTimeEntriesTemplate()
+;
+
+DESIGN options {
+    commons {
+        MOVE PROPERTY (generateTimeEntriesTemplate());
+    }
+}
