@@ -23,14 +23,20 @@ FORM saleStage 'Этап продажи'
 FORM saleStages 'Этапы продаж'
     OBJECTS s = SaleStage
     PROPERTIES READONLY name(s)
-    PROPERTIES(s) NEWSESSION SHOWIF editSaleStage() NEW, EDIT, DELETE
     
     LIST SaleStage OBJECT s;
 ;
 
+FORM saleStagesMasterdata 'Этапы продаж'
+    OBJECTS s = SaleStage
+    PROPERTIES READONLY name(s)
+    PROPERTIES (s) NEWSESSION SHOWIF editSaleStage() NEW, EDIT, DELETE
+;
+
+
 NAVIGATOR {
     masterData {
-        NEW saleStages;
+        NEW saleStagesMasterdata;
     }
 }
 
@@ -62,7 +68,7 @@ WHEN LOCAL SET(Sale s IS Sale) DO creator(s) <- currentUser();
 CLASS SaleChannel 'Канал продажи';
 
 name 'Название' = DATA STRING[250] (SaleChannel);
-editSaleChannel () = IF sid(mainRole(currentUser())) == 'admin' THEN TRUE;
+editSaleChannel () = sid(mainRole(currentUser())) == 'admin';
 
 FORM saleChannel 'Канал продажи'
     OBJECTS s = SaleChannel PANEL 
@@ -74,14 +80,19 @@ FORM saleChannel 'Канал продажи'
 FORM saleChannels 'Каналы продаж'
     OBJECTS s = SaleChannel
     PROPERTIES READONLY name(s)
-    PROPERTIES(s) NEWSESSION SHOWIF editSaleChannel() NEW, EDIT, DELETE
     
     LIST SaleChannel OBJECT s;
 ;
 
+FORM saleChannelsMasterdata 'Каналы продаж'
+    OBJECTS s = SaleChannel
+    PROPERTIES READONLY name(s)
+    PROPERTIES(s) NEWSESSION SHOWIF editSaleChannel() NEW, EDIT, DELETE
+;
+
 NAVIGATOR {
     masterData {
-        NEW saleChannels;
+        NEW saleChannelsMasterdata;
     }
 }
 
@@ -169,6 +180,18 @@ changeCreator (Sale s) {
     } 
 }
 
+addPerson 'Добавить' (Sale s) {
+    addPerson (customer(s));
+} IMAGE 'add.png' TOOLBAR;
+
+addPerson2 'Добавить' (Sale s) {
+    addPerson (customer(s));
+} IMAGE 'add.png' TOOLBAR;
+
+deletePerson 'Удалить' (Sale s, Person p) {
+    deletePerson(customer(s), p);
+} IMAGE 'delete.png' TOOLBAR;
+
 FORM sale 'Продажа'
     OBJECTS s = Sale PANEL
     PROPERTIES(s) name, nameStage, nameOwner ON CHANGE changeOwner(s), nameCustomer, amount, probability, 
@@ -176,11 +199,15 @@ FORM sale 'Продажа'
         
     OBJECTS p = Person
     PROPERTIES(p) READONLY lastName, firstName, middleName, address, phone, email
+    PROPERTIES addPerson(s) DRAW p
+    PROPERTIES deletePerson(s, p) DRAW p  
     FILTERS in(p, customer(s))
     
     OBJECTS p2 = Person
     PROPERTIES(p2) READONLY lastName, firstName, middleName
     PROPERTIES(p2) nameRole
+    PROPERTIES addPerson2(s) DRAW p2
+    PROPERTIES deletePerson(s, p2) DRAW p2  
     FILTERS in(p2, customer(s))
     
     OBJECTS h = StageHistory
