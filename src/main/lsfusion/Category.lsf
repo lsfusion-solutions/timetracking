@@ -153,12 +153,10 @@ FORM employeeHierarchy 'Cотрудник'
     
     OBJECTS manager = Employee
     PROPERTIES(manager) READONLY firstName, lastName, nameCategory, namePractice
-    PROPERTIES NEWSESSION EDIT(manager)
     FILTERS managers(e, manager)
     
     OBJECTS employee = Employee
     PROPERTIES(employee) READONLY firstName, lastName, nameCategory, namePractice
-    PROPERTIES NEWSESSION EDIT(employee)
     FILTERS managers(employee, e)
 ;
 
