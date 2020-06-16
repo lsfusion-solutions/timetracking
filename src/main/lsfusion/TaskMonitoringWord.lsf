@@ -66,12 +66,16 @@ generateWordTaskMonitoring 'Сформировать (WORD)' (DATE df, DATE dt, 
           MESSAGE 'Не выбран шаблон для мониторинга задач';
 }
 
+generateWordTaskMonitoring 'Сформировать (WORD)' (Project p) {
+    generateWordTaskMonitoring(dateFrom(), dateTo(), p);
+}
+
 EXTEND FORM taskMonitoring
-    PROPERTIES generateWordTaskMonitoring(df, dt, p) 
+    PROPERTIES generateWordTaskMonitoring(p) 
 ;
 
 DESIGN taskMonitoring {
     header {
-        MOVE PROPERTY(generateWordTaskMonitoring(df, dt, p));
+        MOVE PROPERTY(generateWordTaskMonitoring(p));
     }
 }
