@@ -215,24 +215,24 @@ DESIGN invoice {
 }
 
 history (Task t) {
-    MESSAGE 'Данная задача включена в счет. Необходимо указать причину изменений';
-    //INPUT q = STRING[150] DO 
-    DELETE InvoiceHistory h WHERE SET(h IS InvoiceHistory);
-    
-    FOR hours(Invoice i, t) AND NOT hours(i, t) == PREV(hours(i, t)) DO
-    NEW h = InvoiceHistory {
-        invoice(h) <- i;
-        date(h) <- currentDate();
-        employee(h) <- currentUser();
-        dateTime(h) <- currentDateTime();
-        note(h) <- 'Часы в счете изменились с ' + PREV(hours(i)) + ' на ' + hours(i);
-        DIALOG history OBJECTS h = h;    
-    }    
+    FOR hours(Invoice i, t) AND CHANGED (hours(i, t)) DO {
+        MESSAGE 'Данная задача включена в счет. Необходимо указать причину изменений';
+        NESTEDSESSION {
+            NEW h = InvoiceHistory {    
+                invoice(h) <- i;
+                date(h) <- currentDate();
+                employee(h) <- currentUser();
+                dateTime(h) <- currentDateTime();
+                note(h) <- 'Часы в счете изменились с ' + PREV(hours(i)) + ' на ' + hours(i);
+                DIALOG history OBJECTS h = h NOMANAGESESSION DO { APPLY; } ELSE { beforeCanceled() <- TRUE; }    
+            }
+        }
+    } 
 }
 
 EXTEND FORM task
     EVENTS
-        ON APPLY BEFORE { IF NOT hours(t) == PREV(hours(t)) THEN history(t); }
+        ON APPLY BEFORE history(t)
 ;
 
 history (Invoice i) {
