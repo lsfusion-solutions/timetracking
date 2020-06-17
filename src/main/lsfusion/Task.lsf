@@ -30,23 +30,63 @@ completed 'Завершена' = DATA BOOLEAN (Task);
 notCompleted 'Не завершена' (Task t) = t IS Task AND NOT completed(t);
 
 // Тип
-
 CLASS TaskType 'Тип задачи';
 TABLE taskType (TaskType);
 
 name 'Название' = DATA STRING[50] (TaskType);
 
+in 'Вкл.' = DATA BOOLEAN (TaskType, Practice) CHARWIDTH 3;
+inPracticGroup (TaskType t, Practice pc) = GROUP MAX level(pc, Practice pp) IF in(t, pp);
+
+practics 'Практики' (TaskType t) = GROUP CONCAT name(Practice p) IF in(t,p), ', ' CHARWIDTH 30;
+
 FORM taskTypes 'Типы задач'
     OBJECTS a = TaskType
-    PROPERTIES(a) name, NEW, DELETE
+    PROPERTIES (a) name, practics READONLY, NEW, DELETE
+    
+    OBJECTS p 'Список' = Practice
+    PROPERTIES(p) READONLY name, nameParent, canonicalName
+    PROPERTIES in(a, p)
+    
+    TREE groups g 'Дерево' = Practice PARENT parent(g)
+    PROPERTIES READONLY name(g)
+    PROPERTIES in(a, g)
 ;
 
+DESIGN taskTypes {
+    OBJECTS {
+        NEW tabbedPane {
+            type = TABBED;
+            fill = 1;
+            caption = 'Практики';
+            MOVE BOX (TREE groups);
+            MOVE BOX (p);
+        }
+    }
+}
+
 FORM dialogTaskType 'Выбор типа задачи'
+    TREE groups g = Practice PARENT parent(g)
+    PROPERTIES (g) name
+
     OBJECTS a = TaskType
     PROPERTIES(a) READONLY name
+    FILTERGROUP inPractice
+        FILTER 'В практике' inPracticGroup(a, g) DEFAULT
+    
+    
     
     LIST TaskType OBJECT a;
 ;
+
+DESIGN dialogTaskType {
+    OBJECTS {
+        type = CONTAINERH;
+        MOVE BOX (TREE groups);
+        MOVE BOX (a);
+    }
+    
+}
 
 NAVIGATOR {
     masterData {

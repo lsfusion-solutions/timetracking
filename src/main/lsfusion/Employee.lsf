@@ -1,6 +1,6 @@
 MODULE Employee;
 
-REQUIRE MasterData, Authentication, Security, Utils;
+REQUIRE Practice, MasterData, Authentication, Security, Utils;
 
 CLASS Employee 'Сотрудник' : CustomUser;
 TABLE employee (Employee);
@@ -40,38 +40,6 @@ NAVIGATOR {
 
 currentEmployee = currentUser() AS Employee;
 
-// ------------- Практика
-
-CLASS Practice 'Практика';
-TABLE practice (Practice);
-
-name 'Наименование' = DATA STRING[50] (Practice) IN id CHARWIDTH 15;
-
-FORM practice 'Практика'
-    OBJECTS p = Practice PANEL
-    PROPERTIES(p) name
-    
-    EDIT Practice OBJECT p
-;
-
-FORM practices 'Практики'
-    OBJECTS p = Practice
-    PROPERTIES(p) READONLY name
-    PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE
-;
-
-FORM dialogPractices 'Выбор практики'
-    OBJECTS p = Practice
-    PROPERTIES(p) READONLY name
-    
-    LIST Practice OBJECT p
-;
-
-NAVIGATOR {
-    masterData {
-        NEW practices;
-    }
-}
 
 practice 'Практика' = DATA Practice (Employee);
 namePractice 'Практика' (Employee e) = name(practice(e));

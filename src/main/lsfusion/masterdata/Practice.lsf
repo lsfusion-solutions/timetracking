@@ -1,0 +1,69 @@
+MODULE Practice;
+
+REQUIRE MasterData;
+
+NAMESPACE Employee;
+
+CLASS Practice 'Практика';
+TABLE practice (Practice);
+
+name 'Наименование' = DATA STRING[50] (Practice) IN id CHARWIDTH 15;
+
+parent 'Родитель' = DATA Practice (Practice);
+nameParent 'Родитель' (Practice p) = name(parent(p)); 
+
+level 'Уровень' (Practice c, Practice p) =
+   RECURSION 1l IF c IS Practice AND p = c
+        STEP 2l IF p = parent($p) MATERIALIZED;
+
+canonicalName 'Каноническое имя' (Practice pr) =
+   GROUP CONCAT name(Practice p), ' / ' ORDER DESC level(pr, p) CHARWIDTH 50;
+
+FORM practice 'Практика'
+    OBJECTS p = Practice PANEL
+    PROPERTIES(p) name, nameParent
+    
+    EDIT Practice OBJECT p
+;
+
+FORM practices 'Практики'
+    OBJECTS p 'Список' = Practice 
+    PROPERTIES(p) READONLY name, nameParent, canonicalName
+    PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE
+
+    TREE groups g 'Дерево' = Practice PARENT parent(g)
+    PROPERTIES(g) READONLY name
+    PROPERTIES(g) NEWSESSION NEW, EDIT, DELETE
+;
+
+DESIGN practices {
+    type = TABBED;
+    MOVE BOX (TREE groups);
+    MOVE BOX(p);
+    REMOVE TOOLBARBOX;
+}
+
+FORM dialogPractices 'Выбор практики'
+    OBJECTS p 'Список' = Practice 
+    PROPERTIES(p) READONLY name, nameParent, canonicalName
+    PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE
+
+    TREE groups g 'Дерево' = Practice PARENT parent(g)
+    PROPERTIES(g) READONLY name
+    PROPERTIES(g) NEWSESSION NEW, EDIT, DELETE
+    
+    LIST Practice OBJECT p
+;
+
+DESIGN dialogPractices {
+    type = TABBED;
+    MOVE BOX (TREE groups);
+    MOVE BOX (p);
+    REMOVE TOOLBARBOX;
+}
+
+NAVIGATOR {
+    masterData {
+        NEW practices;
+    }
+}
