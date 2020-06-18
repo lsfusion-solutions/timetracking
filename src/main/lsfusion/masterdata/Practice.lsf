@@ -44,23 +44,12 @@ DESIGN practices {
 }
 
 FORM dialogPractices 'Выбор практики'
-    OBJECTS p 'Список' = Practice 
-    PROPERTIES(p) READONLY name, nameParent, canonicalName
-    PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE
-
     TREE groups g 'Дерево' = Practice PARENT parent(g)
     PROPERTIES(g) READONLY name
     PROPERTIES(g) NEWSESSION NEW, EDIT, DELETE
     
-    LIST Practice OBJECT p
+    LIST Practice OBJECT g
 ;
-
-DESIGN dialogPractices {
-    type = TABBED;
-    MOVE BOX (TREE groups);
-    MOVE BOX (p);
-    REMOVE TOOLBARBOX;
-}
 
 NAVIGATOR {
     masterData {
