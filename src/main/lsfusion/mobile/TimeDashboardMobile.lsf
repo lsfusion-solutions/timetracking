@@ -1,0 +1,71 @@
+MODULE TimeDashboardMobile;
+
+REQUIRE TimeDashboard;
+
+NAMESPACE Time;
+
+overName 'Задача' (Task t) = OVERRIDE name(t), CONCAT ', ', nameProject(t), nameTaskType(t);
+active 'Активные' (Task t) = notCompleted(t) OR dateFinish(t) >= subtract(currentDate(), 1);
+
+realtimeHours (TimeEntry e) = hoursDiffDateTime((OVERRIDE dateTimeFinish(e), currentDateTime()), dateTimeStart(e));
+overRealtimeHours (TimeEntry e) = OVERRIDE userHours(e), realtimeHours(e); 
+
+timeEntry 'Трудозатраты' (Task t) = GROUP SUM overRealtimeHours(TimeEntry te) BY task(te);
+
+changeTaskStatus(Task t) {
+    CASE 
+        WHEN status(t) = StatusTask.paused THEN {
+        NEWSESSION {
+            dateTimeFinish(TimeEntry te) <- currentDateTime() WHERE employee(task(te)) == currentEmployee() AND NOT dateTimeFinish(te);
+            APPLY;
+        }
+            restart(t);
+        } 
+        WHEN status(t) = StatusTask.inProcess THEN 
+            pause(t);
+}
+
+FORM timeDashboardMobile 'Мобильная отметка' AUTOREFRESH 360 
+    
+    OBJECTS t = Task
+    PROPERTIES (t) READONLY overName BACKGROUND background(t)
+    PROPERTIES (t) ss 'Старт/Стоп' = EDIT ON CHANGE changeTaskStatus(t)
+    FILTERS active(t), employee(t) = currentEmployee()
+    
+    OBJECTS tp = Task PANEL 
+    PROPERTIES (tp) READONLY nameCustomerProject, description, timeEntry, nameStatus
+    FILTERS tp = t
+;
+
+DESIGN timeDashboardMobile {
+    REMOVE TOOLBARBOX;
+    REMOVE TOOLBARSYSTEM(t);
+    PANEL {
+        align =  CENTER;
+        MOVE TOOLBARBOX(t); 
+    }
+    NEW mobilePanel {
+        type = SPLITV;
+        BOX (t) {
+            flex = 80;
+            caption = '';
+            PROPERTY (overName(t)) { charHeight = 2; fontStyle = 'bold'; }
+        }
+        NEW info {
+            type = CONTAINERV;
+            flex = 20;
+            caption = '';
+            NEW customer{
+                type = CONTAINERH;
+                MOVE PROPERTY (nameCustomerProject(tp));
+                MOVE PROPERTY (timeEntry(tp));
+                MOVE PROPERTY (nameStatus(tp));
+            }
+            MOVE PROPERTY (description(tp)) { caption = ''; } 
+        }
+    } 
+}   
+
+NAVIGATOR {
+    NEW timeDashboardMobile FIRST;
+} 

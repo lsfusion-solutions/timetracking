@@ -53,13 +53,18 @@ initPaused 'Запускать на паузе' = DATA BOOLEAN (Task);
 inProcess 'В работе' (TimeEntry e) = dateTimeStart(e) AND NOT dateTimeFinish(e) AND NOT userHours(e);
 inProcess 'В работе' (Task t) = t IS Task AND NOT completed(t) AND NOT dateTimeFinish(t) AND NOT (initPaused(t) AND NOT dateTimeStart(t));
 
-status 'Статус' (Task t) = CASE WHEN completed(t) THEN 'Завершена'
-                                                WHEN dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t)) THEN 'На паузе'
-                                                ELSE 'В работе';
+paused 'На паузе' (Task t) = dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t));  
 
-background (Task t) = CASE WHEN completed(t) THEN RGB(255,255,255)
-                                         WHEN dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t)) THEN RGB(212,212,255)
-                                         ELSE RGB(212,255,212);
+EXTEND CLASS StatusTask {
+    paused 'На паузе',
+    inProcess 'В работе'
+}
+
+status (Task t) += WHEN paused(t) THEN StatusTask.paused;
+status (Task t) += WHEN inProcess(t) THEN StatusTask.inProcess;
+
+background (Task t) += WHEN dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t)) THEN RGB(212,212,255);
+background (Task t) += WHEN inProcess(t) THEN RGB(212,255,212);
 
 createEmailTasks () {
     NEWSESSION {
@@ -79,7 +84,7 @@ createEmailTasks () {
             taskType(t) <- emailTaskType();
             employee(t) <- et;
             read(e) <- TRUE;
-            IF PREV([GROUP SUM 1 IF status(Task tt) == 'В работе' BY employee(tt)](et)) THEN {
+            IF PREV([GROUP SUM 1 IF status(Task tt) = StatusTask.inProcess BY employee(tt)](et)) THEN {
                 initPaused(t) <- TRUE;
             }
         }
@@ -94,15 +99,15 @@ createEmailTasks () {
             taskType(t) <- emailTaskType();
             employee(t) <- et;
             read(e) <- TRUE;
-            IF PREV([GROUP SUM 1 IF status(Task tt) == 'В работе' BY employee(tt)](et)) THEN {
+            IF PREV([GROUP SUM 1 IF status(Task tt) = StatusTask.inProcess BY employee(tt)](et)) THEN {
                 initPaused(t) <- TRUE;
             }
         }
         APPLY;
     }
 }
-// Деятельность
 
+// Деятельность
 CLASS Activity 'Деятельность';
 TABLE activity (Activity);
 

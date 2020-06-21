@@ -28,7 +28,7 @@ generateTaskMonitoringTemplate 'Создать шаблон для монито�
 
 rowText (TimeEntry e) = CONCAT 'lsFusionCSep', [FORMULA TEXT 'to_char(($1),\'DD.MM.YY\')'](dateStart(e)),
                         [FORMULA TEXT 'to_char(($1),\'DD.MM.YY\')'](dateFinish(e)),
-                        (OVERRIDE status(e), ''),
+                        (OVERRIDE staticCaption(status(e)), ''),
                         (OVERRIDE nameTask(e), ''),
                         (OVERRIDE nameTaskType(e), ''),
                         (OVERRIDE nameEmployee(e), ''),
