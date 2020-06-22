@@ -294,7 +294,13 @@ NAVIGATOR {
     }
 }
 
+strictNotification 'Жёсткая блокировка' = DATA BOOLEAN (Employee);
+
 notified = DATA BOOLEAN (Employee, DATE);
+needNotify (Employee e, DATE d) = NOT notified(e, d) AND
+                                             strictNotification(e) AND 
+                                             NOT hours(e, prevWorkDate(d)) >= hoursSet() AND
+                                             hoursSet();
 
 notifyYes 'Да, я заполнил всё время' () {
     notified(currentUser(), currentDate()) <- TRUE; 
@@ -303,8 +309,11 @@ notifyYes 'Да, я заполнил всё время' () {
 }
 
 notifyNo 'Нет, я не заполнил всё время.' () {
-    WHILE (hours(currentUser(), prevWorkDate(currentDate())) < hoursSet() OR NOT hours(currentUser(), prevWorkDate(currentDate()))) DO { 
-        DIALOG timeDashboard; 
+    DIALOG timeDashboard;
+    IF needNotify(currentUser(), currentDate()) THEN {
+        beforeCanceled() <- TRUE;
+    } ELSE {
+        notifyYes();
     }
 }
 
@@ -333,38 +342,18 @@ DESIGN notify {
     }
 }
 
-strictNotification 'Жёсткая блокировка' = DATA BOOLEAN (Employee);
-
 EXTEND FORM options
     PROPERTIES strictNotification(e)
 ;
 
 notify () {
-    IF NOT isDayoff(currentDate()) THEN {
-        IF NOT notified(currentUser(), currentDate()) AND strictNotification(currentUser()) AND 
-        (hours(currentUser(), prevWorkDate(currentDate())) < hoursSet() OR NOT hours(currentUser(), prevWorkDate(currentDate()))) THEN {
-            DIALOG notify;
-//            ASK firstName(currentUser()) + ', привет!\n\nПожалуйста, проверьте, и, если нужно, откорректируйте количество учтённого времени за ' 
-//                                        + prevWorkDate(currentDate()) + '\n\nЯ тут заметила, что ' + prevWorkDate(currentDate()) + 
-//                                        ' учтёно времени меньше обычного. Мне очень-очень важно знать распределение вашего времени. Это поможет мне автоматизировать процессы и тем самым убрать скучную рутину из вашей работы.\n' +
-//                                        'А для этого мне нужно понимать как распределено ваше время. Воможно вы закрутились и забыли учесть часть времени?\n\n' +
-//                                        'Поэтому, буду очень благодарна, если вы сможете проверить, и, если нужно, откорректировать количество учтённого времени за ' +
-//                                        prevWorkDate(currentDate()) + '\n\n' + 'Катерина,\n Ваша CRM система' q = YESNO DO {
-//                                            IF q THEN { notified(currentUser(), currentDate()) <- TRUE; APPLY; }
-//                                            ELSE {
-//                                                WHILE (hours(currentUser(), prevWorkDate(currentDate())) < hoursSet() OR NOT hours(currentUser(), prevWorkDate(currentDate()))) DO { DIALOG timeDashboard; }
-//                                            }
-//                                        }
-        }
-    }
+    IF NOT isDayoff(currentDate()) AND needNotify(currentUser(), currentDate()) THEN DIALOG notify;
 }
 
 onDesktopClientStarted () + {
-    //notified(currentUser(), currentDate()) <- NULL; APPLY;
     notify();
 }
 
 onWebClientStarted () + {
-   //notified(currentUser(), currentDate()) <- NULL; APPLY;
    notify();
 }
