@@ -236,21 +236,22 @@ EXTEND FORM task
 ;
 
 history (Invoice i) {
-    MESSAGE 'Сумма в счете изменилась. Необходимо указать причину изменений';
-    //INPUT q = STRING[150] DO 
-    DELETE InvoiceHistory h WHERE SET(h IS InvoiceHistory);
-    
-    NEW h = InvoiceHistory {
-        invoice(h) <- i;
-        date(h) <- currentDate();
-        employee(h) <- currentUser();
-        dateTime(h) <- currentDateTime();
-        note(h) <- 'Сумма в счете изменились с ' + round2(PREV(sum(i))) + ' на ' + round2(sum(i));
-        DIALOG history OBJECTS h = h;    
-    }    
+    IF DROPCHANGED(sum(i)) THEN {
+        MESSAGE 'Сумма в счете изменилась. Необходимо указать причину изменений';
+        NESTEDSESSION {
+            NEW h = InvoiceHistory {
+                invoice(h) <- i;
+                date(h) <- currentDate();
+                employee(h) <- currentUser();
+                dateTime(h) <- currentDateTime();
+                note(h) <- 'Сумма в счете изменились с ' + round2(PREV(sum(i))) + ' на ' + round2(sum(i));
+                DIALOG history OBJECTS h = h NOMANAGESESSION DO { APPLY; } ELSE { beforeCanceled() <- TRUE; }
+            }
+        }
+    }
 }
 
 EXTEND FORM invoice
     EVENTS
-        ON APPLY BEFORE { IF NOT sum(i) == PREV(sum(i)) THEN history(i); }
+        ON APPLY BEFORE history(i);
 ;
