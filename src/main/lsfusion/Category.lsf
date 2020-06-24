@@ -185,6 +185,7 @@ FORM employeeHierarchies 'Иерархия сотрудников'
         nameCategory ON CHANGE editHierarchy(e), namePractice ON CHANGE editHierarchy(e)
     PROPERTIES NEWSESSION editHierarchy(e) TOOLBAR 
     ORDERS lastName(e)
+    FILTERS NOT isLocked(e), NOT fired(e)
 ;
 
 NAVIGATOR {
