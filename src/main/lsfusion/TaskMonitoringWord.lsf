@@ -4,6 +4,9 @@ REQUIRE TimeReports, Word, Time;
 
 NAMESPACE Time;
 
+taskMonitoringTemplateWord = DATA Template();
+nameTaskMonitoringTemplateWord 'Шаблон для мониторинга задач' () = name(taskMonitoringTemplateWord());
+
 generateTaskMonitoringTemplate 'Создать шаблон для мониторинга задач по проекту' ()  { 
     NEWSESSION {
         NEW t = Template {
@@ -19,8 +22,11 @@ generateTaskMonitoringTemplate 'Создать шаблон для монито�
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'FROM_DATE'; description(e) <- 'Дата с'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'TO_DATE'; description(e) <- 'Дата по'; }
 
-            DIALOG template OBJECTS t = t DO {
-                SEEK templates.t = t;
+            DIALOG template OBJECTS t = t DO { 
+                taskMonitoringTemplateWord() <- t;
+                APPLY;
+            } ELSE {
+                CANCEL; 
             }
         }
     }
@@ -39,9 +45,6 @@ rowText (TimeEntry e) = CONCAT 'lsFusionCSep', [FORMULA TEXT 'to_char(($1),\'DD.
 
 tableText (DATE df, DATE dt) = GROUP CONCAT rowText(TimeEntry t), 'lsFusionRSep' IF project(t) == filterProject() AND
     dateStart(t) >= df AND dateFinish(t) <= dt;
-
-taskMonitoringTemplateWord = DATA Template();
-nameTaskMonitoringTemplateWord 'Шаблон для мониторинга задач' () = name(taskMonitoringTemplateWord());
 
 EXTEND FORM options PROPERTIES nameTaskMonitoringTemplateWord(), generateTaskMonitoringTemplate();
 DESIGN options {
