@@ -7,6 +7,16 @@ NAMESPACE Employee;
 CLASS Practice 'Практика';
 TABLE practice (Practice);
 
+useTreePractics 'Использовать дерево практик' = DATA BOOLEAN ();
+
+EXTEND FORM options PROPERTIES useTreePractics();
+
+DESIGN options {
+    commons {
+        MOVE PROPERTY (useTreePractics());
+    }
+}
+
 name 'Наименование' = DATA STRING[50] (Practice) IN id CHARWIDTH 15;
 
 parent 'Родитель' = DATA Practice (Practice);
@@ -21,35 +31,47 @@ canonicalName 'Каноническое имя' (Practice pr) =
 
 FORM practice 'Практика'
     OBJECTS p = Practice PANEL
-    PROPERTIES(p) name, nameParent
+    PROPERTIES(p) name, nameParent SHOWIF useTreePractics()
     
     EDIT Practice OBJECT p
 ;
 
 FORM practices 'Практики'
     OBJECTS p 'Список' = Practice 
-    PROPERTIES(p) READONLY name, nameParent, canonicalName
+    PROPERTIES(p) READONLY name
+    PROPERTIES(p) READONLY SHOWIF useTreePractics() nameParent, canonicalName 
     PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE
+    FILTERS NOT parent(p) OR useTreePractics()
 
     TREE groups g 'Дерево' = Practice PARENT parent(g)
     PROPERTIES(g) READONLY name
     PROPERTIES(g) NEWSESSION NEW, EDIT, DELETE
+    EVENTS ON CHANGE g { SEEK practices.p = g; } 
 ;
 
 DESIGN practices {
-    type = TABBED;
-    MOVE BOX (TREE groups);
-    MOVE BOX(p);
-    REMOVE TOOLBARBOX;
+    MOVE BOX (TREE groups) { showIf = useTreePractics(); }
+    MOVE BOX(p){ showIf = NOT useTreePractics(); }
 }
 
 FORM dialogPractices 'Выбор практики'
+    OBJECTS p 'Список' = Practice 
+    PROPERTIES(p) READONLY name
+    PROPERTIES(p) READONLY SHOWIF useTreePractics() nameParent, canonicalName 
+    FILTERS NOT parent(p) OR useTreePractics()
+
     TREE groups g 'Дерево' = Practice PARENT parent(g)
     PROPERTIES(g) READONLY name
     PROPERTIES(g) NEWSESSION NEW, EDIT, DELETE
-    
-    LIST Practice OBJECT g
+    EVENTS ON CHANGE g { SEEK dialogPractices.p = g; }
+        
+    LIST Practice OBJECT p
 ;
+
+DESIGN dialogPractices {
+    MOVE BOX (TREE groups) { showIf = useTreePractics(); }
+    MOVE BOX(p){ showIf = NOT useTreePractics(); }
+}
 
 NAVIGATOR {
     masterData {

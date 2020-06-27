@@ -38,6 +38,18 @@ name 'Название' = DATA STRING[50] (TaskType);
 in 'Вкл.' = DATA BOOLEAN (TaskType, Practice) CHARWIDTH 3;
 inPracticGroup (TaskType t, Practice pc) = GROUP MAX level(pc, Practice pp) IF in(t, pp);
 
+existInChild() = GROUP SUM 1 IF parent(Practice pc) AND in(TaskType t, pc); 
+
+onStarted() + {
+    IF existInChild() THEN NEWSESSION {
+        useTreePractics() <- TRUE;
+        APPLY;
+    }
+}
+
+CONSTRAINT DROPPED(useTreePractics()) AND existInChild()
+    MESSAGE 'Невозможно отключить использование дерева практик пока есть типы задач для подчиненных практик'; 
+
 practics 'Практики' (TaskType t) = GROUP CONCAT name(Practice p) IF in(t,p), ', ' CHARWIDTH 30;
 
 FORM taskTypes 'Типы задач'
@@ -45,12 +57,16 @@ FORM taskTypes 'Типы задач'
     PROPERTIES (a) name, practics READONLY, NEW, DELETE
     
     OBJECTS p 'Список' = Practice
-    PROPERTIES(p) READONLY name, nameParent, canonicalName
+    PROPERTIES(p) READONLY name
+    PROPERTIES(p) READONLY SHOWIF useTreePractics() nameParent, canonicalName
     PROPERTIES in(a, p)
+    FILTERS NOT parent(p) OR useTreePractics()
     
     TREE groups g 'Дерево' = Practice PARENT parent(g)
     PROPERTIES READONLY name(g)
     PROPERTIES in(a, g)
+    
+    EVENTS ON CHANGE g { SEEK taskTypes.p = g; }
 ;
 
 DESIGN taskTypes {
@@ -59,22 +75,27 @@ DESIGN taskTypes {
             type = TABBED;
             fill = 1;
             caption = 'Практики';
-            MOVE BOX (TREE groups);
+            MOVE BOX (TREE groups) { showIf = useTreePractics(); }
             MOVE BOX (p);
         }
     }
 }
 
 FORM dialogTaskType 'Выбор типа задачи'
+    OBJECTS p = Practice
+    PROPERTIES (p) name
+
+    FILTERS NOT parent(p) OR useTreePractics()
+    
     TREE groups g = Practice PARENT parent(g)
     PROPERTIES (g) name
+    
+    EVENTS ON CHANGE g { SEEK dialogTaskType.p = g; }
 
     OBJECTS a = TaskType
     PROPERTIES(a) READONLY name
     FILTERGROUP inPractice
-        FILTER 'В практике' inPracticGroup(a, g) DEFAULT
-    
-    
+        FILTER 'В практике' inPracticGroup(a, p) DEFAULT
     
     LIST TaskType OBJECT a;
 ;
@@ -82,7 +103,8 @@ FORM dialogTaskType 'Выбор типа задачи'
 DESIGN dialogTaskType {
     OBJECTS {
         type = CONTAINERH;
-        MOVE BOX (TREE groups);
+        MOVE BOX (p) { showIf = NOT useTreePractics(); }
+        MOVE BOX (TREE groups) { showIf = useTreePractics(); }
         MOVE BOX (a);
     }
     
