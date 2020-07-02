@@ -43,7 +43,7 @@ FORM dialogFrontUsers 'Внешние пользователи'
 
 EXTEND FORM customer
     OBJECTS u = FrontUser
-    PROPERTIES (u) login, sha256Password ON CHANGE changeSHA256Password(u), NEW, DELETE 
+    PROPERTIES (u) login, sha256Password ON CHANGE changeSHA256Password(u), new = NEW, delete = DELETE 
     
     FILTERS customer(u) == c
 ;
@@ -51,7 +51,13 @@ DESIGN customer {
     tabPane {
         NEW users {
             caption = 'Внешние пользователи';
-            MOVE BOX(u) { caption = 'Внешние пользователи'; }
+            MOVE BOX(u) { 
+                caption = 'Внешние пользователи';
+                TOOLBARLEFT(u) {
+                    MOVE PROPERTY(new);
+                    MOVE PROPERTY(delete);
+                } 
+            }
         }
     }
 }
