@@ -22,6 +22,8 @@ startTimeEntry 'Начать новую задачу' (Project p, TaskType tt)  
         MESSAGE 'Вы должны быть залогинены под сотрудником, чтобы начать работу';
 }
 
+visible 'Видимая' = DATA BOOLEAN (Task);
+
 FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES currentDateTime()
 
@@ -52,9 +54,10 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES startTimeEntry(p, t) SHOWIF NOT ce
     
     OBJECTS fe = Task
+    PROPERTIES(fe) visible SHOWIF currentEmployee()
     PROPERTIES(fe) READONLY status BACKGROUND background(fe), nameCustomerProject, nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
-    PROPERTIES(fe) NEWSESSION NEW, EDIT, DELETE
-    FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
+    PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, EDIT, DELETE
+    FILTERS employee(fe) == currentEmployee() OR (NOT(currentUser() IS Employee) AND visible(fe))
     ORDERS nameCustomerProject(fe)
     FILTERGROUP project
         FILTER 'По проекту' project(fe) == p 'F9'
@@ -187,8 +190,8 @@ restart 'Возобновить выбранную' (Task t)  {
 
 EXTEND FORM timeDashboard
     PROPERTIES(ce) finish, pause SHOWIF inProcess(ce) 
-    PROPERTIES(fe) restart SHOWIF NOT ce
-    PROPERTIES(fe) finish SHOWIF NOT ce
+    PROPERTIES(fe) restart SHOWIF NOT ce AND currentEmployee()
+    PROPERTIES(fe) finish SHOWIF NOT ce AND currentEmployee()
 ;
 
 DESIGN timeDashboard {
