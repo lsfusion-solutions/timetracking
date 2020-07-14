@@ -35,7 +35,7 @@ CONSTRAINT SET(nDayNumber(TaskNotification n)) AND nDayNumber(n) <= 0
 nWeek = DATA BOOLEAN (TaskNotification);
 nWeekNumber = DATA INTEGER (TaskNotification);
 dow = DATA DOW (TaskNotification);
-nameDow 'День недели' (TaskNotification n) = staticCaption(dow(n));
+nameDow 'День' (TaskNotification n) = staticCaption(dow(n));
 
 CONSTRAINT SET(nWeekNumber(TaskNotification n)) AND nWeekNumber(n) <= 0 
     MESSAGE 'Неделя должна быть больше 0';
@@ -318,9 +318,23 @@ sendTaskNotifications 'Отправить уведомления о задача
             TO email(employee(t))
             BODY body()
         ;
+        
+        NEWSESSION {
+            calcNextNotificationDate(taskNotification(t));
+            APPLY;
+        }
     }
 }
 
 EXTEND FORM options
     PROPERTIES sendTaskNotifications() DRAW e TOOLBAR
 ;
+
+DESIGN DOWs {
+    PROPERTY(numberM(d)) { hide = TRUE; }
+}
+
+DESIGN months {
+    PROPERTY(number(m)) { hide = TRUE; }
+    PROPERTY(staticCaption(m)) { caption = 'Месяц'; }
+}
