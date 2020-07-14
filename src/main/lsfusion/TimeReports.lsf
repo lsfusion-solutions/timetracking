@@ -270,7 +270,7 @@ FORM taskMonitoring 'Мониторинг задач по проекту'
     }
     
     OBJECTS t = TimeEntry
-    PROPERTIES(t) READONLY dateStart, dateFinish, status, nameTask, nameTaskType, nameEmployee, nameResponsible, hours, 
+    PROPERTIES(t) READONLY dateStart, dateFinish, status, nameTask, 'Описание' = nameTaskType, 'Исполнитель' = nameEmployee, nameResponsible, hours, 
         rate, sum
     FILTERS project(t) == filterProject(),
             dateStart(t) >= dateFrom() AND dateFinish(t) <= dateTo()
