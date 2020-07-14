@@ -1,0 +1,326 @@
+MODULE TaskNotification;
+
+REQUIRE Task, Time, TimeReports, TimeDashboard;
+
+NAMESPACE Task;
+
+CLASS TaskNotificationPeriod {
+    day 'Повторять по дням',
+    week 'Повторять по неделям',
+    month 'Повторять по месяцам',
+    year 'Повторять по годам'
+}
+
+name (TaskNotificationPeriod p) = staticCaption(p);
+
+CLASS TaskNotification 'Уведомление о задаче';
+
+startDate = DATA DATE (TaskNotification);
+endDate 'Повторять до' = DATA DATE (TaskNotification);
+overrideEndDate (TaskNotification n) = OVERRIDE endDate(n), 2050_01_01;
+nextNotificationDate 'Дата следующего уведомления' = DATA DATE (TaskNotification);
+
+taskNotificationPeriod = DATA TaskNotificationPeriod (TaskNotification);
+nameTaskNotificationPeriod 'Период уведомления' (TaskNotification n) = name(taskNotificationPeriod(n));
+
+//day
+nDay 'Каждый n-день' = DATA BOOLEAN (TaskNotification);
+nDayNumber = DATA INTEGER (TaskNotification);
+workDay 'Каждый рабочий день' = DATA BOOLEAN (TaskNotification);
+
+CONSTRAINT SET(nDayNumber(TaskNotification n)) AND nDayNumber(n) <= 0 
+    MESSAGE 'День должен быть больше 0';
+
+//week
+nWeek = DATA BOOLEAN (TaskNotification);
+nWeekNumber = DATA INTEGER (TaskNotification);
+dow = DATA DOW (TaskNotification);
+nameDow 'День недели' (TaskNotification n) = staticCaption(dow(n));
+
+CONSTRAINT SET(nWeekNumber(TaskNotification n)) AND nWeekNumber(n) <= 0 
+    MESSAGE 'Неделя должна быть больше 0';
+
+//month
+nDayMonth 'Каждого n-числа' = DATA BOOLEAN (TaskNotification);
+nDayNumberMonth = DATA INTEGER (TaskNotification) CHARWIDTH 5;
+nMonthNumber = DATA INTEGER (TaskNotification) CHARWIDTH 5;
+
+CONSTRAINT SET(nDayNumberMonth(TaskNotification n)) AND (nDayNumberMonth(n) <= 0 OR nDayNumberMonth(n) > 31)
+    MESSAGE 'День должен быть от 1 до 31';
+CONSTRAINT SET(nMonthNumber(TaskNotification n)) AND nMonthNumber(n) <= 0 
+    MESSAGE 'Месяц должен быть больше 0';
+
+extractDowNumberMonth (DATE d) = GROUP SUM 1 IF extractDOW(DATE dd) == extractDOW(d) AND iterate(dd, firstDayOfMonth(d), d);
+    
+nDowMonth 'Каждый n-день' = DATA BOOLEAN (TaskNotification);
+nMonthNumber2 = DATA INTEGER (TaskNotification) CHARWIDTH 5;
+nDowNumberMonth (TaskNotification n) = extractDowNumberMonth(startDate(n));
+nDowMonthName (TaskNotification n) = extractDOWName(startDate(n));
+nDowMonthDescription (TaskNotification n) = 
+    CONCAT ' ', nDowNumberMonth(n), nDowMonthName(n) CHARWIDTH 15;
+
+countWorkDayNumberMonth (DATE d) = GROUP SUM 1 IF NOT isDayoff(DATE dd) AND iterate(dd, firstDayOfMonth(d), d);
+    
+nWorkDayMonth 'Каждый рабочий n-день' = DATA BOOLEAN (TaskNotification);
+nWorkDayMonthNumber (TaskNotification n) = countWorkDayNumberMonth(startDate(n));
+nWorkDayMonthDescription (TaskNotification n) =  CONCAT ' ', nWorkDayMonthNumber(n), 'рабочий день' CHARWIDTH 20;
+nMonthNumber3 = DATA INTEGER (TaskNotification) CHARWIDTH 5;
+
+//year
+nDateYear 'Каждого n-числа' = DATA BOOLEAN (TaskNotification);
+nYearNumber = DATA INTEGER (TaskNotification);
+nYearDayNumber = DATA INTEGER (TaskNotification) CHARWIDTH 5;
+nYearMonth = DATA Month (TaskNotification);
+nameNYearMonth (TaskNotification n) = staticCaption(nYearMonth(n)) CHARWIDTH 11;
+
+CONSTRAINT SET(nYearNumber(TaskNotification n)) AND nYearNumber(n) <= 0 
+    MESSAGE 'Год должен быть больше 0';
+CONSTRAINT SET(nYearDayNumber(TaskNotification n)) AND (nYearDayNumber(n) <= 0 OR nYearDayNumber(n) > 31)
+    MESSAGE 'День должен быть от 1 до 31';
+
+taskNotification = DATA TaskNotification (Task);
+
+FORM taskNotification 'Уведомление о задаче'
+    OBJECTS n = TaskNotification PANEL
+    
+    PROPERTIES nameTaskNotificationPeriod(n)
+    PROPERTIES nDay(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.day, 
+               caption1 = 'день' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.day,
+               nDayNumber(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.day, 
+               workDay(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.day, 
+               caption2 = 'Каждый рабочий день' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.day
+
+    PROPERTIES nWeek(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.week, 
+               nWeekNumber(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.week,
+               caption3 = 'неделю' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.week,
+               nameDow(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.week
+               
+    PROPERTIES nDayMonth(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               nDayNumberMonth(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               nMonthNumber(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               caption4 = 'месяца' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               
+               nDowMonth(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               nDowMonthDescription(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               nMonthNumber2(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               caption5 = 'месяца' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               
+               nWorkDayMonth(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               nWorkDayMonthDescription(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               nMonthNumber3(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               caption6 = 'месяца' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month
+               
+    PROPERTIES nDateYear(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.year,
+               nYearDayNumber(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.year,
+               nameNYearMonth(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.year,
+               nYearNumber(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.year,
+               caption7 = 'года' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.year
+               
+    PROPERTIES endDate(n), nextNotificationDate(n) READONLY 
+    
+    EDIT TaskNotification OBJECT n;
+;
+
+DESIGN taskNotification {
+    OBJECTS {
+        height = 200;
+        MOVE PROPERTY(nameTaskNotificationPeriod(n));
+        NEW row1 {
+            type = CONTAINERH;
+            MOVE PROPERTY(nDay(n)) { caption = ''; }
+            MOVE PROPERTY(nDayNumber(n)) { caption = 'Каждый'; }
+            MOVE PROPERTY(caption1) { charWidth = 60; }
+        }
+        NEW row2 {
+            type = CONTAINERH;
+            MOVE PROPERTY(workDay(n)) { caption = ''; }
+            MOVE PROPERTY(caption2) { charWidth = 60; }
+        }
+        NEW row3 {
+            type = CONTAINERH;
+            MOVE PROPERTY(nWeek(n)) { caption = ''; }
+            MOVE PROPERTY(nWeekNumber(n)) { caption = 'Каждую'; }
+            MOVE PROPERTY(caption3) { charWidth = 60; }
+        }
+        NEW row4 {
+            MOVE PROPERTY(nameDow(n));
+        }
+        NEW row5 {
+            type = CONTAINERH;
+            MOVE PROPERTY(nDayMonth(n)) { caption = ''; }
+            MOVE PROPERTY(nDayNumberMonth(n)) { caption = 'Каждое'; }
+            MOVE PROPERTY(nMonthNumber(n)) { caption = 'число каждого'; } 
+            MOVE PROPERTY(caption4) { charWidth = 60; }
+        }
+        NEW row6 {
+            type = CONTAINERH;
+            MOVE PROPERTY(nDowMonth(n)) { caption = ''; }
+            MOVE PROPERTY(nDowMonthDescription(n)) { caption = 'Каждый'; charWidth = 15; }
+            MOVE PROPERTY(nMonthNumber2(n)) { caption = 'каждого'; } 
+            MOVE PROPERTY(caption5) { charWidth = 60; }
+        }
+        NEW row7 {
+            type = CONTAINERH;
+            MOVE PROPERTY(nWorkDayMonth(n)) { caption = ''; }
+            MOVE PROPERTY(nWorkDayMonthDescription(n)) { caption = 'Каждый'; }
+            MOVE PROPERTY(nMonthNumber3(n)) { caption = 'каждого'; }
+            MOVE PROPERTY(caption6) { charWidth = 60; }
+        }
+        NEW row8 {
+            type = CONTAINERH;
+            MOVE PROPERTY(nDateYear(n)) { caption = ''; }
+            MOVE PROPERTY(nYearDayNumber(n)) { caption = 'Каждое'; }
+            MOVE PROPERTY(nameNYearMonth(n)) { caption = ''; }
+            MOVE PROPERTY(nYearNumber(n)) { caption = 'каждого'; }
+            MOVE PROPERTY(caption7) { charWidth = 60; }
+        }
+        NEW row9 {
+            MOVE PROPERTY(endDate(n));
+            NEW row10 {
+                type = CONTAINERH;
+                MOVE PROPERTY(nextNotificationDate(n));
+            }
+        }
+    }
+}
+
+calcNextNotificationDate 'Рассчитать' (TaskNotification n) {
+    nextNotificationDate(n) <- CASE 
+        WHEN nDay(n) THEN sum(currentDate(), nDayNumber(n))
+        WHEN workDay(n) THEN (GROUP MIN DATE d IF NOT isDayoff(d) AND iterate(d, sum(currentDate(), 1), overrideEndDate(n)))
+        WHEN nWeek(n) THEN (GROUP MIN DATE d IF extractDOW(d) == dow(n) AND iterate(d, sum(currentDate(), 7 * nWeekNumber(n)), overrideEndDate(n)))
+        WHEN nDayMonth(n) THEN (GROUP MIN DATE d IF extractDay(d) == nDayNumberMonth(n) AND iterate(d, sumMonth(currentDate(), nMonthNumber(n)), overrideEndDate(n)))
+        WHEN nDowMonth(n) THEN (GROUP MIN DATE d IF extractDOWName(d) == nDowMonthName(n) AND extractDowNumberMonth(d) == nDowNumberMonth(n)
+            AND iterate(d, sumMonth(currentDate(), nMonthNumber2(n)), overrideEndDate(n)))
+        WHEN nWorkDayMonth(n) THEN (GROUP MIN DATE d IF countWorkDayNumberMonth(d) == nWorkDayMonthNumber(n) AND
+            iterate(d, sumMonth(currentDate(), nMonthNumber3(n)), overrideEndDate(n)))
+        WHEN nDateYear(n) THEN (GROUP MIN DATE d IF extractDay(d) == nYearDayNumber(n) AND extractMonth(d) == nYearMonth(n) AND
+            iterate(d, sumYear(currentDate(), nYearNumber(n)), overrideEndDate(n)));
+}
+
+setTaskNotification 'Настроить уведомления' (Task t) {
+    IF NOT taskNotification(t) THEN 
+        NEWSESSION {
+            NEW n = TaskNotification {
+                taskNotification(t) <- n;
+                startDate(n) <- currentDate();
+            }
+            APPLY;
+        }
+    NEWSESSION {
+        DIALOG taskNotification OBJECTS n = taskNotification(t);
+        calcNextNotificationDate(taskNotification(t));
+        APPLY;
+    }
+}
+
+EXTEND FORM timeDashboard
+    PROPERTIES(fe) setTaskNotification
+;
+
+WHEN LOCAL SET(nDay(TaskNotification n)) DO {
+    workDay(n) <- NULL;
+    nWeek(n) <- NULL;
+    nDayMonth(n) <- NULL;
+    nDowMonth(n) <- NULL;
+    nWorkDayMonth(n) <- NULL;
+    nDateYear(n) <- NULL;
+    nDayNumber(n) <- 1;
+    calcNextNotificationDate(n);
+}
+
+WHEN LOCAL SET(workDay(TaskNotification n)) DO {
+    nDay(n) <- NULL;
+    nWeek(n) <- NULL;
+    nDayMonth(n) <- NULL;
+    nDowMonth(n) <- NULL;
+    nWorkDayMonth(n) <- NULL;
+    nDateYear(n) <- NULL;
+    calcNextNotificationDate(n);
+}
+
+WHEN LOCAL SET(nWeek(TaskNotification n)) DO {
+    nDay(n) <- NULL;
+    workDay(n) <- NULL;
+    nDayMonth(n) <- NULL;
+    nDowMonth(n) <- NULL;
+    nWorkDayMonth(n) <- NULL;
+    nDateYear(n) <- NULL;
+    nWeekNumber(n) <- 1;
+    dow(n) <- extractDOW(currentDate());
+    calcNextNotificationDate(n);
+}
+
+WHEN LOCAL SET(nDayMonth(TaskNotification n)) DO {
+    nDay(n) <- NULL;
+    workDay(n) <- NULL;
+    nWeek(n) <- NULL;
+    nDowMonth(n) <- NULL;
+    nWorkDayMonth(n) <- NULL;
+    nDateYear(n) <- NULL;
+    nDayNumberMonth(n) <- extractDay(currentDate());
+    nMonthNumber(n) <- 1;
+    calcNextNotificationDate(n);
+}
+
+WHEN LOCAL SET(nDowMonth(TaskNotification n)) DO {
+    nDay(n) <- NULL;
+    workDay(n) <- NULL;
+    nWeek(n) <- NULL;
+    nDayMonth(n) <- NULL;
+    nWorkDayMonth(n) <- NULL;
+    nDateYear(n) <- NULL;
+    nMonthNumber2(n) <- 1;
+    calcNextNotificationDate(n);
+}
+
+WHEN LOCAL SET(nWorkDayMonth(TaskNotification n)) DO {
+    nDay(n) <- NULL;
+    workDay(n) <- NULL;
+    nWeek(n) <- NULL;
+    nDayMonth(n) <- NULL;
+    nDowMonth(n) <- NULL;
+    nDateYear(n) <- NULL;
+    nMonthNumber3(n) <- 1;
+    calcNextNotificationDate(n);
+}
+
+WHEN LOCAL SET(nDateYear(TaskNotification n)) DO {
+    nDay(n) <- NULL;
+    workDay(n) <- NULL;
+    nWeek(n) <- NULL;
+    nDayMonth(n) <- NULL;
+    nDowMonth(n) <- NULL;
+    nWorkDayMonth(n) <- NULL;
+    nYearNumber(n) <- 1;
+    nYearDayNumber(n) <- extractDay(currentDate());
+    nYearMonth(n) <- extractMonth(currentDate());
+    calcNextNotificationDate(n);
+}
+
+EXTEND FORM taskNotification
+    PROPERTIES calcNextNotificationDate(n)
+;
+
+DESIGN taskNotification {
+    row10 {
+        MOVE PROPERTY(calcNextNotificationDate(n));
+    }
+}
+
+sendTaskNotifications 'Отправить уведомления о задачах' () {
+    FOR nextNotificationDate(taskNotification(Task t)) == currentDate() AND email(employee(t)) DO {
+        LOCAL body = STRING ();
+        body() <- firstName(employee(t)) + ', у Вас есть задача “' + name(t) + '", для которой Вы установили напоминание на сегодня. Пожалуйста посмотрите задачу и если необходимо выполните все необходимые действия.';
+        
+        EMAIL
+            SUBJECT 'Еженедельное информирование руководителя'
+            TO email(employee(t))
+            BODY body()
+        ;
+    }
+}
+
+EXTEND FORM options
+    PROPERTIES sendTaskNotifications() DRAW e TOOLBAR
+;
