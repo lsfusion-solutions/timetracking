@@ -74,24 +74,37 @@ hours 'Часов' (Employee e, DATE d) = GROUP SUM hours(TimeEntry te) BY emplo
 hours 'Часов (всего)' (Employee e, DATE dFrom, DATE dTo) = 
     GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) BY employee(te); 
 
+firstNameEmployee 'Имя сотрудника' (TimeEntry t) = firstName(employee(t));
+lastNameEmployee 'Фамилия сотрудника' (TimeEntry t) = lastName(employee(t));
+
+showManagersEmployees 'Показать руководителей' = DATA LOCAL BOOLEAN ();
+
+in 'Вкл' = DATA LOCAL BOOLEAN (Employee);
+countEmployees () = GROUP SUM 1 IF in(Employee p);
+inEmployees (TimeEntry t) = in(employee(t)) OR NOT countEmployees();
+
 FORM employees 'По сотрудникам'
     OBJECTS dates = (dFrom = DATE, dTo = DATE) PANEL
-    PROPERTIES dFrom = VALUE(dFrom), dTo = VALUE(dTo)
+    PROPERTIES dFrom 'Дата с' = VALUE(dFrom), dTo 'Дата по' = VALUE(dTo)
 
     OBJECTS d = DATE 
     FILTERS hours(d), d >= dFrom, d <= dTo
 
     OBJECTS e = Employee
+    PROPERTIES in(e)
     PROPERTIES(e) READONLY namePractice, firstName, lastName, login
     PROPERTIES READONLY hours(e, dFrom, dTo)
     
     PROPERTIES READONLY hours(e, d) COLUMNS (d) HEADER header(d)
     
     OBJECTS t = TimeEntry
-    PROPERTIES(t) READONLY nameCustomerProject, nameProject, nameTaskType, nameTask
-    PROPERTIES(t) descriptionTask ON CHANGE changeDescriptionTask(t) PANEL
-    PROPERTIES(t) nameActivity, dateTimeStart, dateTimeFinish, hours BACKGROUND userHours(t), comment PANEL
-    FILTERS employee(t) == e,
+    PROPERTIES(t) READONLY dateTimeStart, dateTimeFinish, seriesNumberInvoice, managers SHOWIF showManagersEmployees(),
+        firstNameEmployee, lastNameEmployee, namePractice, nameCustomerProject, nameProject
+    PROPERTIES(t) READONLY  nameTaskType, nameTask, nameActivity
+    //PROPERTIES(t) descriptionTask ON CHANGE changeDescriptionTask(t) PANEL
+    PROPERTIES(t) hours BACKGROUND userHours(t)
+    PROPERTIES showManagersEmployees() TOOLBAR 
+    FILTERS inEmployees(t),
             dateStart(t) >= dFrom AND dateStart(t) <= dTo,
             assigned(project(t), currentEmployee())
 ;
@@ -104,16 +117,16 @@ DESIGN employees {
             MOVE BOX(t) {
                 fill = 3;
             }
-            NEW description {
-                MOVE PROPERTY(descriptionTask(t)) {
-                    panelCaptionAbove = TRUE;
-                    fill = 1;
-                }
-                MOVE PROPERTY(comment(t)) {
-                    panelCaptionAbove = TRUE;
-                    fill = 1;
-                }
-            }
+//            NEW description {
+//                MOVE PROPERTY(descriptionTask(t)) {
+//                    panelCaptionAbove = TRUE;
+//                    fill = 1;
+//                }
+//                MOVE PROPERTY(comment(t)) {
+//                    panelCaptionAbove = TRUE;
+//                    fill = 1;
+//                }
+//            }
         }
     }
 }
@@ -370,5 +383,9 @@ onWebClientStarted () + {
 }
 
 EXTEND FORM projects
+    PROPERTIES(t) READONLY rate, sum
+;
+
+EXTEND FORM employees
     PROPERTIES(t) READONLY rate, sum
 ;
