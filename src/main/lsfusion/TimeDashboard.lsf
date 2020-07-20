@@ -54,6 +54,9 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES startTimeEntry(p, t) SHOWIF NOT ce
     
     OBJECTS fe = Task
+    PROPERTIES(fe) READONLY nameStatus BACKGROUND background(fe), nameCustomerProject, nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
+    PROPERTIES(fe) NEWSESSION NEW, EDIT, DELETE
+    FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
     PROPERTIES(fe) visible SHOWIF currentEmployee()
     PROPERTIES(fe) READONLY status BACKGROUND background(fe), nameCustomerProject, nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
     PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, EDIT, DELETE
