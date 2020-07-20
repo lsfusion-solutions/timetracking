@@ -80,6 +80,8 @@ CONSTRAINT SET(nYearDayNumber(TaskNotification n)) AND (nYearDayNumber(n) <= 0 O
 
 taskNotification = DATA TaskNotification (Task);
 
+notificationTime 'Время уведомления' = DATA TIME (TaskNotification);
+
 FORM taskNotification 'Уведомление о задаче'
     OBJECTS n = TaskNotification PANEL
     
@@ -116,7 +118,7 @@ FORM taskNotification 'Уведомление о задаче'
                nYearNumber(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.year,
                caption7 = 'года' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.year
                
-    PROPERTIES endDate(n), nextNotificationDate(n) READONLY 
+    PROPERTIES endDate(n), nextNotificationDate(n) READONLY, notificationTime(n)
     
     EDIT TaskNotification OBJECT n;
 ;
@@ -208,8 +210,8 @@ setTaskNotification 'Настроить уведомления' (Task t) {
             APPLY;
         }
     NEWSESSION {
-        DIALOG taskNotification OBJECTS n = taskNotification(t);
-        calcNextNotificationDate(taskNotification(t));
+        DIALOG taskNotification OBJECTS n = taskNotification(t) FLOAT;
+        //calcNextNotificationDate(taskNotification(t));
         APPLY;
     }
 }
@@ -298,20 +300,34 @@ WHEN LOCAL SET(nDateYear(TaskNotification n)) DO {
     calcNextNotificationDate(n);
 }
 
+setToday 'Установить на сегодня' (TaskNotification n) {
+    nextNotificationDate(n) <- currentDate();
+}
+
 EXTEND FORM taskNotification
-    PROPERTIES calcNextNotificationDate(n)
+    PROPERTIES calcNextNotificationDate(n), setToday(n)
 ;
 
 DESIGN taskNotification {
     row10 {
         MOVE PROPERTY(calcNextNotificationDate(n));
     }
+    OBJECTS {
+        NEW row11 {
+            type = CONTAINERH;
+            MOVE PROPERTY(notificationTime(n));
+            MOVE PROPERTY(setToday(n));
+        }
+    }
 }
 
+nextNotificationDateTime (TaskNotification n) = 
+    dateTimeToDateTime(nextNotificationDate(n), OVERRIDE notificationTime(n), 00:00);
+
 sendTaskNotifications 'Отправить уведомления о задачах' () {
-    FOR nextNotificationDate(taskNotification(Task t)) == currentDate() AND email(employee(t)) DO {
+    FOR nextNotificationDateTime(taskNotification(Task t)) <= currentDateTime() AND email(employee(t)) DO {
         LOCAL body = STRING ();
-        body() <- firstName(employee(t)) + ', у Вас есть задача “' + name(t) + '", для которой Вы установили напоминание на сегодня. Пожалуйста посмотрите задачу и если необходимо выполните все необходимые действия.';
+        body() <- CONCAT '', firstName(employee(t)), ', у Вас есть задача “', name(t), '", для которой Вы установили напоминание на сегодня. Пожалуйста посмотрите задачу и если необходимо выполните все необходимые действия.';
         
         EMAIL
             SUBJECT 'Уведомление о задаче'
