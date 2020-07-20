@@ -22,7 +22,7 @@ changeStatus (Task t) {
             pause(t);
 } CHANGEMOUSE 'DBLCLK';
 
-FORM timeDashboardMobile 'Мобильная отметка' AUTOREFRESH 360 
+FORM timeDashboardMobile 'Мобильная отметка'
     
     OBJECTS t = Task
     PROPERTIES(t) READONLY BACKGROUND background(t) nameCustomerProject, nameProject, nameTaskType
