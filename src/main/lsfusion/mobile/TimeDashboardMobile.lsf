@@ -5,8 +5,7 @@ REQUIRE TimeDashboard;
 NAMESPACE Time;
 
 active 'Активные' (Task t) = notCompleted(t) OR dateFinish(t) >= subtract(currentDate(), 1);
-
-overName 'Задача' = OVERRIDE name(t), CONCAT ', ', nameProject(t), nameTaskType(t);
+overName 'Задача' (Task t) = OVERRIDE name(t), CONCAT ', ', nameProject(t), nameTaskType(t);
 
 realtimeHours (TimeEntry e) = hoursDiffDateTime((OVERRIDE dateTimeFinish(e), currentDateTime()), dateTimeStart(e));
 overRealtimeHours (TimeEntry e) = OVERRIDE userHours(e), realtimeHours(e); 
