@@ -4,8 +4,9 @@ REQUIRE TimeDashboard;
 
 NAMESPACE Time;
 
-overName 'Задача' (Task t) = OVERRIDE name(t), CONCAT ', ', nameProject(t), nameTaskType(t);
 active 'Активные' (Task t) = notCompleted(t) OR dateFinish(t) >= subtract(currentDate(), 1);
+
+overName 'Задача' = OVERRIDE name(t), CONCAT ', ', nameProject(t), nameTaskType(t);
 
 realtimeHours (TimeEntry e) = hoursDiffDateTime((OVERRIDE dateTimeFinish(e), currentDateTime()), dateTimeStart(e));
 overRealtimeHours (TimeEntry e) = OVERRIDE userHours(e), realtimeHours(e); 
@@ -66,6 +67,16 @@ DESIGN timeDashboardMobile {
     } 
 }   
 
-NAVIGATOR {
-    NEW timeDashboardMobile FIRST;
-} 
+showMobileForms ABSTRACT LIST ();
+
+showMobileForms() + { 
+    IF permit(currentUser(), navigatorElementCanonicalName('Sales.ordersMobile')) THEN
+        SHOW timeDashboardMobile NOWAIT; 
+}
+
+onWebClientStarted() + {
+    IF isMobile() THEN {
+        showMobileForms();
+        maximizeForm();
+    }
+}
