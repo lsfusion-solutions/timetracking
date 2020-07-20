@@ -5,65 +5,80 @@ REQUIRE TimeDashboard;
 NAMESPACE Time;
 
 active 'Активные' (Task t) = notCompleted(t) OR dateFinish(t) >= subtract(currentDate(), 1);
-overName 'Задача' (Task t) = OVERRIDE name(t), CONCAT ', ', nameProject(t), nameTaskType(t);
+overName 'Задача' (Task t) = OVERRIDE name(t), CONCAT ', ', nameCustomerProject(t), nameProject(t), nameTaskType(t);
 
-realtimeHours (TimeEntry e) = hoursDiffDateTime((OVERRIDE dateTimeFinish(e), currentDateTime()), dateTimeStart(e));
-overRealtimeHours (TimeEntry e) = OVERRIDE userHours(e), realtimeHours(e); 
+lastEntry (Task t) = GROUP LAST TimeEntry e ORDER dateTimeStart(e), e WHERE dateTimeStart(e) BY task(e);
 
-timeEntry 'Трудозатраты' (Task t) = GROUP SUM overRealtimeHours(TimeEntry te) BY task(te);
+dateTimeStartLastEntry 'Начало' (Task t) = dateTimeStart(lastEntry(t));  
+currentHoursLastEntry 'Часов' (Task t) = currentHours(lastEntry(t));
 
-changeTaskStatus(Task t) {
+changeStatus (Task t) {
     CASE 
         WHEN status(t) = StatusTask.paused THEN {
-        NEWSESSION {
-            dateTimeFinish(TimeEntry te) <- currentDateTime() WHERE employee(task(te)) == currentEmployee() AND NOT dateTimeFinish(te);
-            APPLY;
-        }
+            NEWSESSION {
+                dateTimeFinish(TimeEntry te) <- currentDateTime() WHERE employee(task(te)) == currentEmployee() AND NOT dateTimeFinish(te);
+                APPLY;
+            }
             restart(t);
         } 
         WHEN status(t) = StatusTask.inProcess THEN 
             pause(t);
-}
+} CHANGEMOUSE 'DBLCLK';
 
 FORM timeDashboardMobile 'Мобильная отметка' AUTOREFRESH 360 
     
     OBJECTS t = Task
-    PROPERTIES (t) READONLY overName BACKGROUND background(t)
-    PROPERTIES (t) ss 'Старт/Стоп' = EDIT ON CHANGE changeTaskStatus(t)
+    PROPERTIES(t) READONLY BACKGROUND background(t) nameCustomerProject, nameProject, nameTaskType
+    PROPERTIES(t) PANEL dateTimeStartLastEntry ON CHANGE { INPUT dt = dateTimeStartLastEntry(t) DO dateTimeStart(lastEntry(t)) <- dt; APPLY; }, 
+                        currentHoursLastEntry
+    PROPERTIES(t) PANEL READONLY pCustomer = nameCustomerProject, pProject = nameProject, name, '' = description
+    PROPERTIES(t) changeStatus HEADER IF inProcess(t) THEN 'Стоп' ELSE 'Старт'
+    
     FILTERS active(t), employee(t) = currentEmployee()
     
-    OBJECTS tp = Task PANEL 
-    PROPERTIES (tp) READONLY nameCustomerProject, description, timeEntry, nameStatus
-    FILTERS tp = t
+    OBJECTS te = TimeEntry
+    PROPERTIES(te) READONLY dateTimeStart, dateTimeFinish
+    PROPERTIES(te) NEWSESSION DELETE GRID
+    ORDERS dateTimeStart(te) DESC
+    FILTERS task(te) = t
 ;
 
 DESIGN timeDashboardMobile {
-    REMOVE TOOLBARBOX;
-    REMOVE TOOLBARSYSTEM(t);
-    PANEL {
-        align =  CENTER;
-        MOVE TOOLBARBOX(t); 
-    }
-    NEW mobilePanel {
-        type = SPLITV;
-        BOX (t) {
-            flex = 80;
-            caption = '';
-            PROPERTY (overName(t)) { charHeight = 2; fontStyle = 'bold'; }
+    OBJECTS {
+        NEW lastEntry {
+            type = CONTAINERH;
+            alignment = STRETCH;
+            MOVE PROPERTY(dateTimeStartLastEntry(t));
+            MOVE PROPERTY(currentHoursLastEntry(t));
         }
-        NEW info {
-            type = CONTAINERV;
-            flex = 20;
-            caption = '';
-            NEW customer{
-                type = CONTAINERH;
-                MOVE PROPERTY (nameCustomerProject(tp));
-                MOVE PROPERTY (timeEntry(tp));
-                MOVE PROPERTY (nameStatus(tp));
+        MOVE PROPERTY(changeStatus(t)) { alignment = STRETCH; }
+        MOVE GRID(t) { 
+            headerHeight = 20;
+            fill = 10;
+        }
+        REMOVE BOX(t);
+        
+        NEW tabbedPane {
+            fill = 1;
+            type = TABBED;
+            
+            NEW description {
+                caption = 'Параметры';
+                MOVE PROPERTY(pCustomer) { alignment = STRETCH; }
+                MOVE PROPERTY(pProject) { alignment = STRETCH; }
+                MOVE PROPERTY(name(t)) { alignment = STRETCH; }
+                MOVE PROPERTY(description(t)) {
+                    fill = 1;
+                }
             }
-            MOVE PROPERTY (description(tp)) { caption = ''; } 
+            NEW timeEntry {
+                caption = 'Трудозатраты';
+                MOVE GRID(te);
+                REMOVE BOX(te);
+            }
         }
-    } 
+    }
+    REMOVE TOOLBARBOX;
 }   
 
 showMobileForms ABSTRACT LIST ();

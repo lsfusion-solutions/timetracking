@@ -47,7 +47,7 @@ CONSTRAINT (CHANGED(employee(Task e)) OR CHANGED(project(e))) AND employee(e) AN
 CLASS TaskType 'Тип задачи';
 TABLE taskType (TaskType);
 
-name 'Название' = DATA STRING[50] (TaskType);
+name 'Название' = DATA STRING[50] (TaskType) CHARWIDTH 15;
 
 in 'Вкл.' = DATA BOOLEAN (TaskType, Practice) CHARWIDTH 3;
 inPracticGroup (TaskType t, Practice pc) = GROUP MAX level(pc, Practice pp) IF in(t, pp);
