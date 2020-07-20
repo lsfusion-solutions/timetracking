@@ -4,9 +4,6 @@ REQUIRE TimeDashboard;
 
 NAMESPACE Time;
 
-active 'Активные' (Task t) = notCompleted(t) OR dateFinish(t) >= subtract(currentDate(), 1);
-overName 'Задача' (Task t) = OVERRIDE name(t), CONCAT ', ', nameCustomerProject(t), nameProject(t), nameTaskType(t);
-
 lastEntry (Task t) = GROUP LAST TimeEntry e ORDER dateTimeStart(e), e WHERE dateTimeStart(e) BY task(e);
 
 dateTimeStartLastEntry 'Начало' (Task t) = dateTimeStart(lastEntry(t));  
@@ -34,7 +31,8 @@ FORM timeDashboardMobile 'Мобильная отметка' AUTOREFRESH 360
     PROPERTIES(t) PANEL READONLY pCustomer = nameCustomerProject, pProject = nameProject, name, '' = description
     PROPERTIES(t) changeStatus HEADER IF inProcess(t) THEN 'Стоп' ELSE 'Старт'
     
-    FILTERS active(t), employee(t) = currentEmployee()
+    FILTERS notCompleted(t) OR dateFinish(t) >= subtract(currentDate(), 1), 
+            employee(t) = currentEmployee()
     
     OBJECTS te = TimeEntry
     PROPERTIES(te) READONLY dateTimeStart, dateTimeFinish
