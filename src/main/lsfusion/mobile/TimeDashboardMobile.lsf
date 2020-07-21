@@ -20,7 +20,7 @@ changeStatus (Task t) {
         } 
         WHEN status(t) = StatusTask.inProcess THEN 
             pause(t);
-} CHANGEMOUSE 'DBLCLK';
+}
 
 FORM timeDashboardMobile 'Мобильная отметка'
     
