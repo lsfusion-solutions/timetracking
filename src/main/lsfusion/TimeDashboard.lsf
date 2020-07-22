@@ -24,6 +24,10 @@ startTimeEntry 'Начать новую задачу' (Project p, TaskType tt)  
 
 visible 'Видимая' = DATA BOOLEAN (Task);
 
+isReadonlyTask (Task t) = t IS Task AND NOT employee(t) == currentEmployee();
+showTask (Task t) = (GROUP SUM 1 IF currentEmployee() == employee(Task task) AND project(task) == project(t) AND
+    (status(t) ==  StatusTask.paused OR status(t) == StatusTask.inProcess)) OR currentEmployee() == employee(t);
+
 FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES currentDateTime()
 
@@ -44,26 +48,29 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(d) NEWSESSION EDIT, DELETE
     FILTERS customer(d) == customer(p)
     
+    OBJECTS fe = Task
+    PROPERTIES(fe) READONLY nameStatus BACKGROUND background(fe), nameCustomerProject, nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
+    //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
+    PROPERTIES(fe) visible SHOWIF currentEmployee()
+    PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, EDIT, DELETE READONLYIF isReadonlyTask(fe)
+    FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND visible(fe))
+    ORDERS nameCustomerProject(fe)
+    FILTERGROUP  myTasks
+        FILTER 'Мои задачи' employee(fe) == currentEmployee() DEFAULT
+    FILTERGROUP project
+        FILTER 'По проекту' project(fe) == p 'F9'
+    FILTERGROUP active
+        FILTER 'Активные' notCompleted(fe) OR dateFinish(fe) >= subtract(currentDate(), 1) DEFAULT 
+    
     OBJECTS ce = Task PANEL
-    PROPERTIES(ce) nameCustomerProject READONLY, nameProject, nameTaskType, name, dateTimeStart, currentHours, description PANEL
-    FILTERS employee(ce) == currentEmployee() AND inProcess(ce)
+    PROPERTIES(ce) nameCustomerProject READONLY
+    PROPERTIES(ce) READONLYIF isReadonlyTask(ce) nameProject, nameTaskType, name, dateTimeStart, currentHours, description PANEL
+    FILTERS ce == fe//employee(ce) == currentEmployee() AND inProcess(ce)
     ORDERS nameCustomerProject(ce)
     
     OBJECTS t = TaskType PANEL
     PROPERTIES(t) SELECTOR name SHOWIF NOT ce
     PROPERTIES startTimeEntry(p, t) SHOWIF NOT ce
-    
-    OBJECTS fe = Task
-    PROPERTIES(fe) READONLY nameStatus BACKGROUND background(fe), nameCustomerProject, nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
-    FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
-    PROPERTIES(fe) visible SHOWIF currentEmployee()
-    PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, EDIT, DELETE
-    FILTERS employee(fe) == currentEmployee() OR (NOT(currentUser() IS Employee) AND visible(fe))
-    ORDERS nameCustomerProject(fe)
-    FILTERGROUP project
-        FILTER 'По проекту' project(fe) == p 'F9'
-    FILTERGROUP active
-        FILTER 'Активные' notCompleted(fe) OR dateFinish(fe) >= subtract(currentDate(), 1) DEFAULT 
                 
     OBJECTS pa = TimeEntry
     PROPERTIES (pa) READONLY dateTimeStart, dateTimeFinish, nameActivity, hours BACKGROUND userHours(pa), comment PANEL
@@ -148,6 +155,7 @@ finish 'Завершить' (Task t)  {
     NEWSESSION { 
         dateTimeFinish(TimeEntry e) <- currentDateTime() WHERE task(e) == t AND NOT dateTimeFinish(e);
         completed(t) <- TRUE;
+        initPaused(t) <- NULL;
         DIALOG task OBJECTS t = t DO {
             SEEK timeDashboard.fe = t;
         }
@@ -158,6 +166,7 @@ pause 'Приостановить' (Task t)  {
     IF employee(t) == currentEmployee()  THEN {
         NEWSESSION {
             dateTimeFinish(TimeEntry e) <- currentDateTime() WHERE task(e) == t AND NOT dateTimeFinish(e);
+            initPaused(t) <- TRUE;
             APPLY;
         }
     } ELSE
@@ -182,6 +191,7 @@ restart 'Возобновить выбранную' (Task t)  {
                 NEW e = TimeEntry {
                     task(e) <- t;
                     dateTimeStart(e) <- currentDateTime();
+                    initPaused(t) <- NULL;
                 }
                 APPLY;
             }
@@ -190,17 +200,17 @@ restart 'Возобновить выбранную' (Task t)  {
 }
 
 EXTEND FORM timeDashboard
-    PROPERTIES(ce) finish, pause SHOWIF inProcess(ce) 
-    PROPERTIES(fe) restart SHOWIF NOT ce AND currentEmployee()
-    PROPERTIES(fe) finish SHOWIF NOT ce AND currentEmployee()
+    PROPERTIES(ce) READONLYIF isReadonlyTask(ce) finish, pause SHOWIF inProcess(ce), restart SHOWIF NOT inProcess(ce)
+//    PROPERTIES(fe) READONLYIF isReadonlyTask(ce) restart SHOWIF currentEmployee()
+//    PROPERTIES(fe) READONLYIF isReadonlyTask(ce) finish SHOWIF currentEmployee()
 ;
 
 DESIGN timeDashboard {
     current {
         MOVE PROPERTY(finish(ce)) { alignment = STRETCH; fontStyle = 'bold'; }
-        MOVE PROPERTY(finish(fe)) { alignment = STRETCH; fontStyle = 'bold'; }
+        //MOVE PROPERTY(finish(fe)) { alignment = STRETCH; fontStyle = 'bold'; }
         MOVE PROPERTY(pause(ce)) { alignment = STRETCH; }
-        MOVE PROPERTY(restart(fe)) { alignment = STRETCH; fontStyle = 'bold'; }
+        MOVE PROPERTY(restart(ce)) { alignment = STRETCH; fontStyle = 'bold'; }
     }
 }
 
