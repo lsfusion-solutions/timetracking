@@ -37,7 +37,9 @@ FORM projects 'По проектам'
     PROPERTIES READONLY hours(p, d) COLUMNS (d) HEADER header(d)
     
     OBJECTS t = TimeEntry
-    PROPERTIES(t) READONLY dateTimeStart, dateTimeFinish, seriesNumberInvoice, managers SHOWIF showManagers(), 
+    PROPERTIES(t) READONLY dateTimeStart, dateTimeFinish
+    PROPERTIES(t) seriesNumberInvoice ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
+    PROPERTIES(t) READONLY managers SHOWIF showManagers(), 
         nameEmployee, namePractice, nameCustomerProject, nameProject, nameTaskType, nameTask, nameActivity
     //PROPERTIES(t) descriptionTask ON CHANGE changeDescriptionTask(t) PANEL
     PROPERTIES(t) hours BACKGROUND userHours(t)//, comment PANEL 
@@ -98,7 +100,9 @@ FORM employees 'По сотрудникам'
     PROPERTIES READONLY hours(e, d) COLUMNS (d) HEADER header(d)
     
     OBJECTS t = TimeEntry
-    PROPERTIES(t) READONLY dateTimeStart, dateTimeFinish, seriesNumberInvoice, managers SHOWIF showManagersEmployees(),
+    PROPERTIES(t) READONLY dateTimeStart, dateTimeFinish
+    PROPERTIES(t) seriesNumberInvoice ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
+    PROPERTIES(t) READONLY managers SHOWIF showManagersEmployees(),
         firstNameEmployee, lastNameEmployee, namePractice, nameCustomerProject, nameProject
     PROPERTIES(t) READONLY  nameTaskType, nameTask, nameActivity
     //PROPERTIES(t) descriptionTask ON CHANGE changeDescriptionTask(t) PANEL
