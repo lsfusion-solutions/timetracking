@@ -327,7 +327,9 @@ nextNotificationDateTime (TaskNotification n) =
 sendTaskNotifications 'Отправить уведомления о задачах' () {
     FOR nextNotificationDateTime(taskNotification(Task t)) <= currentDateTime() AND email(employee(t)) DO {
         LOCAL body = STRING ();
-        body() <- CONCAT '', firstName(employee(t)), ', у Вас есть задача “', name(t), '", для которой Вы установили напоминание на сегодня. Пожалуйста посмотрите задачу и если необходимо выполните все необходимые действия.';
+        body() <- CONCAT '', firstName(employee(t)), ', у Вас есть задача ', 
+            (OVERRIDE '"' + name(t) + '"', 'клиента ' + nameCustomerProject(t)), 
+            ', для которой Вы установили напоминание на сегодня. Пожалуйста посмотрите задачу и если необходимо выполните все необходимые действия.';
         
         EMAIL
             SUBJECT 'Уведомление о задаче'
