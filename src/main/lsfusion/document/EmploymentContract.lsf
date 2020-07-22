@@ -135,7 +135,7 @@ createTemplate 'Сформировать по шаблону' (EmploymentContrac
     NEWSESSION {
         createTemplateEntries(c);
         process(defaultEmplomentContractTemplate());
-        open(resultTemplate());
+        open(resultTemplate(), CONCAT '_', shortNameLegalEntity(c), idDocument(c), toDateDDMMYYYY(date(c)));
     }
 }
 

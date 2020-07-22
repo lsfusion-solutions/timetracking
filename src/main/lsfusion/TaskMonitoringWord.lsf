@@ -64,7 +64,7 @@ generateWordTaskMonitoring 'Сформировать (WORD)' (DATE df, DATE dt, 
             value(detail) <- TEXT(toDateDDMMYY(dt)) WHERE key(detail) == 'TO_DATE';
         }
         process(taskMonitoringTemplateWord());
-        open(resultTemplate());
+        open(resultTemplate(), CONCAT '_',nameCustomer(p), name(p), toDateDDMMYYYY(df) + '-' + toDateDDMMYYYY(dt));
     } ELSE
           MESSAGE 'Не выбран шаблон для мониторинга задач';
 }
