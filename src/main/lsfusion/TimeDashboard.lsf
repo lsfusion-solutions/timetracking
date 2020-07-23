@@ -70,7 +70,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     
     OBJECTS t = TaskType PANEL
     PROPERTIES(t) SELECTOR name SHOWIF NOT ce
-    PROPERTIES startTimeEntry(p, t) SHOWIF NOT ce
+    PROPERTIES startTimeEntry(p, t)
                 
     OBJECTS pa = TimeEntry
     PROPERTIES (pa) READONLY dateTimeStart, dateTimeFinish, nameActivity, hours BACKGROUND userHours(pa), comment PANEL
@@ -200,7 +200,7 @@ restart 'Возобновить выбранную' (Task t)  {
 }
 
 EXTEND FORM timeDashboard
-    PROPERTIES(ce) READONLYIF isReadonlyTask(ce) finish, pause SHOWIF inProcess(ce), restart SHOWIF NOT inProcess(ce)
+    PROPERTIES(ce) READONLYIF isReadonlyTask(ce) finish SHOWIF NOT completed(ce), pause SHOWIF inProcess(ce), restart SHOWIF NOT inProcess(ce)
 //    PROPERTIES(fe) READONLYIF isReadonlyTask(ce) restart SHOWIF currentEmployee()
 //    PROPERTIES(fe) READONLYIF isReadonlyTask(ce) finish SHOWIF currentEmployee()
 ;
@@ -211,6 +211,7 @@ DESIGN timeDashboard {
         //MOVE PROPERTY(finish(fe)) { alignment = STRETCH; fontStyle = 'bold'; }
         MOVE PROPERTY(pause(ce)) { alignment = STRETCH; }
         MOVE PROPERTY(restart(ce)) { alignment = STRETCH; fontStyle = 'bold'; }
+        MOVE PROPERTY(startTimeEntry(p, t)) { fontStyle = 'bold'; }
     }
 }
 
