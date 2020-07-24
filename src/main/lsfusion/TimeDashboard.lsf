@@ -236,7 +236,7 @@ FORM timeEntriesEmployee 'Просмотр трудозатрат'
     
     OBJECTS t = TimeEntry
     PROPERTIES (t) READONLY nameEmployee SHOWIF NOT filterEmployee(), nameCustomerProject, nameProject, dateStart, dateFinish, 
-                            nameTaskType, nameTask, nameActivity, comment, hours
+                            nameTaskType, nameTask, nameActivity, descriptionTask, comment, hours
     PROPERTIES seriesNumberInvoice(t) ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
     PROPERTIES editTask(t) TOOLBAR            
     FILTERS employee(t) == filterEmployee() OR NOT filterEmployee(),

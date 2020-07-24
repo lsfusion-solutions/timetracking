@@ -41,6 +41,7 @@ FORM projects 'По проектам'
     PROPERTIES(t) seriesNumberInvoice ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
     PROPERTIES(t) READONLY managers SHOWIF showManagers(), 
         nameEmployee, namePractice, nameCustomerProject, nameProject, nameTaskType, nameTask, nameActivity
+    PROPERTIES(t) READONLY descriptionTask, comment
     //PROPERTIES(t) descriptionTask ON CHANGE changeDescriptionTask(t) PANEL
     PROPERTIES(t) hours BACKGROUND userHours(t)//, comment PANEL 
     PROPERTIES showManagers() TOOLBAR 
@@ -104,7 +105,7 @@ FORM employees 'По сотрудникам'
     PROPERTIES(t) seriesNumberInvoice ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
     PROPERTIES(t) READONLY managers SHOWIF showManagersEmployees(),
         firstNameEmployee, lastNameEmployee, namePractice, nameCustomerProject, nameProject
-    PROPERTIES(t) READONLY  nameTaskType, nameTask, nameActivity
+    PROPERTIES(t) READONLY  nameTaskType, nameTask, nameActivity, descriptionTask, comment
     //PROPERTIES(t) descriptionTask ON CHANGE changeDescriptionTask(t) PANEL
     PROPERTIES(t) hours BACKGROUND userHours(t)
     PROPERTIES showManagersEmployees() TOOLBAR 
