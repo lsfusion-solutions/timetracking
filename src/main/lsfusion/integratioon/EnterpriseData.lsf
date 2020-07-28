@@ -1,0 +1,100 @@
+MODULE EnterpriseData;
+
+REQUIRE Time;
+
+NAMESPACE EnterpriseData;
+
+idSended 'Номер переданного сообщения' = DATA INTEGER ();
+idReceived 'Номер принятого сообщения' = DATA INTEGER ();
+
+startExchange 'Дата начала обмена' = DATA DATE ();
+ 
+toBase 'Префикс базы-получателя' = DATA STRING[2] () CHARWIDTH 2;
+fromBase 'Префикс базы-отправителя' = DATA STRING[2] () CHARWIDTH 2;
+
+EXTEND FORM options
+    PROPERTIES () idSended, idReceived, startExchange, toBase, fromBase
+;
+
+DESIGN options {
+    pane {
+        NEW ennterpriseData {
+            caption = 'Обмен 1С';
+            MOVE PROPERTY (idSended());
+            MOVE PROPERTY (idReceived());
+            MOVE PROPERTY (startExchange());
+            MOVE PROPERTY (toBase());
+            MOVE PROPERTY (fromBase());
+        }
+    }
+}
+
+CLASS ABSTRACT EnterpriseData 'Универсальный обмен 1С';
+
+uid 'UID' = DATA ISTRING[36] (EnterpriseData) INDEXED;
+object 'Объект ЕД' = GROUP AGGR EnterpriseData ed BY uid(ed);
+
+packet 'Пакет' = DATA INTEGER (EnterpriseData);
+
+CLASS ABSTRACT Document 'Документ' : EnterpriseData;
+
+dateTime 'Дата' = ABSTRACT DATETIME (Document);
+id 'Номер' = ABSTRACT ISTRING (Document);
+
+CLASS ABSTRACT SaleOrder 'Документ.ЗаказКлиента' : Document;
+
+nameCompany = ABSTRACT ISTRING (SaleOrder);
+typeCompany = ABSTRACT STRING (SaleOrder);
+
+nameCustomer = ABSTRACT ISTRING (SaleOrder);
+typeCustomer = ABSTRACT STRING (SaleOrder);
+
+GROUP header EXTID 'Header xmlns:msg="http://www.1c.ru/SSL/Exchange/Message" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"';
+GROUP confirmation EXTID 'msg:Confirmation' : header;
+GROUP body EXTID 'Body xmlns="http://v8.1c.ru/edi/edi_stnd/EnterpriseData/1.5"';
+
+GROUP saleOrder EXTID 'Документ.ЗаказКлиента' : body;
+GROUP keyProperties EXTID 'КлючевыеСвойства' : saleOrder;
+GROUP company EXTID 'Организация' : keyProperties;
+GROUP currency EXTID 'Валюта' : saleOrder;
+GROUP customer EXTID 'Контрагент' : saleOrder;
+GROUP services EXTID 'Услуги' : saleOrder;
+GROUP line EXTID 'Строка' : services;
+GROUP item EXTID 'Номенклатура' : line;
+
+format = DATA LOCAL STRING();
+exchangePlan = DATA LOCAL STRING();
+to = DATA LOCAL STRING();
+from = DATA LOCAL STRING();
+messageNo = DATA LOCAL STRING();
+receivedNo = DATA LOCAL STRING();
+availableVersion = DATA LOCAL STRING();
+prefix = DATA LOCAL STRING();
+
+uid = DATA LOCAL STRING();
+data = DATA LOCAL STRING();
+id = DATA LOCAL STRING();
+nameCompany = DATA LOCAL STRING();
+typeCompany = DATA LOCAL STRING();
+idCurrency = DATA LOCAL STRING();
+nameCurrency = DATA LOCAL STRING();
+nameCustomer = DATA LOCAL STRING();
+typeCustomer = DATA LOCAL STRING();
+settlements = DATA LOCAL STRING();
+itemName = DATA LOCAL STRING();
+quantity = DATA LOCAL STRING();
+sum = DATA LOCAL STRING();
+price = DATA LOCAL STRING();
+note = DATA LOCAL STRING();
+
+FORM message FORMEXTID 'Message  xmlns="http://v8.1c.ru/edi/edi_stnd/EnterpriseData/1.5"'
+PROPERTIES() IN header format EXTID 'msg:Format', currentDateTime EXTID 'msg:CreationDate', availableVersion EXTID 'msg:AvailableVersion', prefix EXTID 'msg:Prefix'
+PROPERTIES() IN confirmation exchangePlan EXTID 'msg:ExchangePlan', to EXTID 'msg:To', from EXTID 'msg:From', messageNo EXTID 'msg:MessageNo', receivedNo EXTID 'msg:ReceivedNo'
+
+PROPERTIES() IN saleOrder settlements EXTID 'ДанныеВзаиморасчетов', note EXTID 'Комментарий'
+PROPERTIES() IN keyProperties uid EXTID 'Ссылка', data EXTID 'Дата', id EXTID 'Номер'
+PROPERTIES() IN company nameCompany EXTID 'Наименование', typeCompany EXTID 'ЮридическоеФизическоеЛицо'
+PROPERTIES() IN currency idCurrency EXTID 'Код', nameCurrency EXTID 'Наименование'
+PROPERTIES() IN customer nameCustomer EXTID 'Наименование', typeCustomer EXTID 'ЮридическоеФизическоеЛицо'
+PROPERTIES() IN line quantity EXTID 'Количество', sum EXTID 'Сумма', price EXTID 'Цена'
+PROPERTIES() IN item itemName EXTID 'Наименование';
