@@ -46,6 +46,7 @@ nameType 'Тип проекта' (Project p) = name(type(p));
 FORM ProjectTypes 'Типы проектов'
     OBJECTS t = ProjectType
     PROPERTIES READONLY name(t)
+    ORDERS name(t)
     
     LIST ProjectType OBJECT t;
 ;

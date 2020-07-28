@@ -174,8 +174,6 @@ EXTEND FORM mail PROPERTIES READONLY read(e);
 id 'Код' = DATA ISTRING[15](Project);
 project = GROUP AGGR Project p BY id(p);
 
-EXTEND FORM customer PROPERTIES id(p);
-
 emailTaskType = DATA TaskType();
 nameEmailTaskType 'Тип задач, созданных по email' () = name(emailTaskType());
 
