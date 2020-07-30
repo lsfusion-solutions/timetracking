@@ -80,6 +80,8 @@ CONSTRAINT SET(nYearDayNumber(TaskNotification n)) AND (nYearDayNumber(n) <= 0 O
 
 taskNotification = DATA TaskNotification (Task);
 
+WHEN DROPPED(Task t IS Task) AND PREV(taskNotification(t)) DO DELETE(PREV(taskNotification(t)));
+
 notificationTime 'Время уведомления' = DATA TIME (TaskNotification);
 
 FORM taskNotification 'Уведомление о задаче'

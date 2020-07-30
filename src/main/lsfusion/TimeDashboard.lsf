@@ -27,15 +27,9 @@ visible 'Видимая' = DATA BOOLEAN (Task);
 isReadonlyTask (Task t) = t IS Task AND NOT employee(t) == currentEmployee();
 showTask (Task t) = (GROUP SUM 1 IF currentEmployee() == employee(Task task) AND project(task) == project(t) AND
     (status(t) ==  StatusTask.paused OR status(t) == StatusTask.inProcess)) OR currentEmployee() == employee(t);
-
-FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
-    PROPERTIES currentDateTime()
-
-    OBJECTS p = Project
-    PROPERTIES(p) READONLY nameCustomer, name
-    FILTERS assigned(p, currentEmployee())
-    ORDERS nameCustomer(p)
-    FILTERGROUP activep FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
+    
+FORM contactsDocuments 'Контактные лица/документы'
+    OBJECTS p = Project PANEL
     
     OBJECTS r = Person
     PROPERTIES(r) READONLY firstName, lastName, phone, email
@@ -47,9 +41,45 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(p) newDocument TOOLBAR DRAW d
     PROPERTIES(d) NEWSESSION EDIT, DELETE
     FILTERS customer(d) == customer(p)
+;
+
+DESIGN contactsDocuments {
+    OBJECTS {
+        fill = 1;
+        height = 200;
+        width = 400;
+        type = TABBED;
+        MOVE BOX(r) {
+            caption = 'Контактные лица';
+        }
+        MOVE BOX(d) {
+            caption = 'Документы';
+        }
+    }
+}
+
+FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
+    PROPERTIES currentDateTime()
+
+    OBJECTS p = Project
+    PROPERTIES(p) nameCustomer ON CHANGE { DIALOG contactsDocuments OBJECTS p = p; }, name READONLY
+    FILTERS assigned(p, currentEmployee())
+    ORDERS nameCustomer(p)
+    FILTERGROUP activep FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
+    
+//    OBJECTS r = Person
+//    PROPERTIES(r) READONLY firstName, lastName, phone, email
+//    FILTERS customer(r) == customer(p)
+//    
+//    OBJECTS d = Document
+//    PROPERTIES(d) READONLY name, dateTimeLastVersion, nameAuthorLastVersion
+//    PROPERTIES(d) openLastVersion TOOLBAR SHOWIF lastVersion(d), loadLastVersionAndApply TOOLBAR
+//    PROPERTIES(p) newDocument TOOLBAR DRAW d
+//    PROPERTIES(d) NEWSESSION EDIT, DELETE
+//    FILTERS customer(d) == customer(p)
     
     OBJECTS fe = Task
-    PROPERTIES(fe) READONLY nameStatus BACKGROUND background(fe), nameCustomerProject, nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
+    PROPERTIES(fe) READONLY nameEmployee, nameStatus BACKGROUND background(fe), nameCustomerProject, nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
     //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
     PROPERTIES(fe) visible SHOWIF currentEmployee()
     PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, EDIT, DELETE READONLYIF isReadonlyTask(fe)
@@ -73,7 +103,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES startTimeEntry(p, t)
                 
     OBJECTS pa = TimeEntry
-    PROPERTIES (pa) READONLY dateTimeStart, dateTimeFinish, nameActivity, hours BACKGROUND userHours(pa), comment PANEL
+    PROPERTIES (pa) READONLY nameEmployee, dateTimeStart, dateTimeFinish, nameActivity, hours BACKGROUND userHours(pa), comment PANEL
     FILTERS task(pa) == fe
 ;
 
@@ -85,16 +115,16 @@ DESIGN timeDashboard {
             fill = 1;
             type = SPLITH; 
             MOVE BOX(p);
-            NEW projectInfo {
-                fill = 2;
-                type = TABBED;
-                MOVE BOX(r) {
-                    caption = 'Контактные лица';
-                }
-                MOVE BOX(d) {
-                    caption = 'Документы';
-                }
-            }
+//            NEW projectInfo {
+//                fill = 2;
+//                type = TABBED;
+//                MOVE BOX(r) {
+//                    caption = 'Контактные лица';
+//                }
+//                MOVE BOX(d) {
+//                    caption = 'Документы';
+//                }
+//            }
         }
         NEW tasks {
             fill = 2;
