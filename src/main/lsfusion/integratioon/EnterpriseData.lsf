@@ -1,34 +1,59 @@
 MODULE EnterpriseData;
 
-REQUIRE Time;
+REQUIRE Time, Utils;
 
 NAMESPACE EnterpriseData;
 
+META defProp(name, caption, type, class)
+    name caption = ABSTRACT type (class);
+    WHEN CHANGED(name(class o)) DO packet(o) <- NULL;
+END
+
+dateTimeToString = FORMULA STRING 'to_char($1, \'YYYY-MM-DD"T"HH24:MI:SS\')';
+
 idSended 'Номер переданного сообщения' = DATA INTEGER ();
+isSended 'Сообщение передано' = DATA BOOLEAN ();
+idTicket 'Получена квитанция' = DATA INTEGER ();
+
 idReceived 'Номер принятого сообщения' = DATA INTEGER ();
+isReceived 'Сообщение принято' = DATA BOOLEAN ();
 
-startExchange 'Дата начала обмена' = DATA DATE ();
+dateStartExchange 'Дата начала обмена' = DATA DATE ();
  
-toBase 'Префикс базы-получателя' = DATA STRING[2] () CHARWIDTH 2;
-fromBase 'Префикс базы-отправителя' = DATA STRING[2] () CHARWIDTH 2;
+toBase 'Префикс базы-получателя' = DATA STRING[2] () CHARWIDTH 4;
+fromBase 'Префикс базы-отправителя' = DATA STRING[2] () CHARWIDTH 4;
 
-EXTEND FORM options
-    PROPERTIES () idSended, idReceived, startExchange, toBase, fromBase
+currentDateTimeString() = dateTimeToString(currentDateTime());
+availableVersion () = '1.5';
+format () = 'http://v8.1c.ru/edi/edi_stnd/EnterpriseData/1.5';
+exchangePlan () = 'СинхронизацияДанныхЧерезУниверсальныйФормат';
+messageNo () = OVERRIDE idSended(), 0;
+receivedNo () = OVERRIDE idReceived(), 0;
+prefix () = fromBase();
+
+path 'Путь обмена' () = DATA STRING ();
+sendPath () = path() + 'Message_' + fromBase() + '_' + toBase();
+receivePath () = path() + 'Message_' + toBase() + '_' + fromBase();
+
+GROUP header EXTID 'msg:Header';
+GROUP confirmation EXTID 'msg:Confirmation' : header;
+GROUP body EXTID '=http://v8.1c.ru/edi/edi_stnd/EnterpriseData/1.5:Body';
+
+FORM sendMessage FORMEXTID 'Message'
+    PROPERTIES ATTR = 'http://www.1c.ru/SSL/Exchange/Message' EXTID 'xmlns:msg'
+    PROPERTIES ATTR = 'http://www.w3.org/2001/XMLSchema' EXTID 'xmlns:xs'
+    PROPERTIES ATTR = 'http://www.w3.org/2001/XMLSchema-instance' EXTID 'xmlns:xsi'
+    
+    PROPERTIES() IN header format EXTID 'msg:Format', currentDateTimeString EXTID 'msg:CreationDate'
+    PROPERTIES() IN confirmation exchangePlan EXTID 'msg:ExchangePlan', toBase EXTID 'msg:To', fromBase EXTID 'msg:From', messageNo EXTID 'msg:MessageNo', receivedNo EXTID 'msg:ReceivedNo'
+    PROPERTIES() IN header availableVersion EXTID 'msg:AvailableVersion', prefix EXTID 'msg:Prefix'
 ;
 
-DESIGN options {
-    pane {
-        NEW ennterpriseData {
-            caption = 'Обмен 1С';
-            MOVE PROPERTY (idSended());
-            MOVE PROPERTY (idReceived());
-            MOVE PROPERTY (startExchange());
-            MOVE PROPERTY (toBase());
-            MOVE PROPERTY (fromBase());
-        }
-    }
-}
+FORM receiveMessage FORMEXTID 'Message'
+    PROPERTIES() IN confirmation idReceived EXTID 'msg:MessageNo', idTicket EXTID 'msg:ReceivedNo'
+;
 
+// exchange properties
 CLASS ABSTRACT EnterpriseData 'Универсальный обмен 1С';
 
 uid 'UID' = DATA ISTRING[36] (EnterpriseData) INDEXED;
@@ -36,65 +61,165 @@ object 'Объект ЕД' = GROUP AGGR EnterpriseData ed BY uid(ed);
 
 packet 'Пакет' = DATA INTEGER (EnterpriseData);
 
+WHEN SET (EnterpriseData ed IS EnterpriseData) DO {
+    generateUUID();
+    uid(ed) <- generatedUUID();
+}
+
+receiveMessage 'Получить' () {
+    NEWSESSION {
+        LOCAL f = XMLFILE ();
+        TRY {
+            READ receivePath() + '.xml' TO f;
+            IMPORT receiveMessage XML FROM f();
+            isReceived() <- TRUE;
+            APPLY; 
+        } CATCH {
+            NEWSESSION APPLY { isReceived() <- NULL; }
+        }
+    }
+}
+
+afterSend ABSTRACT LIST ();
+
+sendMessage 'Передать' () {
+    NEWSESSION {
+        TRY {
+            idSended() <- messageNo() (+) 1;
+            LOCAL f = XMLFILE ();
+            EXPORT sendMessage XML TO f;
+            WRITE f() TO sendPath();
+            afterSend();
+            isSended() <- TRUE;
+            APPLY;
+        } CATCH {
+            NEWSESSION APPLY { isSended() <- NULL; }
+            CANCEL;
+        }
+    }
+}
+
+EXTEND FORM options
+    PROPERTIES () idSended BACKGROUND (IF isSended() THEN RGB(225,255,225) ELSE RGB(255, 225, 225)),
+                  idReceived BACKGROUND (IF isReceived() THEN RGB(225,255,225) ELSE RGB(255, 225, 225)),
+                  dateStartExchange, toBase, fromBase, path,
+                  sendMessage, receiveMessage
+;
+
+DESIGN options {
+    pane {
+        NEW ennterpriseData {
+            caption = 'Обмен 1С';
+            NEW status {
+                type = CONTAINERH;
+                MOVE PROPERTY (idSended());
+                MOVE PROPERTY (idReceived());
+            }
+            NEW basic {
+                type = CONTAINERH;      
+                MOVE PROPERTY (dateStartExchange());
+                MOVE PROPERTY (toBase());
+                MOVE PROPERTY (fromBase());
+            }
+            MOVE PROPERTY (path());
+            TOOLBAR {
+                MOVE PROPERTY (sendMessage());
+                MOVE PROPERTY (receiveMessage());
+            }
+        }
+    }
+}
+
+// all references
+CLASS ABSTRACT Reference : EnterpriseData;
+
+@defProp(name, 'Наименование', STRING, Reference);
+@defProp(id, 'Код', STRING, Reference);
+
+// items
+CLASS ABSTRACT Item 'Справочник.Номенклатура' : Reference;
+
+CLASS TypePartner {
+    legalEntity 'ЮридическоеЛицо',
+    individual 'ФизическоеЛицо'
+};
+
+// patner
+CLASS ABSTRACT Partner 'Справочник.Контрагенты' : Reference;
+
+@defProp(type, 'ЮридическоеФизическоеЛицо', TypePartner, Partner);
+idType 'ЮридическоеФизическоеЛицо' (Partner p) = staticCaption(type(p));
+
+// company
+CLASS ABSTRACT Company 'Справочник.Организация' : Partner;
+
+// currency
+CLASS ABSTRACT Currency 'Справочник.Валюты': Reference;
+
+// all documents
 CLASS ABSTRACT Document 'Документ' : EnterpriseData;
 
-dateTime 'Дата' = ABSTRACT DATETIME (Document);
-id 'Номер' = ABSTRACT ISTRING (Document);
+@defProp(dateTime, 'Дата', DATETIME, Document);
+dateTimeString 'Дата' (Document d) = dateTimeToString(dateTime(d));
 
+@defProp(id, 'Номер', ISTRING, Document);
+
+GROUP keyProperties EXTID 'КлючевыеСвойства';
+
+// sale order
 CLASS ABSTRACT SaleOrder 'Документ.ЗаказКлиента' : Document;
 
-nameCompany = ABSTRACT ISTRING (SaleOrder);
-typeCompany = ABSTRACT STRING (SaleOrder);
+@defProp(company, 'Организация', Company, SaleOrder);
+@defProp(customer, 'Контрагент', Partner, SaleOrder);
+@defProp(currency, 'Валюта', Currency, SaleOrder);
+@defProp(note, 'Комментарий', STRING, SaleOrder);
 
-nameCustomer = ABSTRACT ISTRING (SaleOrder);
-typeCustomer = ABSTRACT STRING (SaleOrder);
+settlements (SaleOrder s) = '' IF s IS SaleOrder;
 
-GROUP header EXTID 'Header xmlns:msg="http://www.1c.ru/SSL/Exchange/Message" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"';
-GROUP confirmation EXTID 'msg:Confirmation' : header;
-GROUP body EXTID 'Body xmlns="http://v8.1c.ru/edi/edi_stnd/EnterpriseData/1.5"';
+CLASS ABSTRACT SaleOrderDetail 'Строка';
 
-GROUP saleOrder EXTID 'Документ.ЗаказКлиента' : body;
-GROUP keyProperties EXTID 'КлючевыеСвойства' : saleOrder;
-GROUP company EXTID 'Организация' : keyProperties;
-GROUP currency EXTID 'Валюта' : saleOrder;
-GROUP customer EXTID 'Контрагент' : saleOrder;
-GROUP services EXTID 'Услуги' : saleOrder;
-GROUP line EXTID 'Строка' : services;
-GROUP item EXTID 'Номенклатура' : line;
+in = ABSTRACT BOOLEAN (SaleOrder, SaleOrderDetail);
+item 'Номенклатура' = ABSTRACT Item (SaleOrder, SaleOrderDetail);
+quantity 'Количество' = ABSTRACT NUMERIC[15,3] (SaleOrder, SaleOrderDetail);
+sum 'Сумма' = ABSTRACT NUMERIC[15,2] (SaleOrder, SaleOrderDetail);
+price 'Цена' = ABSTRACT NUMERIC[15,2] (SaleOrder, SaleOrderDetail);
 
-format = DATA LOCAL STRING();
-exchangePlan = DATA LOCAL STRING();
-to = DATA LOCAL STRING();
-from = DATA LOCAL STRING();
-messageNo = DATA LOCAL STRING();
-receivedNo = DATA LOCAL STRING();
-availableVersion = DATA LOCAL STRING();
-prefix = DATA LOCAL STRING();
+CLASS ABSTRACT SaleOrderServiceDetail 'Услуги.Строка' : SaleOrderDetail;
 
-uid = DATA LOCAL STRING();
-data = DATA LOCAL STRING();
-id = DATA LOCAL STRING();
-nameCompany = DATA LOCAL STRING();
-typeCompany = DATA LOCAL STRING();
-idCurrency = DATA LOCAL STRING();
-nameCurrency = DATA LOCAL STRING();
-nameCustomer = DATA LOCAL STRING();
-typeCustomer = DATA LOCAL STRING();
-settlements = DATA LOCAL STRING();
-itemName = DATA LOCAL STRING();
-quantity = DATA LOCAL STRING();
-sum = DATA LOCAL STRING();
-price = DATA LOCAL STRING();
-note = DATA LOCAL STRING();
+GROUP services EXTID 'Услуги';
 
-FORM message FORMEXTID 'Message  xmlns="http://v8.1c.ru/edi/edi_stnd/EnterpriseData/1.5"'
-PROPERTIES() IN header format EXTID 'msg:Format', currentDateTime EXTID 'msg:CreationDate', availableVersion EXTID 'msg:AvailableVersion', prefix EXTID 'msg:Prefix'
-PROPERTIES() IN confirmation exchangePlan EXTID 'msg:ExchangePlan', to EXTID 'msg:To', from EXTID 'msg:From', messageNo EXTID 'msg:MessageNo', receivedNo EXTID 'msg:ReceivedNo'
+EXTEND FORM sendMessage  
+    OBJECTS saleOrder = SaleOrder EXTID 'Документ.ЗаказКлиента' IN body
+    PROPERTIES(saleOrder) IN keyProperties uid EXTID 'Ссылка', dateTimeString EXTID 'Дата', id EXTID 'Номер'
+    
+    OBJECTS companySaleOrder = Company EXTID 'Организация' IN keyProperties
+    PROPERTIES(companySaleOrder) name EXTID 'Наименование', idType EXTID 'ЮридическоеФизическоеЛицо'
+    FILTERS companySaleOrder = company(saleOrder)
+    
+    OBJECTS currencySaleOrder = Currency EXTID 'Валюта'
+    PROPERTIES(currencySaleOrder) id EXTID 'Код', name EXTID 'Наименование'
+    FILTERS currencySaleOrder = currency(saleOrder)
+    
+    OBJECTS customerSaleOrder = Partner EXTID 'Контрагент'
+    PROPERTIES(customerSaleOrder) uid EXTID 'Ссылка', name EXTID 'Наименование', idType EXTID 'ЮридическоеФизическоеЛицо'
+    FILTERS customerSaleOrder = customer(saleOrder)
+    
+    PROPERTIES(saleOrder) settlements EXTID 'ДанныеВзаиморасчетов', note EXTID 'Комментарий'
+        
+    OBJECTS saleOrderServiceDetail = SaleOrderServiceDetail EXTID 'Строка' IN services
+    
+    OBJECTS saleOrderServiceDetailItem = Item EXTID 'Номенклатура'
+    PROPERTIES(saleOrderServiceDetailItem) uid EXTID 'Ссылка', name EXTID 'Наименование'
+    FILTERS saleOrderServiceDetailItem = item(saleOrder, saleOrderServiceDetail) 
+    
+    PROPERTIES(saleOrder, saleOrderServiceDetail) quantity EXTID 'Количество', sum EXTID 'Сумма', price EXTID 'Цена'
+    FILTERS in(saleOrder, saleOrderServiceDetail)
+    
+    FILTERS NOT DATE(dateTime(saleOrder)) < dateStartExchange() AND NOT packet(saleOrder) <= idTicket()
+;
 
-PROPERTIES() IN saleOrder settlements EXTID 'ДанныеВзаиморасчетов', note EXTID 'Комментарий'
-PROPERTIES() IN keyProperties uid EXTID 'Ссылка', data EXTID 'Дата', id EXTID 'Номер'
-PROPERTIES() IN company nameCompany EXTID 'Наименование', typeCompany EXTID 'ЮридическоеФизическоеЛицо'
-PROPERTIES() IN currency idCurrency EXTID 'Код', nameCurrency EXTID 'Наименование'
-PROPERTIES() IN customer nameCustomer EXTID 'Наименование', typeCustomer EXTID 'ЮридическоеФизическоеЛицо'
-PROPERTIES() IN line quantity EXTID 'Количество', sum EXTID 'Сумма', price EXTID 'Цена'
-PROPERTIES() IN item itemName EXTID 'Наименование';
+afterSend () + { 
+    FOR SaleOrder so IS SaleOrder AND NOT packet(so) AND NOT DATE(dateTime(so)) < dateStartExchange() DO {
+        packet(so) <- messageNo();
+    }
+}

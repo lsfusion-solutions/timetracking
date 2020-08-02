@@ -6,4 +6,4 @@ REQUIRE Scheduler, Service, SystemEvents, Backup, EvalScript, SQLUtils, ProcessU
         InvoiceDashboard, InvoiceWord,
         LegalEntity, FrontLegalEntity, FrontBank, FrontPerson, FrontContract,
         EmploymentContract, CustomerDashboard, TimeEntryWord, EGRUL, InvoiceEmail, TaskMonitoringWord, Sale,
-        TaskNotification;
+        TaskNotification, EnterpriseDataTimeTracking;
