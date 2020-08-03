@@ -97,7 +97,7 @@ DESIGN taskTypes {
 
 FORM dialogTaskType 'Выбор типа задачи'
     OBJECTS p = Practice
-    PROPERTIES (p) name
+    PROPERTIES (p) READONLY name
 
     FILTERS NOT parent(p) OR useTreePractics()
     

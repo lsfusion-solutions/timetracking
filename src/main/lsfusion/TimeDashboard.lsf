@@ -4,16 +4,26 @@ REQUIRE Time, Invoice, Person, ProjectDocument, Dashboard;
 
 NAMESPACE Time;
 
-startTimeEntry 'Начать новую задачу' (Project p, TaskType tt)  { 
+FORM selectProject 'Выбор проекта'
+    OBJECTS p = Project
+    PROPERTIES(p) READONLY nameCustomer, name 
+    FILTERS assigned(p, currentEmployee())
+    ORDERS nameCustomer(p)
+    FILTERGROUP activep FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
+;
+
+startTimeEntry 'Начать новую задачу' (TaskType tt)  { 
     IF currentEmployee() THEN {
         NEWSESSION {
-            NEW t = Task {
-                employee(t) <- currentEmployee();
-                project(t) <- p;
-                taskType(t) <- tt;
-                NEW e = TimeEntry {
-                    task(e) <- t;
-                    dateTimeStart(e) <- currentDateTime();
+            DIALOG selectProject OBJECTS p INPUT DO {
+                NEW t = Task {
+                    employee(t) <- currentEmployee();
+                    project(t) <- p;
+                    taskType(t) <- tt;
+                    NEW e = TimeEntry {
+                        task(e) <- t;
+                        dateTimeStart(e) <- currentDateTime();
+                    }
                 }
             }
             APPLY;
@@ -61,11 +71,11 @@ DESIGN contactsDocuments {
 FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES currentDateTime()
 
-    OBJECTS p = Project
-    PROPERTIES(p) nameCustomer ON CHANGE { DIALOG contactsDocuments OBJECTS p = p; }, name READONLY
-    FILTERS assigned(p, currentEmployee())
-    ORDERS nameCustomer(p)
-    FILTERGROUP activep FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
+//    OBJECTS p = Project
+//    PROPERTIES(p) READONLY nameCustomer, name 
+//    FILTERS assigned(p, currentEmployee())
+//    ORDERS nameCustomer(p)
+//    FILTERGROUP activep FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
     
 //    OBJECTS r = Person
 //    PROPERTIES(r) READONLY firstName, lastName, phone, email
@@ -79,7 +89,9 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
 //    FILTERS customer(d) == customer(p)
     
     OBJECTS fe = Task
-    PROPERTIES(fe) READONLY nameEmployee, nameStatus BACKGROUND background(fe), nameCustomerProject, nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
+    PROPERTIES(fe) READONLY nameEmployee, nameStatus BACKGROUND background(fe)
+    PROPERTIES(fe) nameCustomerProject ON CHANGE { DIALOG contactsDocuments OBJECTS p = project(fe); }
+    PROPERTIES(fe) READONLY nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
     //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
     PROPERTIES(fe) visible SHOWIF currentEmployee()
     PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, EDIT, DELETE READONLYIF isReadonlyTask(fe)
@@ -87,8 +99,8 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     ORDERS nameCustomerProject(fe)
     FILTERGROUP  myTasks
         FILTER 'Мои задачи' employee(fe) == currentEmployee() DEFAULT
-    FILTERGROUP project
-        FILTER 'По проекту' project(fe) == p 'F9'
+//    FILTERGROUP project
+//        FILTER 'По проекту' project(fe) == p 'F9'
     FILTERGROUP active
         FILTER 'Активные' notCompleted(fe) OR dateFinish(fe) >= subtract(currentDate(), 1) DEFAULT 
     
@@ -100,7 +112,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     
     OBJECTS t = TaskType PANEL
     PROPERTIES(t) SELECTOR name SHOWIF NOT ce
-    PROPERTIES startTimeEntry(p, t)
+    PROPERTIES startTimeEntry(t)
                 
     OBJECTS pa = TimeEntry
     PROPERTIES (pa) READONLY nameEmployee, dateTimeStart, dateTimeFinish, nameActivity, hours BACKGROUND userHours(pa), comment PANEL
@@ -111,21 +123,21 @@ DESIGN timeDashboard {
     NEW pane FIRST {
         type = SPLITV;
         fill = 1;
-        NEW projectPane {
-            fill = 1;
-            type = SPLITH; 
-            MOVE BOX(p);
-//            NEW projectInfo {
-//                fill = 2;
-//                type = TABBED;
-//                MOVE BOX(r) {
-//                    caption = 'Контактные лица';
-//                }
-//                MOVE BOX(d) {
-//                    caption = 'Документы';
-//                }
-//            }
-        }
+//        NEW projectPane {
+//            fill = 1;
+//            type = SPLITH; 
+//            MOVE BOX(p);
+////            NEW projectInfo {
+////                fill = 2;
+////                type = TABBED;
+////                MOVE BOX(r) {
+////                    caption = 'Контактные лица';
+////                }
+////                MOVE BOX(d) {
+////                    caption = 'Документы';
+////                }
+////            }
+//        }
         NEW tasks {
             fill = 2;
             caption = 'Трудозатраты';
@@ -133,7 +145,7 @@ DESIGN timeDashboard {
             NEW current {
                 caption = 'Текущее время';
                 MOVE PROPERTY(name(t)) { caption = 'Тип задачи'; alignment = STRETCH; }
-                MOVE PROPERTY(startTimeEntry(p, t)) { fill = 1; }
+                MOVE PROPERTY(startTimeEntry(t)) { fill = 1; }
 
                 MOVE PROPERTY(nameCustomerProject(ce)) { alignment = STRETCH; }
                 MOVE PROPERTY(nameProject(ce)) { alignment = STRETCH; }
@@ -241,7 +253,7 @@ DESIGN timeDashboard {
         //MOVE PROPERTY(finish(fe)) { alignment = STRETCH; fontStyle = 'bold'; }
         MOVE PROPERTY(pause(ce)) { alignment = STRETCH; }
         MOVE PROPERTY(restart(ce)) { alignment = STRETCH; fontStyle = 'bold'; }
-        MOVE PROPERTY(startTimeEntry(p, t)) { fontStyle = 'bold'; }
+        MOVE PROPERTY(startTimeEntry(t)) { fontStyle = 'bold'; }
     }
 }
 
