@@ -124,7 +124,7 @@ generateTimeEntriesWord 'Трудозатраты (Word)' (Invoice i)  {
             value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))), '0.00') WHERE key(detail) == 'SUM_PAY';
         }
         process(timeEntriesTemplateWord());
-        open(resultTemplate(), CONCAT '_', nameCustomer(i), seriesNumber(i), toDateDDMMYYYY(fromDate(i)) + '-' + toDateDDMMYYYY(toDate(i)));
+        open(resultTemplate(), replace(replace((CONCAT '_', nameCustomer(i), seriesNumber(i), toDateDDMMYYYY(fromDate(i)) + '-' + toDateDDMMYYYY(toDate(i))), ',' ,''), '\\', ''));
     } ELSE
         MESSAGE 'Не выбран шаблон для трудозатрат';
 }

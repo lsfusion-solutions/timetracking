@@ -119,7 +119,7 @@ generateWord 'Сгенерировать (Word)' (Invoice i) {
             value(detail) <- TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))) WHERE key(detail) == 'SUM_PAY';
         }
         process(templateWord(i));
-        open(resultTemplate(), CONCAT '_',nameCustomer(i), seriesNumber(i), toDateDDMMYYYY(fromDate(i)) + '-' + toDateDDMMYYYY(toDate(i)));
+        open(resultTemplate(), replace(replace((CONCAT '_',nameCustomer(i), seriesNumber(i), toDateDDMMYYYY(fromDate(i)) + '-' + toDateDDMMYYYY(toDate(i))), ',' ,''), '\\', ''));
     } ELSE
         MESSAGE 'Не выбран шаблон для клиента';
 }
