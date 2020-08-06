@@ -215,6 +215,11 @@ FORM sale 'Продажа'
     PROPERTIES deletePerson(s, p) DRAW p  
     FILTERS in(p, s)
     
+    OBJECTS i = Interraction
+    PROPERTIES(i) dateTime, nameType, description
+    PROPERTIES NEW(i), DELETE(i)
+    FILTERS person(i) == p
+    
     OBJECTS p2 = Person
     PROPERTIES(p2) READONLY lastName, firstName, middleName
     PROPERTIES(p2) nameRole
@@ -239,7 +244,11 @@ DESIGN sale {
         NEW body {
             fill = 1;
             type = TABBED;
-            MOVE BOX(p) { caption = 'Журнал взаимодействия'; }
+            NEW persons {
+                caption = 'Физ. лица';
+                MOVE BOX(p);
+                MOVE BOX(i);
+            }
             MOVE BOX(p2) { caption = 'Роли в продаже'; }
             MOVE BOX(h) { caption = 'История этапов'; }
         }
