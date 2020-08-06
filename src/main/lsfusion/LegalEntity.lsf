@@ -7,8 +7,8 @@ NAMESPACE LegalEntity;
 CLASS LegalEntity 'Юридическое лицо';
 TABLE legalEntity (LegalEntity);
 
-id 'Код' = DATA STRING[15] (LegalEntity) INDEXED CHARWIDTH 5 IN id;
-legalEntity (id) = GROUP AGGR LegalEntity le BY id (le);
+//id 'Код' = DATA STRING[15] (LegalEntity) INDEXED CHARWIDTH 5 IN id;
+//legalEntity (id) = GROUP AGGR LegalEntity le BY id (le);
 
 shortName 'Сокращённое название' = DATA ISTRING[250] (LegalEntity) CHARWIDTH 20 IN id;
 fullName 'Полное название' = DATA ISTRING[250] (LegalEntity) CHARWIDTH 25;
@@ -74,8 +74,8 @@ numberAccount 'Банковский счёт по умолчанию' (LegalEnti
 
 equals 'Основной' (LegalEntity legalEntity, Account account) = userAccount(legalEntity) == account;
 
-accountID 'Расчетный счет по номеру' (number, legalEntityId) = GROUP AGGR Account account WHERE account IS Account BY number(account), id(legalEntity(account));
-legalEntityAccount (STRING[20] number) = legalEntity(account(number)); 
+//accountID 'Расчетный счет по номеру' (number, legalEntityId) = GROUP AGGR Account account WHERE account IS Account BY number(account), id(legalEntity(account));
+//legalEntityAccount (STRING[20] number) = legalEntity(account(number)); 
 
 bank = DATA Bank (Account);
 nameBank 'Банк' (Account account) = name(bank(account)) IN id;
@@ -108,7 +108,7 @@ NAVIGATOR {
 
 FORM legalEntity 'Юридическое лицо'
     OBJECTS o = LegalEntity PANEL
-    PROPERTIES(o) id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, addr = address, 
+    PROPERTIES(o) shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, addr = address, 
                   nameRepresentative, positionRepresentative, baseRepresentative, phone, okpo, okato, oktmo, okved, numberAccount
     ORDERS shortName(o)
     
@@ -131,7 +131,7 @@ DESIGN legalEntity {
                 NEW first {
                     type = CONTAINERH;
                     caption = 'Основые параметры';
-                    MOVE PROPERTY (id(o));
+                    //MOVE PROPERTY (id(o));
                     MOVE PROPERTY (nameCustomer(o));
                     MOVE PROPERTY (shortNameFrom(o));
                 }
@@ -181,7 +181,7 @@ DESIGN legalEntity {
 
 FORM legalEntities 'Юридические лица'
     OBJECTS o = LegalEntity
-    PROPERTIES(o) READONLY id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, nameRepresentative, 
+    PROPERTIES(o) READONLY shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, nameRepresentative, 
                            baseRepresentative, positionRepresentative, phone, okpo, okato, oktmo, okved, numberAccount
     PROPERTIES (o) NEWSESSION NEW, EDIT, DELETE
     ORDERS shortName(o)

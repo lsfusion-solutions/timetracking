@@ -29,7 +29,7 @@ FORM customerDashboard 'Работа с клиентами'
     PROPERTIES (c) name SELECTOR 
     
     OBJECTS l = LegalEntity
-    PROPERTIES (l) READONLY id, shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, nameRepresentative, 
+    PROPERTIES (l) READONLY shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, nameRepresentative, 
                            baseRepresentative, positionRepresentative, inn, kpp, phone, okpo, okato, oktmo, okved, ogrn, numberAccount
     PROPERTIES DRAW l TOOLBAR addLegalEntity(c)
     PROPERTIES (l) NEWSESSION EDIT, DELETE 
