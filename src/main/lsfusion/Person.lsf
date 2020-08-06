@@ -546,22 +546,22 @@ DESIGN options {
     }
 }
 
-id 'Код' = DATA STRING[25] (Person);
-person (id) = GROUP AGGR Person p BY id (p);
+//id 'Код' = DATA STRING[25] (Person);
+//person (id) = GROUP AGGR Person p BY id (p);
+//
+//EXTEND FORM persons
+//    PROPERTIES(p) id BEFORE nameCustomer(p)
+//;
 
-EXTEND FORM persons
-    PROPERTIES(p) id BEFORE nameCustomer(p)
-;
-
-EXTEND FORM person
-    PROPERTIES(p) id
-;
-
-DESIGN person {
-    main {
-        MOVE PROPERTY(id(p)) FIRST {alignment = START; }
-    }
-}
+//EXTEND FORM person
+//    PROPERTIES(p) id
+//;
+//
+//DESIGN person {
+//    main {
+//        MOVE PROPERTY(id(p)) FIRST {alignment = START; }
+//    }
+//}
 
 counterpartyPerson 'Контрагент' = DATA Person (Customer);
 nameCounterpartyPerson 'Контрагент' (Customer c) = STRING(fioName(counterpartyPerson(c)));

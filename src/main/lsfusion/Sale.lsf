@@ -180,12 +180,24 @@ changeCreator (Sale s) {
     } 
 }
 
+in 'Вкл' = DATA BOOLEAN (Person, Sale);
+
 addPerson 'Добавить' (Sale s) {
-    addPerson (customer(s));
+    NEWSESSION {
+        DIALOG persons OBJECTS p INPUT DO {
+            in(p, s) <- TRUE;
+        }
+        APPLY;
+    }
 } IMAGE 'add.png' TOOLBAR;
 
 addPerson2 'Добавить' (Sale s) {
-    addPerson (customer(s));
+    NEWSESSION {
+        DIALOG persons OBJECTS p INPUT DO {
+            in(p, s) <- TRUE;
+        }
+        APPLY;
+    }
 } IMAGE 'add.png' TOOLBAR;
 
 deletePerson 'Удалить' (Sale s, Person p) {
@@ -201,14 +213,14 @@ FORM sale 'Продажа'
     PROPERTIES(p) READONLY lastName, firstName, middleName, address, phone, email
     PROPERTIES addPerson(s) DRAW p
     PROPERTIES deletePerson(s, p) DRAW p  
-    FILTERS in(p, customer(s))
+    FILTERS in(p, s)
     
     OBJECTS p2 = Person
     PROPERTIES(p2) READONLY lastName, firstName, middleName
     PROPERTIES(p2) nameRole
     PROPERTIES addPerson2(s) DRAW p2
     PROPERTIES deletePerson(s, p2) DRAW p2  
-    FILTERS in(p2, customer(s))
+    FILTERS in(p2, s)
     
     OBJECTS h = StageHistory
     PROPERTIES(h) READONLY nameNewStage, amount, probability, daysBetweenPrev, date, nameUser
@@ -246,5 +258,16 @@ FORM sales 'Продажи'
 NAVIGATOR {
     NEW FOLDER sale 'Продажи' AFTER documents WINDOW toolbar {
         NEW sales;
+    }
+}
+
+salePerson = DATA BOOLEAN ();
+onStarted() +{
+    IF NOT salePerson() THEN {
+        FOR customer(Sale s) DO {
+            in(Person p, s) <- TRUE WHERE in(p, customer(s));
+        }
+        salePerson() <- TRUE;
+        APPLY;
     }
 }
