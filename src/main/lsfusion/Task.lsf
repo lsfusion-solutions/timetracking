@@ -65,10 +65,11 @@ CONSTRAINT DROPPED(useTreePractics()) AND existInChild()
     MESSAGE 'Невозможно отключить использование дерева практик пока есть типы задач для подчиненных практик'; 
 
 practics 'Практики' (TaskType t) = GROUP CONCAT name(Practice p) IF in(t,p), ', ' CHARWIDTH 30;
+active 'Активный' = DATA BOOLEAN (TaskType);
 
 FORM taskTypes 'Типы задач'
     OBJECTS a = TaskType
-    PROPERTIES (a) name, practics READONLY, NEW, DELETE
+    PROPERTIES (a) name, practics READONLY, NEW, DELETE, active
     
     OBJECTS p 'Список' = Practice
     PROPERTIES(p) READONLY name

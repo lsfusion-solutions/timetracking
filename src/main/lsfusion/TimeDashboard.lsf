@@ -107,7 +107,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     OBJECTS ce = Task PANEL
     PROPERTIES(ce) nameCustomerProject READONLY
     PROPERTIES(ce) READONLYIF isReadonlyTask(ce) nameProject, nameTaskType, name, dateTimeStart, currentHours, description PANEL
-    FILTERS ce == fe//employee(ce) == currentEmployee() AND inProcess(ce)
+    FILTERS ce == fe, active(taskType(ce))
     ORDERS nameCustomerProject(ce)
     
     OBJECTS t = TaskType PANEL
