@@ -182,10 +182,13 @@ changeCreator (Sale s) {
 
 in 'Вкл' = DATA BOOLEAN (Person, Sale);
 
-addPerson 'Добавить' (Sale s) {
+addInterraction 'Добавить' (Sale s) {
     NEWSESSION {
         DIALOG persons OBJECTS p INPUT DO {
             in(p, s) <- TRUE;
+            NEW i = Interraction {
+                person(i) <- p;
+            }
         }
         APPLY;
     }
@@ -200,32 +203,53 @@ addPerson2 'Добавить' (Sale s) {
     }
 } IMAGE 'add.png' TOOLBAR;
 
-deletePerson 'Удалить' (Sale s, Person p) {
-    deletePerson(customer(s), p);
+deleteInterraction 'Удалить' (Sale s, Interraction i) {
+    NEWSESSION {
+        IF (GROUP SUM 1 IF in(person(Interraction ii), s) AND person(ii) == person(i)) == 1 THEN in(person(i), s) <- NULL;
+        DELETE(i);
+        APPLY;
+    }
 } IMAGE 'delete.png' TOOLBAR;
+
+employee = DATA Employee (Interraction);
+nameEmployee 'Сотрудник ' (Interraction i) = name(employee(i)) CHARWIDTH 30;
+namePerson 'Физическое лицо' (Interraction i) = CONCAT ' ', firstName(person(i)), lastName(person(i)), middleName(person(i)) CHARWIDTH 60;
+role = DATA SaleRole (Interraction);
+nameRolePerson 'Роль в продаже' (Interraction i) = name(role(i)) CHARWIDTH 20;
+phonePerson 'Телефон' (Interraction i) = phone(person(i));
+emailPerson 'Email' (Interraction i) = email(person(i));
+
+WHEN LOCAL SET(Interraction i IS Interraction) DO {
+    employee(i) <- currentUser();
+    dateTime(i) <- currentDateTime();
+}
+
+changeRole (Interraction i) {
+    
+}
 
 FORM sale 'Продажа'
     OBJECTS s = Sale PANEL
     PROPERTIES(s) name, nameStage, nameOwner ON CHANGE changeOwner(s), nameCustomer, amount, probability, 
         nameCreator ON CHANGE changeCreator(s), nameChannel, note
         
-    OBJECTS p = Person
-    PROPERTIES(p) READONLY lastName, firstName, middleName, address, phone, email
-    PROPERTIES addPerson(s) DRAW p
-    PROPERTIES deletePerson(s, p) DRAW p  
-    FILTERS in(p, s)
+//    OBJECTS p = Person
+//    PROPERTIES(p) READONLY lastName, firstName, middleName, address, phone, email
+//    PROPERTIES addPerson(s) DRAW p
+//    PROPERTIES deletePerson(s, p) DRAW p  
+//    FILTERS in(p, s)
     
     OBJECTS i = Interraction
-    PROPERTIES(i) dateTime, nameType, description
-    PROPERTIES NEW(i), DELETE(i)
-    FILTERS person(i) == p
+    PROPERTIES(i) dateTime, nameEmployee, namePerson, nameRolePerson, nameType, description, phonePerson READONLY, emailPerson READONLY
+    PROPERTIES addInterraction(s) DRAW i TOOLBAR, deleteInterraction(s, i)
+    FILTERS in(person(i), s)
     
-    OBJECTS p2 = Person
-    PROPERTIES(p2) READONLY lastName, firstName, middleName
-    PROPERTIES(p2) nameRole
-    PROPERTIES addPerson2(s) DRAW p2
-    PROPERTIES deletePerson(s, p2) DRAW p2  
-    FILTERS in(p2, s)
+//    OBJECTS p2 = Person
+//    PROPERTIES(p2) READONLY lastName, firstName, middleName
+//    PROPERTIES(p2) nameRole
+//    PROPERTIES addPerson2(s) DRAW p2
+//    PROPERTIES deletePerson(s, p2) DRAW p2  
+//    FILTERS in(p2, s)
     
     OBJECTS h = StageHistory
     PROPERTIES(h) READONLY nameNewStage, amount, probability, daysBetweenPrev, date, nameUser
@@ -244,12 +268,8 @@ DESIGN sale {
         NEW body {
             fill = 1;
             type = TABBED;
-            NEW persons {
-                caption = 'Физ. лица';
-                MOVE BOX(p);
-                MOVE BOX(i);
-            }
-            MOVE BOX(p2) { caption = 'Роли в продаже'; }
+            MOVE BOX(i) { caption = 'Журнал взаимодействия'; }
+            //MOVE BOX(p2) { caption = 'Роли в продаже'; }
             MOVE BOX(h) { caption = 'История этапов'; }
         }
     }
