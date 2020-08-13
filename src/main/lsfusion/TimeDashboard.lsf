@@ -68,6 +68,17 @@ DESIGN contactsDocuments {
     }
 }
 
+markDelete 'Помечена на удаление' = DATA BOOLEAN (Task);
+markDeleteDateTime = DATA DATETIME (Task);
+
+deleteTask 'Удалить' (Task t) {
+    NEWSESSION {
+        markDelete(t) <- TRUE;
+        markDeleteDateTime(t) <- currentDateTime();
+        APPLY;
+    }
+} IMAGE 'delete.png';
+
 FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES currentDateTime()
 
@@ -93,9 +104,10 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(fe) nameCustomerProject ON CHANGE { DIALOG contactsDocuments OBJECTS p = project(fe); }
     PROPERTIES(fe) READONLY nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
     //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
-    PROPERTIES(fe) visible SHOWIF currentEmployee()
-    PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, EDIT, DELETE READONLYIF isReadonlyTask(fe)
-    FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND visible(fe))
+    PROPERTIES(fe) visible SHOWIF currentEmployee(), markDelete READONLY 
+    PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, ed = EDIT, deleteTask READONLYIF isReadonlyTask(fe) SHOWIF NOT markDelete(fe)
+    FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND visible(fe)),
+            markDeleteDateTime(fe) >= dateTimeToDateTime(sum(currentDate(), -1), currentTime()) OR NOT markDelete(fe)
     ORDERS nameCustomerProject(fe)
     FILTERGROUP  myTasks
         FILTER 'Мои задачи' employee(fe) == currentEmployee() DEFAULT
@@ -167,6 +179,9 @@ DESIGN timeDashboard {
                 MOVE BOX(fe) {
                     fill = 2;
                     caption = 'Задачи';
+                    TOOLBARRIGHT(fe) {
+                        MOVE PROPERTY(deleteTask(fe));
+                    }
                 }
                 NEW timeEntry {
                     fill = 1;

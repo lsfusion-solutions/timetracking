@@ -18,6 +18,8 @@ in 'Вкл' = DATA LOCAL BOOLEAN (Project);
 countProjects () = GROUP SUM 1 IF in(Project p);
 inProjects (TimeEntry t) = in(project(t)) OR NOT countProjects();
 
+showMarkDelete 'Учитывать помеченные на удаление' = DATA LOCAL BOOLEAN ();
+
 FORM projects 'По проектам'
     OBJECTS dates = (dFrom = DATE, dTo = DATE) PANEL
     PROPERTIES dFrom 'Дата с' = VALUE(dFrom), dTo 'Дата по' = VALUE(dTo)
@@ -43,8 +45,11 @@ FORM projects 'По проектам'
     PROPERTIES(t) READONLY descriptionTask, comment
     //PROPERTIES(t) descriptionTask ON CHANGE changeDescriptionTask(t) PANEL
     PROPERTIES(t) hours BACKGROUND userHours(t)//, comment PANEL 
+    PROPERTIES showMarkDelete() DRAW t TOOLBAR 
     FILTERS inProjects(t),
-            dateStart(t) >= dFrom AND dateStart(t) <= dTo 
+            dateStart(t) >= dFrom AND dateStart(t) <= dTo,
+            NOT markDelete(task(t)) OR showMarkDelete()
+
 ;
 
 DESIGN projects {
@@ -105,9 +110,11 @@ FORM employees 'По сотрудникам'
     PROPERTIES(t) READONLY  nameTaskType, nameTask, nameActivity, descriptionTask, comment
     //PROPERTIES(t) descriptionTask ON CHANGE changeDescriptionTask(t) PANEL
     PROPERTIES(t) hours BACKGROUND userHours(t)
+    PROPERTIES showMarkDelete() DRAW t TOOLBAR 
     FILTERS inEmployees(t),
             dateStart(t) >= dFrom AND dateStart(t) <= dTo,
-            assigned(project(t), currentEmployee())
+            assigned(project(t), currentEmployee()),
+            NOT markDelete(task(t)) OR showMarkDelete()
 ;
 
 DESIGN employees {
@@ -298,7 +305,8 @@ FORM taskMonitoring 'Мониторинг задач по проекту'
     PROPERTIES(t) READONLY dateStart, dateFinish, status, nameTask, 'Описание' = nameTaskType, 'Исполнитель' = nameEmployee, nameResponsible, hours, 
         rate, sum
     FILTERS project(t) == filterProject(),
-            dateStart(t) >= dateFrom() AND dateFinish(t) <= dateTo()
+            dateStart(t) >= dateFrom() AND dateFinish(t) <= dateTo(),
+            NOT markDelete(task(t))
 ;
 
 DESIGN taskMonitoring {
