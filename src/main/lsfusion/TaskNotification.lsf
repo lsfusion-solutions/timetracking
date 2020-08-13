@@ -400,13 +400,20 @@ FORM taskNotifications 'Список уведомлений'
     
     OBJECTS t = TaskNotification
     PROPERTIES(t) READONLY nameTask, nameCustomer, nextNotificationDate
-    PROPERTIES READONLY blank(t, d) COLUMNS (d) HEADER d BACKGROUND color(t, d) 
+    PROPERTIES READONLY blank(t, d) COLUMNS (d) HEADER d BACKGROUND color(t, d)
+    PROPERTIES del = DELETE(t)
     
     EVENTS ON INIT {
         SEEK taskNotifications.dt = sum(currentDate(), 7);
         //fillTaskNotifications(dt);
     } 
 ;
+
+DESIGN taskNotifications {
+    TOOLBARRIGHT {
+        MOVE PROPERTY(del);
+    }
+}
 
 NAVIGATOR {
     dashboard {
