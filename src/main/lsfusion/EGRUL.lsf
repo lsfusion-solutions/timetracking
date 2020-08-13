@@ -346,9 +346,14 @@ nameSourceCustomer 'Источник клиента' (LegalEntity l) = name(sour
 responsible 'Лицо принимающее решение' = DATA Person (LegalEntity) IN params;
 nameResponsible 'Лицо принимающее решение' (LegalEntity l) = STRING[250](fioName(responsible(l))) IN params;
 
+EDO 'ЭДО' = DATA BOOLEAN (LegalEntity);
+audit 'Аудит' = DATA BOOLEAN (LegalEntity);
+seal 'Наличие печати' = DATA BOOLEAN (LegalEntity);
+facsimile 'Наличие факсимиле' = DATA BOOLEAN (LegalEntity);
+
 EXTEND FORM legalEntity
     PROPERTIES(o) currentStatus, website, nameTaxMode, skolkovoMember, industry, numberEmployees, nameSourceCustomer,
-        nameResponsible
+        nameResponsible, EDO, audit, seal, facsimile
 ;
 
 DESIGN legalEntity {
@@ -361,3 +366,15 @@ EXTEND FORM legalEntities
     PROPERTIES(o) READONLY currentStatus, website, nameTaxMode, skolkovoMember, industry, numberEmployees, nameSourceCustomer,
         nameResponsible
 ;
+
+DESIGN legalEntity {
+    GROUP (params, o) {
+        NEW paramsFirst FIRST {
+            type = CONTAINERH;
+            MOVE PROPERTY(EDO(o));
+            MOVE PROPERTY(audit(o));
+            MOVE PROPERTY(seal(o));
+            MOVE PROPERTY(facsimile(o));
+        }
+    }
+}

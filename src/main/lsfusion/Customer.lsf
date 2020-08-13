@@ -80,16 +80,3 @@ FORM counterpartyType 'Тип контрагента'
     
     LIST CounterpartyType OBJECT t
 ;
-
-EXTEND FORM customer
-    PROPERTIES nameType(c)
-;
-
-DESIGN customer {
-    BOX(c) {
-        NEW lane2 {
-            type = CONTAINERH;
-            MOVE PROPERTY(nameType(c));
-        }
-    }
-}

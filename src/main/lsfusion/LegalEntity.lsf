@@ -46,9 +46,9 @@ positionRepresentative 'Должность представителя' = DATA IS
 
 phone 'Номер телефона' = DATA ISTRING[50](LegalEntity) CHARWIDTH 15;
 okpo 'ОКПО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
-okato 'ОКАТО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
+okato 'ОКАТО' = DATA ISTRING[100](LegalEntity) CHARWIDTH 50;
 oktmo 'ОКТМО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
-okved 'ОКВЭД' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
+okved 'ОКВЭД' = DATA ISTRING[100](LegalEntity) CHARWIDTH 50;
 
 CONSTRAINT representative(LegalEntity l) AND NOT customer(representative(l)) == customer(l) CHECKED BY representative[LegalEntity] 
     MESSAGE 'Клиент представителя не совпадает с клиентом организации';
@@ -106,9 +106,29 @@ NAVIGATOR {
     }
 }
 
+employee = DATA Employee (LegalEntity);
+nameEmployee 'Сотрудник' (LegalEntity l) = name(employee(l));
+country 'Страна регистрации' = DATA STRING[100] (LegalEntity) CHARWIDTH 20;
+addressIsActual 'Фактический адрес совпадает с юридическим адресом' = DATA BOOLEAN (LegalEntity);
+actualAddress 'Фактический адрес' = DATA ISTRING[250] (LegalEntity)CHARWIDTH 20;
+
+WHEN LOCAL SET(addressIsActual(LegalEntity l)) DO actualAddress(l) <- address(l);
+WHEN LOCAL DROPPED(addressIsActual(LegalEntity l)) DO actualAddress(l) <- '';
+
+addressIsMailing 'Почтовый адрес совпадает с юридическим адресом' = DATA BOOLEAN (LegalEntity);
+mailingAddress 'Почтовый адрес' = DATA ISTRING[250] (LegalEntity)CHARWIDTH 20;
+
+WHEN LOCAL SET(addressIsMailing(LegalEntity l)) DO mailingAddress(l) <- address(l);
+WHEN LOCAL DROPPED(addressIsMailing(LegalEntity l)) DO mailingAddress(l) <- '';
+
+email '{authentication.email.contact}'= DATA STRING[400] (LegalEntity) CHARWIDTH 20 REGEXP '[-!#-\'*+/-9=?A-Z^-~]+(\\.[-!#-\'*+/-9=?A-Z^-~]+)*@[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?(\\.[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?)+' '<html>{authentication.email.contact.incorrect}</html>';
+note 'Комментарий' = DATA TEXT (LegalEntity);
+
 FORM legalEntity 'Юридическое лицо'
     OBJECTS o = LegalEntity PANEL
-    PROPERTIES(o) shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, addr = address, 
+    PROPERTIES(o) shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, addr = address, nameEmployee, country,
+                  addressIsActual, actualAddress READONLYIF addressIsActual(o), addressIsMailing, mailingAddress READONLYIF addressIsMailing(o),
+                  email, note,
                   nameRepresentative, positionRepresentative, baseRepresentative, phone, okpo, okato, oktmo, okved, numberAccount
     ORDERS shortName(o)
     
@@ -149,29 +169,44 @@ DESIGN legalEntity {
                     }
                 }
                 NEW other {
-                    type = CONTAINERH;
-                    NEW info {
-                        caption = 'Контакты';
-                        MOVE PROPERTY (addr);
-                        MOVE PROPERTY (phone(o));
-                        MOVE PROPERTY (numberAccount(o));
+                    NEW otherFirst {
+                        type = CONTAINERH;
+                        NEW info {
+                            caption = 'Контакты';
+                            MOVE PROPERTY (addr);
+                            MOVE PROPERTY (phone(o));
+                            MOVE PROPERTY (numberAccount(o));
+                            MOVE PROPERTY (nameEmployee(o));
+                            MOVE PROPERTY (country(o));
+                            MOVE PROPERTY (addressIsActual(o));
+                            MOVE PROPERTY (actualAddress(o));
+                            MOVE PROPERTY (addressIsMailing(o));
+                            MOVE PROPERTY (mailingAddress(o));
+                            MOVE PROPERTY (email(o));
+                        }
+                        NEW repres {
+                            caption = 'Представитель';
+                            MOVE PROPERTY (nameRepresentative(o)) { caption = 'Имя'; }
+                            MOVE PROPERTY (positionRepresentative(o)) { caption = 'Должность'; }
+                            MOVE PROPERTY (baseRepresentative(o)) { caption = 'Основание'; }
+                        }
                     }
-                    NEW repres {
-                        caption = 'Представитель';
-                        MOVE PROPERTY (nameRepresentative(o)) { caption = 'Имя'; }
-                        MOVE PROPERTY (positionRepresentative(o)) { caption = 'Должность'; }
-                        MOVE PROPERTY (baseRepresentative(o)) { caption = 'Основание'; }
+                    MOVE PROPERTY(note(o)) {
+                        panelCaptionAbove = TRUE;
+                        height = 70;
                     }
                 }
                 NEW numbers {
                     caption = 'Информация';
-                    NEW line2 {
+                    NEW line1 {
                         type = CONTAINERH;
                         MOVE PROPERTY (okpo(o));
-                        MOVE PROPERTY (okved(o));
-                        MOVE PROPERTY (okato(o));
                         MOVE PROPERTY (oktmo(o));
                     } 
+                    NEW line2 {
+                        MOVE PROPERTY (okved(o));
+                        MOVE PROPERTY (okato(o));
+                    }
                 }
                 MOVE BOX(a) { fill = 1; }
             }
@@ -231,11 +266,23 @@ deletePerson 'Удалить' (LegalEntity l, Person p) {
     }
 } IMAGE 'delete.png';
 
+GPH 'ГПХ ' = DATA BOOLEAN (Person);
+prepaidDate 'Дата аванса' = DATA DATE (Person);
+salary 'Заработная плата' = DATA STRING[50] (Person) CHARWIDTH 20;
+benefits 'Наличие пособий' = DATA STRING[150] (Person) CHARWIDTH 40;
+actList 'Наличие исполнительных листов' = DATA STRING[150] (Person) CHARWIDTH 40;
+other 'Прочее' = DATA  STRING[150] (Person) CHARWIDTH 40;
+
 EXTEND FORM legalEntity
     OBJECTS p = Person
     PROPERTIES(p) READONLY lastName, firstName, middleName, address, phone, email
     PROPERTIES DRAW p TOOLBAR addPerson(o), deletePerson(o, p)
     FILTERS in(p, o)
+    
+    OBJECTS p2 = Person
+    PROPERTIES(p2) READONLY lastName, firstName, middleName
+    PROPERTIES(p2) GPH, prepaidDate, salary, benefits, actList, other
+    FILTERS in(p2, o)
 ;
 
 DESIGN legalEntity {
@@ -243,26 +290,27 @@ DESIGN legalEntity {
         NEW persons {
             caption = 'Физические лица';
             MOVE BOX(p);
+            MOVE BOX(p2) { caption = 'Сотрудники'; }
         }
     }
 }
 
-counterpartyLegalEntity 'Контрагент' = DATA LegalEntity (Customer);
-nameCounterpartyLegalEntity 'Контрагент' (Customer c) = shortName(counterpartyLegalEntity(c));
-
-WHEN LOCAL CHANGED(type(Customer c)) AND NOT type(c) == CounterpartyType.legalEntity DO {
-    counterpartyLegalEntity(c) <- NULL;
-}
-
-EXTEND FORM customer
-    PROPERTIES(c) nameCounterpartyLegalEntity SHOWIF type(c) == CounterpartyType.legalEntity AFTER nameType(c)
-;
-
-DESIGN customer {
-    lane2 {
-        MOVE PROPERTY(nameCounterpartyLegalEntity(c));
-    }
-}
+//counterpartyLegalEntity 'Контрагент' = DATA LegalEntity (Customer);
+//nameCounterpartyLegalEntity 'Контрагент' (Customer c) = shortName(counterpartyLegalEntity(c));
+//
+//WHEN LOCAL CHANGED(type(Customer c)) AND NOT type(c) == CounterpartyType.legalEntity DO {
+//    counterpartyLegalEntity(c) <- NULL;
+//}
+//
+//EXTEND FORM customer
+//    PROPERTIES(c) nameCounterpartyLegalEntity SHOWIF type(c) == CounterpartyType.legalEntity AFTER nameType(c)
+//;
+//
+//DESIGN customer {
+//    lane2 {
+//        MOVE PROPERTY(nameCounterpartyLegalEntity(c));
+//    }
+//}
 
 position 'Должность' = DATA Position (LegalEntity, Person);
 namePosition 'Должность' (LegalEntity c, Person p) = name(position(c, p));
@@ -299,3 +347,52 @@ EXTEND FORM person
     PROPERTIES namePosition(l, p) AFTER fullName(l)
     PROPERTIES DRAW l TOOLBAR addLegalEntity(p), deletePerson(l, p)
 ;
+
+in 'Вкл' = DATA BOOLEAN (Customer, LegalEntity);
+in 'Вкл' = DATA BOOLEAN (Customer, Person);
+
+FORM conterparties 'Контрагенты'
+    OBJECTS c = Customer PANEL
+    
+    OBJECTS l = LegalEntity
+    PROPERTIES in(c, l)
+    PROPERTIES(l) READONLY shortNameFrom, shortName, shortNameLat
+    
+    OBJECTS p = Person
+    PROPERTIES in(c, p)
+    PROPERTIES(p) READONLY lastName, firstName, middleName
+;
+
+DESIGN conterparties {
+    OBJECTS {
+        type = TABBED;
+        MOVE BOX(l);
+        MOVE BOX(p);
+    }
+}
+
+nameConterparties 'Контрагенты' (Customer c) = CONCAT ', ', (GROUP CONCAT shortName(LegalEntity l) IF in(c, l), ', '),
+    GROUP CONCAT (CONCAT ' ', lastName(Person p), firstName(p), middleName(p)) IF in(c, p), ', ' CHARWIDTH 50;
+
+EXTEND FORM customer
+    PROPERTIES nameConterparties(c) ON CHANGE { DIALOG conterparties OBJECTS c = c; }
+;
+
+DESIGN customer {
+    BOX(c) {
+        NEW lane2 {
+            type = CONTAINERH;
+            MOVE PROPERTY(nameConterparties(c));
+        }
+    }
+}
+
+EXTEND FORM legalEntity
+    PROPERTIES READONLY nameConterparties 'Входит в группу' = nameConterparties(customer(o))
+;
+
+DESIGN legalEntity {
+    first {
+        MOVE PROPERTY(nameConterparties) AFTER PROPERTY(nameCustomer(o));
+    }
+}
