@@ -83,7 +83,7 @@ EXTEND FORM customer
     OBJECTS e = Employee
     PROPERTIES name(e) READONLY, projectManager(e, p), nameCategory(e, p)
     ORDERS projectManager(e, p) DESC, name(e)
-    FILTERS assigned(p, e)
+    FILTERS assigned(p, e) AND NOT fired(e)
     FILTERGROUP category FILTER 'По категории' category(e) == cc
     FILTERGROUP cat FILTER 'Неосновные категории' NOT category(e) == category(e, p)
 ;
@@ -153,11 +153,11 @@ FORM employeeHierarchy 'Cотрудник'
     
     OBJECTS manager = Employee
     PROPERTIES(manager) READONLY firstName, lastName, nameCategory, namePractice
-    FILTERS managers(e, manager)
+    FILTERS managers(e, manager) AND NOT fired(manager)
     
     OBJECTS employee = Employee
     PROPERTIES(employee) READONLY firstName, lastName, nameCategory, namePractice
-    FILTERS managers(employee, e)
+    FILTERS managers(employee, e) AND NOT fired(employee)
 ;
 
 DESIGN employeeHierarchy {

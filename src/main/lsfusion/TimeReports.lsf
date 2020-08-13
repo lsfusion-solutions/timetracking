@@ -93,6 +93,7 @@ FORM employees 'По сотрудникам'
     PROPERTIES in(e)
     PROPERTIES(e) READONLY namePractice, firstName, lastName, login
     PROPERTIES READONLY hours(e, dFrom, dTo)
+    FILTERS NOT fired(e)
     
     PROPERTIES READONLY hours(e, d) COLUMNS (d) HEADER header(d)
     
