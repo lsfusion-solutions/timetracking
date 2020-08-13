@@ -358,3 +358,58 @@ DESIGN months {
     PROPERTY(number(m)) { hide = TRUE; }
     PROPERTY(staticCaption(m)) { caption = 'Месяц'; }
 }
+
+task (TaskNotification t) = GROUP MAX Task tt IF taskNotification(tt) == t;
+nameTask 'Задача' (TaskNotification t) = name(task(t)) CHARWIDTH 30;
+nameCustomer 'Клиент' (TaskNotification t) = nameCustomerProject(task(t)) CHARWIDTH 40;
+
+blank = DATA STRING (TaskNotification, DATE) CHARWIDTH 5;
+active = DATA LOCAL BOOLEAN (TaskNotification, DATE);
+color (TaskNotification t, DATE d) = IF active(t, d) THEN RGB(0, 255, 0);
+
+fillTaskNotifications 'Заполнить' (DATE dt) {
+    active(TaskNotification t, DATE d) <- NULL;
+    
+    LOCAL iDate = DATE ();
+    FOR nextNotificationDate(TaskNotification n) AND n IS TaskNotification DO {
+        IF nextNotificationDate(n) > dt THEN BREAK;
+        iDate() <- nextNotificationDate(n);
+        WHILE iDate() <= dt AND (iDate() <= endDate(n) OR NOT endDate(n)) DO {
+            active(n, iDate()) <- TRUE;
+            iDate() <- (CASE 
+                WHEN nDay(n) THEN sum(iDate(), nDayNumber(n))
+                WHEN workDay(n) THEN (GROUP MIN DATE d IF NOT isDayoff(d) AND iterate(d, sum(iDate(), 1), overrideEndDate(n)))
+                WHEN nWeek(n) THEN (GROUP MIN DATE d IF extractDOW(d) == dow(n) AND iterate(d, sum(iDate(), 7 * nWeekNumber(n)), overrideEndDate(n)))
+                WHEN nDayMonth(n) THEN (GROUP MIN DATE d IF extractDay(d) == nDayNumberMonth(n) AND iterate(d, sumMonth(iDate(), nMonthNumber(n)), overrideEndDate(n)))
+                WHEN nDowMonth(n) THEN (GROUP MIN DATE d IF extractDOWName(d) == nDowMonthName(n) AND extractDowNumberMonth(d) == nDowNumberMonth(n)
+                    AND iterate(d, sumMonth(iDate(), nMonthNumber2(n)), overrideEndDate(n)))
+                WHEN nWorkDayMonth(n) THEN (GROUP MIN DATE d IF countWorkDayNumberMonth(d) == nWorkDayMonthNumber(n) AND
+                    iterate(d, sumMonth(iDate(), nMonthNumber3(n)), overrideEndDate(n)))
+                WHEN nDateYear(n) THEN (GROUP MIN DATE d IF extractDay(d) == nYearDayNumber(n) AND extractMonth(d) == nYearMonth(n) AND
+                    iterate(d, sumYear(iDate(), nYearNumber(n)), overrideEndDate(n))));
+        }
+    }
+}
+
+FORM taskNotifications 'Список уведомлений'
+    OBJECTS dt = DATE PANEL
+    PROPERTIES dTo 'Дата по' = VALUE(dt), fillTaskNotifications(dt)
+    
+    OBJECTS d = DATE 
+    FILTERS iterate(d, currentDate(), dt)
+    
+    OBJECTS t = TaskNotification
+    PROPERTIES(t) READONLY nameTask, nameCustomer, nextNotificationDate
+    PROPERTIES READONLY blank(t, d) COLUMNS (d) HEADER d BACKGROUND color(t, d) 
+    
+    EVENTS ON INIT {
+        SEEK taskNotifications.dt = sum(currentDate(), 7);
+        //fillTaskNotifications(dt);
+    } 
+;
+
+NAVIGATOR {
+    dashboard {
+        NEW taskNotifications;
+    }
+}
