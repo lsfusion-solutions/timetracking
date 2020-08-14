@@ -77,11 +77,41 @@ hoursPay 'Часов к оплате' (Invoice i, Task t) = hoursPayCategory(i,t
 hoursPay 'Часов к оплате' (Invoice i) = GROUP SUM hoursPay(i, Task t);
 hoursPay 'Часов к оплате' (Invoice i, Category c) = GROUP SUM hoursPay(i, Task t) BY category(t);
 
-sumPay 'Сумма к оплате' (Invoice i, Task t) = hoursPay(i,t) * rate(i, t);
-sumPay 'Сумма к оплате' (Invoice i) = IF maxAmountMonthly(project(i)) 
+CLASS Discount 'Скидка' {
+    no 'Не предоставлена',
+    positions 'На отдельные позиции',
+    document 'По документу в целом'
+}
+
+name 'Наименование' (Discount d) = staticCaption(d);
+
+FORM discounts 'Скидка'
+    OBJECTS d = Discount
+    PROPERTIES READONLY name(d)
+    
+    LIST Discount OBJECT d
+;
+
+discount = DATA Discount (Invoice);
+nameDiscount 'Скидка' (Invoice i) = name(discount(i)) CHARWIDTH 25;
+
+sumDiscount 'На сумму' = DATA NUMERIC[15,2] (Invoice);
+
+percentDiscount '% Скидки' = DATA NUMERIC[5,2] (Invoice, Task);
+sumDiscount 'Скидка' = DATA NUMERIC[15,2] (Invoice, Task);
+
+WHEN LOCAL CHANGED(percentDiscount(Invoice i, Task t)) DO {
+    sumDiscount(i, t) <- round2(hoursPay(i,t) * rate(i, t) * percentDiscount(i, t) / 100);
+}
+WHEN LOCAL CHANGED(sumDiscount(Invoice i, Task t)) DO {
+    percentDiscount(i, t) <- round2(sumDiscount(i, t) * 100 / (hoursPay(i,t) * rate(i, t)));
+}
+
+sumPay 'Сумма к оплате' (Invoice i, Task t) = hoursPay(i,t) * rate(i, t) (-) (IF discount(i) == Discount.positions THEN sumDiscount(i, t));
+sumPay 'Сумма к оплате' (Invoice i) = (IF maxAmountMonthly(project(i)) 
     THEN min((GROUP SUM sumPay(i, Task t)), maxAmountMonthly(project(i)))
-    ELSE GROUP SUM sumPay(i, Task t);
-sumPay 'Сумма к оплате' (Invoice i, Category c) = hoursPay(i,c) * rate(project(i), c);
+    ELSE GROUP SUM sumPay(i, Task t)) (-) (IF discount(i) == Discount.document THEN sumDiscount(i));
+sumPay 'Сумма к оплате' (Invoice i, Category c) = GROUP SUM sumPay(i, Task t) BY category(t);
 
 CONSTRAINT extractMonth(fromDate(Invoice i)) != extractMonth(toDate(i)) AND hoursMonthly(i) MESSAGE 'Запрещено выставлять счет за несколько месяцев одновременно';
 
@@ -92,13 +122,40 @@ removeInvoice 'Исключить' (TimeEntry e)  {
 codeEmployee 'Код' (Task t) = code(employee(t));
 nameCategoryEmployee 'Категория сотрудника' (Task t) = nameCategory(employee(t));
 
+CLASS VAT 'НДС' {
+    no 'Без НДС',
+    ten '10%',
+    twenty '20%'
+}
+
+name 'Наименование' (VAT d) = staticCaption(d) CHARWIDTH 10;
+
+FORM vats 'Скидка'
+    OBJECTS d = VAT
+    PROPERTIES READONLY name(d)
+    
+    LIST VAT OBJECT d
+;
+
+vat = DATA VAT (Invoice);
+nameVAT 'НДС' (Invoice i) =  name(vat(i));
+sumVAT 'Сумма НДС' (Invoice i) = CASE WHEN vat(i) == VAT.ten THEN round2(sumPay(i) / 11)
+                                      WHEN vat(i) == VAT.twenty THEN round2(sumPay(i) / 6);
+
+percentVAT '% НДС' (Invoice i, Task t) = CASE WHEN vat(i) == VAT.ten AND t IS Task THEN '10%'
+                                                           WHEN vat(i) == VAT.twenty AND t IS Task THEN '20%' CHARWIDTH 4;
+sumVAT 'НДС' (Invoice i, Task t) = CASE WHEN vat(i) == VAT.ten THEN round2(sumPay(i, t) / 11)
+                                        WHEN vat(i) == VAT.twenty THEN round2(sumPay(i, t) / 6);
+
 FORM invoice 'Счет'
     OBJECTS i = Invoice PANEL
-    PROPERTIES(i) date, nameNumerator, series, number, nameCustomer, nameProject, fromDate, toDate, hours, hoursMonthly, hoursPay, sum, sumMonthly, sumPay
+    PROPERTIES(i) date, nameNumerator, series, number, nameCustomer, nameProject, fromDate, toDate, hours, hoursMonthly, 
+        hoursPay, sum, sumMonthly, sumPay, nameDiscount, sumDiscount SHOWIF discount(i) == Discount.document, nameVAT, sumVAT SHOWIF vat(i)
     
     OBJECTS t = Task
     PROPERTIES(t) READONLY nameProject, codeEmployee, nameCategoryEmployee, nameEmployee, nameTaskType
-    PROPERTIES(i, t) fromDate READONLY, hours READONLY, hoursPay READONLY, rate, sum READONLY, sumPay READONLY
+    PROPERTIES(i, t) fromDate READONLY, hours READONLY, hoursPay READONLY, rate, sum READONLY, percentDiscount SHOWIF discount(i) == Discount.positions,
+        sumDiscount SHOWIF discount(i) == Discount.positions, percentVAT READONLY SHOWIF vat(i), sumVAT READONLY SHOWIF vat(i), sumPay READONLY
     PROPERTIES(t) READONLY name, description PANEL
     PROPERTIES (t) NEWSESSION EDIT
     FILTERS hours(i, t),
@@ -138,7 +195,14 @@ DESIGN invoice {
             MOVE PROPERTY(hoursPay(i));
             MOVE PROPERTY(sum(i));
             MOVE PROPERTY(sumMonthly(i));
+        }
+        NEW sum {
+            type = CONTAINERH;
+            MOVE PROPERTY(nameDiscount(i));
+            MOVE PROPERTY(sumDiscount(i));
             MOVE PROPERTY(sumPay(i));
+            MOVE PROPERTY(nameVAT(i));
+            MOVE PROPERTY(sumVAT(i));
         }
     }
     NEW pane AFTER header {
