@@ -38,7 +38,9 @@ FORM projects 'По проектам'
     PROPERTIES READONLY hours(p, d) COLUMNS (d) HEADER header(d)
     
     OBJECTS t = TimeEntry
-    PROPERTIES(t) READONLY dateTimeStart, dateTimeFinish
+    PROPERTIES(t) READONLY dateTimeCreated SHOWIF validUser(), dateTimeStart BACKGROUND dateTimeStartChanged(t) AND validUser(), 
+        dateTimeStartChanged SHOWIF validUser() AND dateTimeStartChanged(t), dateTimeFinish BACKGROUND dateTimeFinishChanged(t) AND validUser(), 
+        dateTimeFinishChanged SHOWIF validUser() AND dateTimeFinishChanged(t)
     PROPERTIES(t) seriesNumberInvoice ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
     PROPERTIES(t) READONLY managers, 
         nameEmployee, namePractice, nameCustomerProject, nameProject, nameTaskType, nameTask, nameActivity
@@ -103,7 +105,9 @@ FORM employees 'По сотрудникам'
     PROPERTIES READONLY hours(e, d) COLUMNS (d) HEADER header(d)
     
     OBJECTS t = TimeEntry
-    PROPERTIES(t) READONLY dateTimeStart, dateTimeFinish
+    PROPERTIES(t) READONLY dateTimeCreated SHOWIF validUser(), dateTimeStart BACKGROUND dateTimeStartChanged(t) AND validUser(), 
+        dateTimeStartChanged SHOWIF validUser() AND dateTimeStartChanged(t), dateTimeFinish BACKGROUND dateTimeFinishChanged(t) AND validUser(), 
+        dateTimeFinishChanged SHOWIF validUser() AND dateTimeFinishChanged(t)
     PROPERTIES(t) seriesNumberInvoice ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
     PROPERTIES(t) READONLY managers,
         firstNameEmployee, lastNameEmployee, namePractice, nameCustomerProject, nameProject

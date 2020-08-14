@@ -79,6 +79,8 @@ deleteTask 'Удалить' (Task t) {
     }
 } IMAGE 'delete.png';
 
+validUser () = sid(mainRole(currentUser())) == 'admin' OR sid(mainRole(currentUser())) == 'partner';
+
 FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES currentDateTime()
 
@@ -127,7 +129,9 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES startTimeEntry(t)
                 
     OBJECTS pa = TimeEntry
-    PROPERTIES (pa) READONLY nameEmployee, dateTimeStart, dateTimeFinish, nameActivity, hours BACKGROUND userHours(pa), comment PANEL
+    PROPERTIES (pa) READONLY dateTimeCreated SHOWIF validUser(), nameEmployee, dateTimeStart BACKGROUND dateTimeStartChanged(pa) AND validUser(),
+        dateTimeStartChanged SHOWIF validUser() AND dateTimeStartChanged(pa), dateTimeFinish BACKGROUND dateTimeFinishChanged(pa) AND validUser(), 
+        dateTimeFinishChanged SHOWIF validUser() AND dateTimeFinishChanged(pa), nameActivity, hours BACKGROUND userHours(pa), comment PANEL
     FILTERS task(pa) == fe
 ;
 
@@ -292,8 +296,10 @@ FORM timeEntriesEmployee 'Просмотр трудозатрат'
     PROPERTIES 'Дата с' = VALUE (df), 'Дата по' = VALUE (dt), nameFilterEmployee() DRAW dates
     
     OBJECTS t = TimeEntry
-    PROPERTIES (t) READONLY nameEmployee SHOWIF NOT filterEmployee(), nameCustomerProject, nameProject, dateStart, dateFinish, 
-                            nameTaskType, nameTask, nameActivity, descriptionTask, comment, hours
+    PROPERTIES (t) READONLY dateTimeCreated SHOWIF validUser(), nameEmployee SHOWIF NOT filterEmployee(), nameCustomerProject, 
+        nameProject, dateStart BACKGROUND dateTimeStartChanged(t) AND validUser(), dateTimeStartChanged SHOWIF validUser() AND dateTimeStartChanged(t), 
+        dateFinish BACKGROUND dateTimeFinishChanged(t) AND validUser(), dateTimeFinishChanged SHOWIF validUser() AND dateTimeFinishChanged(t),
+        nameTaskType, nameTask, nameActivity, descriptionTask, comment, hours
     PROPERTIES seriesNumberInvoice(t) ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
     PROPERTIES editTask(t) TOOLBAR            
     FILTERS employee(t) == filterEmployee() OR NOT filterEmployee(),

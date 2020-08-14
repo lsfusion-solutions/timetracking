@@ -7,6 +7,9 @@ NAMESPACE Time;
 CLASS TimeEntry 'Трудозатраты';
 TABLE timeEntry(TimeEntry);
 
+dateTimeCreated 'Дата заведения' = DATA DATETIME (TimeEntry);
+WHEN SET(TimeEntry t IS Task) DO { dateTimeCreated(t) <- currentDateTime(); }
+
 task 'Задача' = DATA Task (TimeEntry) NONULL DELETE INDEXED;
 
 project 'Проект' (TimeEntry e) = project(task(e));
@@ -26,6 +29,11 @@ changeDescriptionTask (TimeEntry e)  { INPUT t = TEXT DO description(Task tt) <-
 
 dateTimeStart 'Время начала' = DATA DATETIME (TimeEntry);
 dateTimeFinish 'Время окончания' = DATA DATETIME (TimeEntry);
+
+dateTimeStartChanged 'Дата редактирования' = DATA DATETIME (TimeEntry);
+WHEN CHANGED(dateTimeStart(TimeEntry t)) DO { dateTimeStartChanged(t) <- currentDateTime(); }
+dateTimeFinishChanged 'Дата редактирования' = DATA DATETIME (TimeEntry);
+WHEN CHANGED(dateTimeFinish(TimeEntry t)) DO { dateTimeFinishChanged(t) <- currentDateTime(); }
 
 dateStart 'Дата начала' (TimeEntry e) = DATE(dateTimeStart(e));
 dateFinish 'Дата окончания' (TimeEntry e) = DATE(dateTimeFinish(e));
