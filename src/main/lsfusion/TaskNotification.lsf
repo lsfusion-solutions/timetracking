@@ -371,7 +371,7 @@ fillTaskNotifications 'Заполнить' (DATE dt) {
     active(TaskNotification t, DATE d) <- NULL;
     
     LOCAL iDate = DATE ();
-    FOR nextNotificationDate(TaskNotification n) AND n IS TaskNotification DO {
+    FOR nextNotificationDate(TaskNotification n) AND n IS TaskNotification AND employee(task(n)) == currentUser() DO {
         IF nextNotificationDate(n) > dt THEN BREAK;
         iDate() <- nextNotificationDate(n);
         WHILE iDate() <= dt AND (iDate() <= endDate(n) OR NOT endDate(n)) DO {
@@ -402,6 +402,7 @@ FORM taskNotifications 'Список уведомлений'
     PROPERTIES(t) READONLY nameTask, nameCustomer, nextNotificationDate
     PROPERTIES READONLY blank(t, d) COLUMNS (d) HEADER d BACKGROUND color(t, d)
     PROPERTIES del = DELETE(t)
+    FILTERS employee(task(t)) == currentUser()
     
     EVENTS ON INIT {
         SEEK taskNotifications.dt = sum(currentDate(), 7);
@@ -419,4 +420,8 @@ NAVIGATOR {
     dashboard {
         NEW taskNotifications;
     }
+}
+
+WHEN SET(markDelete(Task t)) DO {
+    DELETE(taskNotification(t));
 }
