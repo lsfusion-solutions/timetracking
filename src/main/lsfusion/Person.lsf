@@ -349,7 +349,7 @@ person = DATA Person (Interraction);
 dateTime 'Дата/время' = DATA DATETIME (Interraction);
 type 'Тип события' = DATA InterractionType (Interraction);
 nameType 'Тип события' (Interraction i) = name(type(i));
-description 'Описание события' = DATA STRING (Interraction);
+description 'Описание события' = DATA STRING (Interraction) CHARWIDTH 60;
 
 EXTEND FORM person
     PROPERTIES(p) notes

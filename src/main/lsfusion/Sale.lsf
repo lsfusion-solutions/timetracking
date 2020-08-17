@@ -212,8 +212,8 @@ deleteInterraction 'Удалить' (Sale s, Interraction i) {
 } IMAGE 'delete.png' TOOLBAR;
 
 employee = DATA Employee (Interraction);
-nameEmployee 'Сотрудник ' (Interraction i) = name(employee(i)) CHARWIDTH 30;
-namePerson 'Физическое лицо' (Interraction i) = CONCAT ' ', firstName(person(i)), lastName(person(i)), middleName(person(i)) CHARWIDTH 60;
+nameEmployee 'Сотрудник ' (Interraction i) = name(employee(i)) CHARWIDTH 25;
+namePerson 'Физическое лицо' (Interraction i) = CONCAT ' ', firstName(person(i)), lastName(person(i)), middleName(person(i)) CHARWIDTH 40;
 role = DATA SaleRole (Interraction);
 nameRolePerson 'Роль в продаже' (Interraction i) = name(role(i)) CHARWIDTH 20;
 phonePerson 'Телефон' (Interraction i) = phone(person(i));
