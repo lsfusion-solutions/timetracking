@@ -10,7 +10,7 @@ fired 'Уволен' = DATA BOOLEAN (Employee);
 
 FORM employee 'Сотрудник'
     OBJECTS e = Employee PANEL
-    PROPERTIES(e) firstName, lastName, code, login, sha256Password ON CHANGE changeSHA256Password(e), email, nameMainRole, isLocked, fired
+    PROPERTIES(e) firstName, lastName, login, sha256Password ON CHANGE changeSHA256Password(e), email, nameMainRole, isLocked, fired
 
     OBJECTS r = UserRole
     PROPERTIES(r) READONLY name, sid
