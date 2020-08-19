@@ -8,7 +8,7 @@ CLASS TimeEntry 'Трудозатраты';
 TABLE timeEntry(TimeEntry);
 
 dateTimeCreated 'Дата заведения' = DATA DATETIME (TimeEntry);
-WHEN SET(TimeEntry t IS Task) DO { dateTimeCreated(t) <- currentDateTime(); }
+WHEN SET(TimeEntry t IS TimeEntry) DO { dateTimeCreated(t) <- currentDateTime(); }
 
 task 'Задача' = DATA Task (TimeEntry) NONULL DELETE INDEXED;
 
