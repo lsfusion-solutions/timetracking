@@ -72,12 +72,27 @@ markDelete 'Помечена на удаление' = DATA BOOLEAN (Task);
 markDeleteDateTime = DATA DATETIME (Task);
 
 deleteTask 'Удалить' (Task t) {
-    NEWSESSION {
-        markDelete(t) <- TRUE;
-        markDeleteDateTime(t) <- currentDateTime();
-        APPLY;
+    ASK 'Вы действительно хотите удалить задачу?' DO {
+        NEWSESSION {
+            markDelete(t) <- TRUE;
+            IF status(t) == StatusTask.inProcess THEN {
+                dateTimeFinish(TimeEntry e) <- currentDateTime() WHERE task(e) == t AND NOT dateTimeFinish(e);
+                completed(t) <- TRUE;
+                initPaused(t) <- NULL;
+            }
+            markDeleteDateTime(t) <- currentDateTime();
+            APPLY;
+        }
     }
 } IMAGE 'delete.png';
+
+cancelDelete 'Отменить удаление' (Task t) {
+    NEWSESSION {
+        markDelete(t) <- NULL;
+        markDeleteDateTime(t) <- NULL;
+        APPLY;
+    }
+}
 
 validUser () = sid(mainRole(currentUser())) == 'admin' OR sid(mainRole(currentUser())) == 'partner';
 
@@ -107,7 +122,8 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(fe) READONLY nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
     //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
     PROPERTIES(fe) visible SHOWIF currentEmployee(), markDelete READONLY 
-    PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, ed = EDIT, deleteTask READONLYIF isReadonlyTask(fe) SHOWIF NOT markDelete(fe)
+    PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, ed = EDIT, deleteTask READONLYIF isReadonlyTask(fe) SHOWIF NOT markDelete(fe),
+        cancelDelete  READONLYIF isReadonlyTask(fe) SHOWIF markDelete(fe)
     FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND visible(fe)),
             markDeleteDateTime(fe) >= dateTimeToDateTime(sum(currentDate(), -1), currentTime()) OR NOT markDelete(fe)
     ORDERS nameCustomerProject(fe)
@@ -121,7 +137,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     OBJECTS ce = Task PANEL
     PROPERTIES(ce) nameCustomerProject READONLY
     PROPERTIES(ce) READONLYIF isReadonlyTask(ce) nameProject, nameTaskType, name, dateTimeStart, currentHours, description PANEL
-    FILTERS ce == fe, active(taskType(ce))
+    FILTERS ce == fe AND NOT markDelete(fe), active(taskType(ce))
     ORDERS nameCustomerProject(ce)
     
     OBJECTS t = TaskType PANEL
@@ -185,6 +201,7 @@ DESIGN timeDashboard {
                     caption = 'Задачи';
                     TOOLBARRIGHT(fe) {
                         MOVE PROPERTY(deleteTask(fe));
+                        MOVE PROPERTY(cancelDelete(fe));
                     }
                 }
                 NEW timeEntry {
