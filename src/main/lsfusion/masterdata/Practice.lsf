@@ -17,10 +17,10 @@ DESIGN options {
     }
 }
 
-name 'Наименование' = DATA STRING[50] (Practice) IN id CHARWIDTH 15;
+name 'Наименование' = DATA STRING[50] (Practice) IN id CHARWIDTH 25;
 
 parent 'Родитель' = DATA Practice (Practice);
-nameParent 'Родитель' (Practice p) = name(parent(p)); 
+nameParent 'Родитель' (Practice p) = name(parent(p)) CHARWIDTH 25; 
 
 level 'Уровень' (Practice c, Practice p) =
    RECURSION 1l IF c IS Practice AND p = c
@@ -31,7 +31,7 @@ canonicalName 'Каноническое имя' (Practice pr) =
 
 FORM practice 'Практика'
     OBJECTS p = Practice PANEL
-    PROPERTIES(p) name, nameParent SHOWIF useTreePractics()
+    PROPERTIES(p) name//, nameParent SHOWIF useTreePractics()
     
     EDIT Practice OBJECT p
 ;
