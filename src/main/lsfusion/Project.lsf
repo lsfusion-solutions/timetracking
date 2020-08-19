@@ -117,3 +117,12 @@ NAVIGATOR {
 }
 
 projectManager 'Руководитель проекта' = DATA BOOLEAN (Employee, Project);
+
+migrateASB = DATA BOOLEAN ();
+onStarted() +{
+    IF NOT migrateASB() THEN {
+        FOR name(customer(Project p)) == 'asb' DO customer(p) <- GROUP MAX Customer c IF name(c) == 'АСБ Консалтинг Групп ООО';
+        
+        migrateASB() <- TRUE;
+    }
+}
