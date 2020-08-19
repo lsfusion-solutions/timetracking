@@ -51,7 +51,10 @@ FORM projects 'По проектам'
     FILTERS inProjects(t),
             dateStart(t) >= dFrom AND dateStart(t) <= dTo,
             NOT markDelete(task(t)) OR showMarkDelete()
-
+    
+    FILTERGROUP practices
+        FILTER 'Юридические услуги' GROUP SUM 1 IF in(taskType(task(t)), Practice pp) AND nameParent(pp) == 'Юридические услуги'
+        FILTER 'Бухгалтерские услуги' GROUP SUM 1 IF in(taskType(task(t)), Practice pp) AND nameParent(pp) == 'Бухгалтерские услуги'
 ;
 
 DESIGN projects {
@@ -119,6 +122,10 @@ FORM employees 'По сотрудникам'
             dateStart(t) >= dFrom AND dateStart(t) <= dTo,
             assigned(project(t), currentEmployee()),
             NOT markDelete(task(t)) OR showMarkDelete()
+            
+    FILTERGROUP practices
+        FILTER 'Юридические услуги' GROUP SUM 1 IF in(taskType(task(t)), Practice pp) AND nameParent(pp) == 'Юридические услуги'
+        FILTER 'Бухгалтерские услуги' GROUP SUM 1 IF in(taskType(task(t)), Practice pp) AND nameParent(pp) == 'Бухгалтерские услуги'
 ;
 
 DESIGN employees {
@@ -311,6 +318,10 @@ FORM taskMonitoring 'Мониторинг задач по проекту'
     FILTERS project(t) == filterProject(),
             dateStart(t) >= dateFrom() AND dateFinish(t) <= dateTo(),
             NOT markDelete(task(t))
+            
+    FILTERGROUP practices
+        FILTER 'Юридические услуги' GROUP SUM 1 IF in(taskType(task(t)), Practice pp) AND nameParent(pp) == 'Юридические услуги'
+        FILTER 'Бухгалтерские услуги' GROUP SUM 1 IF in(taskType(task(t)), Practice pp) AND nameParent(pp) == 'Бухгалтерские услуги'
 ;
 
 DESIGN taskMonitoring {

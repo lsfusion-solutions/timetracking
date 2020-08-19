@@ -333,3 +333,9 @@ NAVIGATOR {
         NEW timeEntriesEmployee;
     }
 }
+
+EXTEND FORM timeDashboard
+    FILTERGROUP practices
+        FILTER 'Юридические услуги' GROUP SUM 1 IF in(taskType(fe), Practice p) AND nameParent(p) == 'Юридические услуги'
+        FILTER 'Бухгалтерские услуги' GROUP SUM 1 IF in(taskType(fe), Practice p) AND nameParent(p) == 'Бухгалтерские услуги'
+;

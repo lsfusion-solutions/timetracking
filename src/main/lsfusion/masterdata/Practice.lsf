@@ -39,38 +39,50 @@ FORM practice 'Практика'
 FORM practices 'Практики'
     OBJECTS p 'Список' = Practice 
     PROPERTIES(p) READONLY name
-    PROPERTIES(p) READONLY SHOWIF useTreePractics() nameParent, canonicalName 
     PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE
     FILTERS NOT parent(p) OR useTreePractics()
 
-    TREE groups g 'Дерево' = Practice PARENT parent(g)
-    PROPERTIES(g) READONLY name
+    OBJECTS g 'Дерево' = Practice
+    PROPERTIES(g) READONLY name, nameParent, canonicalName 
     PROPERTIES(g) NEWSESSION NEW, EDIT, DELETE
-    EVENTS ON CHANGE g { SEEK practices.p = g; } 
+    FILTERS parent(g)
+    //EVENTS ON CHANGE g { SEEK practices.p = g; } 
 ;
 
 DESIGN practices {
-    MOVE BOX (TREE groups) { showIf = useTreePractics(); }
-    MOVE BOX(p){ showIf = NOT useTreePractics(); }
+    OBJECTS {
+        type = CONTAINERH;
+        MOVE BOX (g) { 
+            showIf = useTreePractics();
+            fill = 1; 
+        }
+        MOVE BOX(p){ 
+            showIf = NOT useTreePractics();
+            fill = 4; 
+        }
+    }
 }
 
 FORM dialogPractices 'Выбор практики'
     OBJECTS p 'Список' = Practice 
     PROPERTIES(p) READONLY name
-    PROPERTIES(p) READONLY SHOWIF useTreePractics() nameParent, canonicalName 
     FILTERS NOT parent(p) OR useTreePractics()
 
-    TREE groups g 'Дерево' = Practice PARENT parent(g)
-    PROPERTIES(g) READONLY name
+    OBJECTS g 'Дерево' = Practice
+    PROPERTIES(g) READONLY name, nameParent, canonicalName 
     PROPERTIES(g) NEWSESSION NEW, EDIT, DELETE
-    EVENTS ON CHANGE g { SEEK dialogPractices.p = g; }
+    FILTERS parent(g)
+    //EVENTS ON CHANGE g { SEEK dialogPractices.p = g; }
         
     LIST Practice OBJECT p
 ;
 
 DESIGN dialogPractices {
-    MOVE BOX (TREE groups) { showIf = useTreePractics(); }
-    MOVE BOX(p){ showIf = NOT useTreePractics(); }
+    OBJECTS {
+        type = CONTAINERH;
+        MOVE BOX (g) { showIf = useTreePractics(); }
+        MOVE BOX(p){ showIf = NOT useTreePractics(); }
+    }
 }
 
 NAVIGATOR {

@@ -67,21 +67,25 @@ CONSTRAINT DROPPED(useTreePractics()) AND existInChild()
 practics 'Практики' (TaskType t) = GROUP CONCAT name(Practice p) IF in(t,p), ', ' CHARWIDTH 30;
 active 'Активный' = DATA BOOLEAN (TaskType);
 
+WHEN LOCAL SET(in(TaskType t, Practice p)) DO {
+    FOR level(Practice pp, p) DO in(t, pp) <- TRUE;
+}
+
 FORM taskTypes 'Типы задач'
     OBJECTS a = TaskType
     PROPERTIES (a) name, practics READONLY, NEW, DELETE, active
     
     OBJECTS p 'Список' = Practice
     PROPERTIES(p) READONLY name
-    PROPERTIES(p) READONLY SHOWIF useTreePractics() nameParent, canonicalName
     PROPERTIES in(a, p)
-    FILTERS NOT parent(p) OR useTreePractics()
+    FILTERS NOT parent(p)
     
-    TREE groups g 'Дерево' = Practice PARENT parent(g)
-    PROPERTIES READONLY name(g)
+    OBJECTS g 'Дерево' = Practice 
+    PROPERTIES READONLY name(g), nameParent(g), canonicalName(g)
     PROPERTIES in(a, g)
+    FILTERS parent(g)
     
-    EVENTS ON CHANGE g { SEEK taskTypes.p = g; }
+    //EVENTS ON CHANGE g { SEEK taskTypes.p = g; }
 ;
 
 DESIGN taskTypes {
@@ -90,27 +94,27 @@ DESIGN taskTypes {
             type = TABBED;
             fill = 1;
             caption = 'Практики';
-            MOVE BOX (TREE groups) { showIf = useTreePractics(); }
-            MOVE BOX (p);
+            MOVE BOX (g) { showIf = useTreePractics(); }
+            MOVE BOX (p) { showIf = NOT useTreePractics(); }
         }
     }
 }
 
 FORM dialogTaskType 'Выбор типа задачи'
     OBJECTS p = Practice
-    PROPERTIES (p) READONLY name
-
-    FILTERS NOT parent(p) OR useTreePractics()
+    PROPERTIES(p) READONLY name
+    FILTERS NOT parent(p)
     
-    TREE groups g = Practice PARENT parent(g)
-    PROPERTIES (g) name
+    OBJECTS g = Practice 
+    PROPERTIES(g) READONLY name
+    FILTERS parent(g)
     
-    EVENTS ON CHANGE g { SEEK dialogTaskType.p = g; }
+    //EVENTS ON CHANGE g { SEEK dialogTaskType.p = g; }
 
     OBJECTS a = TaskType
     PROPERTIES(a) READONLY name
     FILTERGROUP inPractice
-        FILTER 'В практике' inPracticGroup(a, p) DEFAULT
+        FILTER 'В практике' (in(a, p) AND NOT useTreePractics()) OR (in(a, g) AND useTreePractics()) DEFAULT
     
     LIST TaskType OBJECT a;
 ;
@@ -119,7 +123,7 @@ DESIGN dialogTaskType {
     OBJECTS {
         type = CONTAINERH;
         MOVE BOX (p) { showIf = NOT useTreePractics(); }
-        MOVE BOX (TREE groups) { showIf = useTreePractics(); }
+        MOVE BOX (g) { showIf = useTreePractics(); }
         MOVE BOX (a);
     }
     
@@ -191,5 +195,36 @@ WHEN LOCAL (CHANGED (employee(Task t)) OR CHANGED (project(t))) AND NOT CHANGED 
 onStarted() + {
     FOR Task t IS Task AND NOT category(t) DO {
         category(t) <- OVERRIDE category(employee(t), project(t)), category(employee(t));
+    }
+}
+
+newPractices = DATA BOOLEAN ();
+onStarted() +{
+    IF NOT newPractices() THEN {
+        useTreePractics() <- TRUE;
+        NEW p = Practice {
+            name(p) <- 'Юридическая практика';
+            parent(p) <- GROUP MAX Practice pp IF name(pp) == 'Юридические услуги';
+        }
+        NEW p = Practice {
+            name(p) <- 'Венчурная практика';
+            parent(p) <- GROUP MAX Practice pp IF name(pp) == 'Юридические услуги';
+        }
+        NEW p = Practice {
+            name(p) <- 'M&A практика';
+            parent(p) <- GROUP MAX Practice pp IF name(pp) == 'Юридические услуги';
+        }  
+        NEW p = Practice {
+            name(p) <- 'Due Dilligence практика';
+            parent(p) <- GROUP MAX Practice pp IF name(pp) == 'Юридические услуги';
+        }  
+        NEW p = Practice {
+            name(p) <- 'Бухгалтерская практика';
+            parent(p) <- GROUP MAX Practice pp IF name(pp) == 'Бухгалтерские услуги';
+        }   
+        
+        newPractices() <- TRUE;
+        FOR in(TaskType t, Practice p) DO 
+            FOR level(Practice pp, p) DO in(t, pp) <- TRUE;
     }
 }
