@@ -25,16 +25,21 @@ employee(Task t) <- currentEmployee() WHEN SET(t IS Task);
 completed 'Завершена' = DATA BOOLEAN (Task);
 notCompleted 'Не завершена' (Task t) = t IS Task AND NOT completed(t);
 
+markDelete 'Помечена на удаление' = DATA BOOLEAN (Task);
+markDeleteDateTime = DATA DATETIME (Task);
+
 @defineStaticObject(StatusTask, 'Статус');
 
 EXTEND CLASS StatusTask {
-    completed 'Завершена'
+    completed 'Завершена',
+    markDelete 'Помечена на удаление'
 }
 
 status 'Статус' = ABSTRACT CASE StatusTask (Task);
-nameStatus 'Статус' (Task t) = staticCaption(status(t)) CHARWIDTH 10;
+nameStatus 'Статус' (Task t) = staticCaption(status(t)) CHARWIDTH 18;
 
 status (Task t) += WHEN completed(t) THEN StatusTask.completed;
+status (Task t) += WHEN markDelete(t) THEN StatusTask.markDelete;
 
 background (Task t) = ABSTRACT CASE COLOR (Task);
 background (Task t) += WHEN completed(t) THEN RGB(255,255,255);

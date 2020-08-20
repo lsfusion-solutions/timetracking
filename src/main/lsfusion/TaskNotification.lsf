@@ -222,6 +222,13 @@ EXTEND FORM timeDashboard
     PROPERTIES(fe) setTaskNotification
 ;
 
+DESIGN timeDashboard {
+    GROUP(, fe) {
+        MOVE PROPERTY(deleteTask(fe));
+        MOVE PROPERTY(cancelDelete(fe));
+    }
+}
+
 WHEN LOCAL SET(nDay(TaskNotification n)) DO {
     workDay(n) <- NULL;
     nWeek(n) <- NULL;

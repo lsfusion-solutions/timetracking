@@ -59,9 +59,9 @@ CONSTRAINT SETCHANGED(hours(TimeEntry e)) AND hours(e) < 0.0
 initPaused 'Запускать на паузе' = DATA BOOLEAN (Task);
 
 inProcess 'В работе' (TimeEntry e) = dateTimeStart(e) AND NOT dateTimeFinish(e) AND NOT userHours(e);
-inProcess 'В работе' (Task t) = t IS Task AND NOT completed(t) AND NOT dateTimeFinish(t) AND NOT (initPaused(t) AND NOT dateTimeStart(t));
+inProcess 'В работе' (Task t) = t IS Task AND NOT completed(t) AND NOT dateTimeFinish(t) AND NOT (initPaused(t) AND NOT dateTimeStart(t)) AND NOT markDelete(t);
 
-paused 'На паузе' (Task t) = (dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t))) AND NOT completed(t);  
+paused 'На паузе' (Task t) = (dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t))) AND NOT completed(t) AND NOT markDelete(t);
 
 EXTEND CLASS StatusTask {
     paused 'На паузе',

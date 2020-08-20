@@ -12,26 +12,6 @@ FORM selectProject 'Выбор проекта'
     FILTERGROUP activep FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
 ;
 
-startTimeEntry 'Начать новую задачу' (TaskType tt)  { 
-    IF currentEmployee() THEN {
-        NEWSESSION {
-            DIALOG selectProject OBJECTS p INPUT DO {
-                NEW t = Task {
-                    employee(t) <- currentEmployee();
-                    project(t) <- p;
-                    taskType(t) <- tt;
-                    NEW e = TimeEntry {
-                        task(e) <- t;
-                        dateTimeStart(e) <- currentDateTime();
-                    }
-                }
-            }
-            APPLY;
-        }
-    } ELSE
-        MESSAGE 'Вы должны быть залогинены под сотрудником, чтобы начать работу';
-}
-
 visible 'Видимая' = DATA BOOLEAN (Task);
 
 isReadonlyTask (Task t) = t IS Task AND NOT employee(t) == currentEmployee();
@@ -68,18 +48,15 @@ DESIGN contactsDocuments {
     }
 }
 
-markDelete 'Помечена на удаление' = DATA BOOLEAN (Task);
-markDeleteDateTime = DATA DATETIME (Task);
-
 deleteTask 'Удалить' (Task t) {
     ASK 'Вы действительно хотите удалить задачу?' DO {
         NEWSESSION {
             markDelete(t) <- TRUE;
             IF status(t) == StatusTask.inProcess THEN {
                 dateTimeFinish(TimeEntry e) <- currentDateTime() WHERE task(e) == t AND NOT dateTimeFinish(e);
-                completed(t) <- TRUE;
-                initPaused(t) <- NULL;
             }
+            completed(t) <- NULL;
+            initPaused(t) <- NULL;
             markDeleteDateTime(t) <- currentDateTime();
             APPLY;
         }
@@ -90,6 +67,7 @@ cancelDelete 'Отменить удаление' (Task t) {
     NEWSESSION {
         markDelete(t) <- NULL;
         markDeleteDateTime(t) <- NULL;
+        completed(t) <- TRUE;
         APPLY;
     }
 }
@@ -121,7 +99,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(fe) nameCustomerProject ON CHANGE { DIALOG contactsDocuments OBJECTS p = project(fe); }
     PROPERTIES(fe) READONLY nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
     //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
-    PROPERTIES(fe) visible SHOWIF currentEmployee(), markDelete READONLY 
+    PROPERTIES(fe) visible SHOWIF currentEmployee()//, markDelete READONLY 
     PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, ed = EDIT, deleteTask READONLYIF isReadonlyTask(fe) SHOWIF NOT markDelete(fe),
         cancelDelete  READONLYIF isReadonlyTask(fe) SHOWIF markDelete(fe)
     FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND visible(fe)),
@@ -142,13 +120,39 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     
     OBJECTS t = TaskType PANEL
     PROPERTIES(t) SELECTOR name SHOWIF NOT ce
-    PROPERTIES startTimeEntry(t)
+    //PROPERTIES startTimeEntry(t)
                 
     OBJECTS pa = TimeEntry
     PROPERTIES (pa) READONLY dateTimeCreated SHOWIF validUser(), nameEmployee, dateTimeStart BACKGROUND dateTimeStartChanged(pa) AND validUser(),
         dateTimeStartChanged SHOWIF validUser() AND dateTimeStartChanged(pa), dateTimeFinish BACKGROUND dateTimeFinishChanged(pa) AND validUser(), 
         dateTimeFinishChanged SHOWIF validUser() AND dateTimeFinishChanged(pa), nameActivity, hours BACKGROUND userHours(pa), comment PANEL
     FILTERS task(pa) == fe
+;
+
+startTimeEntry 'Начать новую задачу' (TaskType tt) { 
+    IF currentEmployee() THEN {
+        NEWSESSION {
+            DIALOG selectProject OBJECTS p INPUT DO {
+                NEW t = Task {
+                    employee(t) <- currentEmployee();
+                    project(t) <- p;
+                    taskType(t) <- tt;
+                    NEW e = TimeEntry {
+                        task(e) <- t;
+                        dateTimeStart(e) <- currentDateTime();
+                    }
+                    APPLY;
+                    SEEK timeDashboard.fe = t;
+                }
+            }
+            //APPLY;
+        }
+    } ELSE
+        MESSAGE 'Вы должны быть залогинены под сотрудником, чтобы начать работу';
+}
+
+EXTEND FORM timeDashboard
+    PROPERTIES startTimeEntry(t)
 ;
 
 DESIGN timeDashboard {
