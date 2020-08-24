@@ -36,28 +36,40 @@ FORM practice 'Практика'
     EDIT Practice OBJECT p
 ;
 
-FORM practices 'Практики'
-    OBJECTS p 'Список' = Practice 
-    PROPERTIES(p) READONLY name
-    PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE
-    FILTERS NOT parent(p) OR useTreePractics()
+newPractice 'Добавить' (Practice p) {
+    NEW pp = Practice {
+        parent(pp) <- p;
+        SHOW practice OBJECTS p = pp DOCKED;
+    }
+    APPLY;
+} IMAGE 'add.png';
 
-    OBJECTS g 'Дерево' = Practice
+FORM practices 'Практики'
+    OBJECTS p 'Родитель' = Practice 
+    PROPERTIES(p) READONLY name
+    //PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE
+    FILTERS NOT parent(p)
+
+    OBJECTS g 'Практики' = Practice
     PROPERTIES(g) READONLY name, nameParent, canonicalName 
-    PROPERTIES(g) NEWSESSION NEW, EDIT, DELETE
-    FILTERS parent(g)
+    PROPERTIES NEWSESSION newPractice(p) DRAW g, EDIT(g), DELETE(g)
+    FILTERS parent(g) == p
     //EVENTS ON CHANGE g { SEEK practices.p = g; } 
 ;
 
 DESIGN practices {
+    TOOLBARRIGHT(g) {
+        MOVE PROPERTY(newPractice(p));
+    }
+}
+
+DESIGN practices {
     OBJECTS {
-        type = CONTAINERH;
-        MOVE BOX (g) { 
-            showIf = useTreePractics();
+        type = SPLITH;
+        MOVE BOX (p) { 
             fill = 1; 
         }
-        MOVE BOX(p){ 
-            showIf = NOT useTreePractics();
+        MOVE BOX(g){ 
             fill = 4; 
         }
     }

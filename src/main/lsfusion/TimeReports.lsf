@@ -43,7 +43,7 @@ FORM projects 'По проектам'
         dateTimeFinishChanged SHOWIF validUser() AND dateTimeFinishChanged(t)
     PROPERTIES(t) seriesNumberInvoice ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
     PROPERTIES(t) READONLY managers, 
-        nameEmployee, namePractice, nameCustomerProject, nameProject, nameTaskType, nameTask, nameActivity
+        nameEmployee, namePractice, nameParent, nameCustomerProject, nameProject, nameTaskType, nameTask, nameActivity
     PROPERTIES(t) READONLY descriptionTask, comment
     //PROPERTIES(t) descriptionTask ON CHANGE changeDescriptionTask(t) PANEL
     PROPERTIES(t) hours BACKGROUND userHours(t)//, comment PANEL 
@@ -113,7 +113,7 @@ FORM employees 'По сотрудникам'
         dateTimeFinishChanged SHOWIF validUser() AND dateTimeFinishChanged(t)
     PROPERTIES(t) seriesNumberInvoice ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
     PROPERTIES(t) READONLY managers,
-        firstNameEmployee, lastNameEmployee, namePractice, nameCustomerProject, nameProject
+        firstNameEmployee, lastNameEmployee, namePractice, nameParent, nameCustomerProject, nameProject
     PROPERTIES(t) READONLY  nameTaskType, nameTask, nameActivity, descriptionTask, comment
     //PROPERTIES(t) descriptionTask ON CHANGE changeDescriptionTask(t) PANEL
     PROPERTIES(t) hours BACKGROUND userHours(t)
@@ -313,7 +313,8 @@ FORM taskMonitoring 'Мониторинг задач по проекту'
     }
     
     OBJECTS t = TimeEntry
-    PROPERTIES(t) READONLY dateStart, dateFinish, status, nameTask, 'Описание' = nameTaskType, 'Исполнитель' = nameEmployee, nameResponsible, hours, 
+    PROPERTIES(t) READONLY dateStart, dateFinish, status, nameTask, 'Описание' = nameTaskType, 
+        'Исполнитель' = nameEmployee,  namePractice, nameParent, nameResponsible, hours, 
         rate, sum
     FILTERS project(t) == filterProject(),
             dateStart(t) >= dateFrom() AND dateFinish(t) <= dateTo(),

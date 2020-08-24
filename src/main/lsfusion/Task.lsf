@@ -105,11 +105,7 @@ DESIGN taskTypes {
     }
 }
 
-FORM dialogTaskType 'Выбор типа задачи'
-    OBJECTS p = Practice
-    PROPERTIES(p) READONLY name
-    FILTERS NOT parent(p)
-    
+FORM dialogTaskType 'Выбор типа задачи'  
     OBJECTS g = Practice 
     PROPERTIES(g) READONLY name
     FILTERS parent(g)
@@ -119,7 +115,7 @@ FORM dialogTaskType 'Выбор типа задачи'
     OBJECTS a = TaskType
     PROPERTIES(a) READONLY name
     FILTERGROUP inPractice
-        FILTER 'В практике' (in(a, p) AND NOT useTreePractics()) OR (in(a, g) AND useTreePractics()) DEFAULT
+        FILTER 'В практике'  in(a, g) DEFAULT
     
     LIST TaskType OBJECT a;
 ;
@@ -127,8 +123,7 @@ FORM dialogTaskType 'Выбор типа задачи'
 DESIGN dialogTaskType {
     OBJECTS {
         type = CONTAINERH;
-        MOVE BOX (p) { showIf = NOT useTreePractics(); }
-        MOVE BOX (g) { showIf = useTreePractics(); }
+        MOVE BOX (g); //{ showIf = useTreePractics(); }
         MOVE BOX (a);
     }
     
@@ -142,12 +137,25 @@ NAVIGATOR {
 
 taskType 'Тип задачи' = DATA TaskType (Task) NONULL;
 nameTaskType 'Тип задачи' (Task t) = name(taskType(t));
+practice = DATA Practice(Task);
+namePractice 'Практика' (Task t) = name(practice(t));
+nameParent 'Услуги' (Task t) = name(parent(practice(t)));
+
+CONSTRAINT taskType(Task t) AND practice(t) AND NOT in(taskType(t), practice(t))
+    MESSAGE 'Тип задачи должен соответствовать практике';
+
+changeTaskType (Task t) {
+    DIALOG dialogTaskType OBJECTS a INPUT, g INPUT DO {
+        taskType(t) <- a;
+        practice(t) <- g;
+    } 
+}
 
 // --- Редактирование задачи
 
 FORM task 'Задача'
     OBJECTS t = Task PANEL
-    PROPERTIES(t) nameCustomerProject, nameProject, nameTaskType, name, description
+    PROPERTIES(t) nameCustomerProject, nameProject, nameTaskType ON CHANGE { changeTaskType(t); }, namePractice READONLY, name, description
     ORDERS nameCustomerProject(t)
     
     EDIT Task OBJECT t
@@ -162,6 +170,7 @@ DESIGN task {
             MOVE PROPERTY(nameCustomerProject(t));
             MOVE PROPERTY(nameProject(t));
             MOVE PROPERTY(nameTaskType(t));
+            MOVE PROPERTY(namePractice(t));
             MOVE PROPERTY(name(t));
         }
         
@@ -231,5 +240,15 @@ onStarted() +{
         newPractices() <- TRUE;
         FOR in(TaskType t, Practice p) DO 
             FOR level(Practice pp, p) DO in(t, pp) <- TRUE;
+    }
+}
+
+newPractices2 = DATA BOOLEAN ();
+onStarted() +{
+    IF NOT newPractices2() THEN {
+        FOR taskType(Task t) DO {
+            practice(t) <- GROUP MAX Practice p IF in(taskType(t), p);
+        }
+        newPractices2() <- TRUE;
     }
 }

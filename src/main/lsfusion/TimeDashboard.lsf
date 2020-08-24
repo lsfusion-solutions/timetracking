@@ -97,7 +97,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     OBJECTS fe = Task
     PROPERTIES(fe) READONLY nameEmployee, nameStatus BACKGROUND background(fe)
     PROPERTIES(fe) nameCustomerProject ON CHANGE { DIALOG contactsDocuments OBJECTS p = project(fe); }
-    PROPERTIES(fe) READONLY nameProject, nameTaskType, name, dateTimeStart, dateTimeFinish
+    PROPERTIES(fe) READONLY nameProject, nameTaskType, namePractice, nameParent, name, dateTimeStart, dateTimeFinish
     //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
     PROPERTIES(fe) visible SHOWIF currentEmployee()//, markDelete READONLY 
     PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, ed = EDIT, deleteTask READONLYIF isReadonlyTask(fe) SHOWIF NOT markDelete(fe),
