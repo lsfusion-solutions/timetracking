@@ -62,9 +62,13 @@ nDowMonthDescription (TaskNotification n) =
 countWorkDayNumberMonth (DATE d) = GROUP SUM 1 IF NOT isDayoff(DATE dd) AND iterate(dd, firstDayOfMonth(d), d);
     
 nWorkDayMonth 'Каждый рабочий n-день' = DATA BOOLEAN (TaskNotification);
-nWorkDayMonthNumber (TaskNotification n) = countWorkDayNumberMonth(startDate(n));
-nWorkDayMonthDescription (TaskNotification n) =  CONCAT ' ', nWorkDayMonthNumber(n), 'рабочий день' CHARWIDTH 20;
+//nWorkDayMonthNumber (TaskNotification n) = countWorkDayNumberMonth(startDate(n));
+nWorkDayMonthNumber 'Рабочий день' = DATA INTEGER (TaskNotification) CHARWIDTH 5;
+//nWorkDayMonthDescription (TaskNotification n) =  CONCAT ' ', nWorkDayMonthNumber(n), 'рабочий день' CHARWIDTH 20;
 nMonthNumber3 = DATA INTEGER (TaskNotification) CHARWIDTH 5;
+
+CONSTRAINT SET(nWorkDayMonthNumber(TaskNotification n)) AND (nWorkDayMonthNumber(n) <= 0 OR nWorkDayMonthNumber(n) > 31)
+    MESSAGE 'Раюочий день должен быть от 1 до 31';
 
 //year
 nDateYear 'Каждого n-числа' = DATA BOOLEAN (TaskNotification);
@@ -110,7 +114,7 @@ FORM taskNotification 'Уведомление о задаче'
                caption5 = 'месяца' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
                
                nWorkDayMonth(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
-               nWorkDayMonthDescription(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
+               nWorkDayMonthNumber(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
                nMonthNumber3(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month,
                caption6 = 'месяца' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.month
                
@@ -166,8 +170,8 @@ DESIGN taskNotification {
         NEW row7 {
             type = CONTAINERH;
             MOVE PROPERTY(nWorkDayMonth(n)) { caption = ''; }
-            MOVE PROPERTY(nWorkDayMonthDescription(n)) { caption = 'Каждый'; }
-            MOVE PROPERTY(nMonthNumber3(n)) { caption = 'каждого'; }
+            MOVE PROPERTY(nWorkDayMonthNumber(n)) { caption = 'Каждый'; }
+            MOVE PROPERTY(nMonthNumber3(n)) { caption = 'рабочий день каждого'; }
             MOVE PROPERTY(caption6) { charWidth = 60; }
         }
         NEW row8 {
@@ -193,11 +197,11 @@ calcNextNotificationDate 'Рассчитать' (TaskNotification n) {
         WHEN nDay(n) THEN sum(currentDate(), nDayNumber(n))
         WHEN workDay(n) THEN (GROUP MIN DATE d IF NOT isDayoff(d) AND iterate(d, sum(currentDate(), 1), overrideEndDate(n)))
         WHEN nWeek(n) THEN (GROUP MIN DATE d IF extractDOW(d) == dow(n) AND iterate(d, sum(currentDate(), 7 * nWeekNumber(n)), overrideEndDate(n)))
-        WHEN nDayMonth(n) THEN (GROUP MIN DATE d IF extractDay(d) == nDayNumberMonth(n) AND iterate(d, sumMonth(currentDate(), nMonthNumber(n)), overrideEndDate(n)))
+        WHEN nDayMonth(n) THEN (GROUP MIN DATE d IF extractDay(d) == nDayNumberMonth(n) AND iterate(d, firstDayOfMonth(sumMonth(currentDate(), nMonthNumber(n))), overrideEndDate(n)))
         WHEN nDowMonth(n) THEN (GROUP MIN DATE d IF extractDOWName(d) == nDowMonthName(n) AND extractDowNumberMonth(d) == nDowNumberMonth(n)
-            AND iterate(d, sumMonth(currentDate(), nMonthNumber2(n)), overrideEndDate(n)))
+            AND iterate(d, firstDayOfMonth(sumMonth(currentDate(), nMonthNumber2(n))), overrideEndDate(n)))
         WHEN nWorkDayMonth(n) THEN (GROUP MIN DATE d IF countWorkDayNumberMonth(d) == nWorkDayMonthNumber(n) AND
-            iterate(d, sumMonth(currentDate(), nMonthNumber3(n)), overrideEndDate(n)))
+            iterate(d, firstDayOfMonth(sumMonth(currentDate(), nMonthNumber3(n))), overrideEndDate(n)))
         WHEN nDateYear(n) THEN (GROUP MIN DATE d IF extractDay(d) == nYearDayNumber(n) AND extractMonth(d) == nYearMonth(n) AND
             iterate(d, sumYear(currentDate(), nYearNumber(n)), overrideEndDate(n)));
 }
@@ -292,6 +296,7 @@ WHEN LOCAL SET(nWorkDayMonth(TaskNotification n)) DO {
     nDayMonth(n) <- NULL;
     nDowMonth(n) <- NULL;
     nDateYear(n) <- NULL;
+    nWorkDayMonthNumber(n) <- countWorkDayNumberMonth(currentDate());
     nMonthNumber3(n) <- 1;
     calcNextNotificationDate(n);
 }
@@ -387,11 +392,11 @@ fillTaskNotifications 'Заполнить' (DATE dt) {
                 WHEN nDay(n) THEN sum(iDate(), nDayNumber(n))
                 WHEN workDay(n) THEN (GROUP MIN DATE d IF NOT isDayoff(d) AND iterate(d, sum(iDate(), 1), overrideEndDate(n)))
                 WHEN nWeek(n) THEN (GROUP MIN DATE d IF extractDOW(d) == dow(n) AND iterate(d, sum(iDate(), 7 * nWeekNumber(n)), overrideEndDate(n)))
-                WHEN nDayMonth(n) THEN (GROUP MIN DATE d IF extractDay(d) == nDayNumberMonth(n) AND iterate(d, sumMonth(iDate(), nMonthNumber(n)), overrideEndDate(n)))
+                WHEN nDayMonth(n) THEN (GROUP MIN DATE d IF extractDay(d) == nDayNumberMonth(n) AND iterate(d, firstDayOfMonth(sumMonth(iDate(), nMonthNumber(n))), overrideEndDate(n)))
                 WHEN nDowMonth(n) THEN (GROUP MIN DATE d IF extractDOWName(d) == nDowMonthName(n) AND extractDowNumberMonth(d) == nDowNumberMonth(n)
-                    AND iterate(d, sumMonth(iDate(), nMonthNumber2(n)), overrideEndDate(n)))
+                    AND iterate(d, firstDayOfMonth(sumMonth(iDate(), nMonthNumber2(n))), overrideEndDate(n)))
                 WHEN nWorkDayMonth(n) THEN (GROUP MIN DATE d IF countWorkDayNumberMonth(d) == nWorkDayMonthNumber(n) AND
-                    iterate(d, sumMonth(iDate(), nMonthNumber3(n)), overrideEndDate(n)))
+                    iterate(d, firstDayOfMonth(sumMonth(iDate(), nMonthNumber3(n))), overrideEndDate(n)))
                 WHEN nDateYear(n) THEN (GROUP MIN DATE d IF extractDay(d) == nYearDayNumber(n) AND extractMonth(d) == nYearMonth(n) AND
                     iterate(d, sumYear(iDate(), nYearNumber(n)), overrideEndDate(n))));
         }
