@@ -44,6 +44,7 @@ FORM invoiceDashboard 'Выставление счетов'
     PROPERTIES(i) READONLY date, series, number, nameCustomer, nameProject, fromDate, toDate, hours, nameAuthor
     PROPERTIES(i) TOOLBAR generateTimeEntriesWord, generateWord
     PROPERTIES(i) NEWSESSION EDIT, DELETE
+    ORDERS date(i) DESC
     FILTERS assigned(project(i), currentEmployee())
     FILTERGROUP customer
         FILTER 'По проекту' project(i) == p 'F10'
