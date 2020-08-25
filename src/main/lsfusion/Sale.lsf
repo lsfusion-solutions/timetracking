@@ -146,24 +146,26 @@ CLASS StageHistory 'История этапов';
 
 sale = DATA Sale (StageHistory);
 newStage = DATA SaleStage (StageHistory);
-nameNewStage 'Новый статус' (StageHistory s) = name(newStage(s)) CHARWIDTH 25;
+nameNewStage 'Этап' (StageHistory s) = name(newStage(s)) CHARWIDTH 25;
 amount 'Сумма' = DATA NUMERIC[16,2] (StageHistory);
 probability 'Вероятность, %' = DATA INTEGER (StageHistory);
 date 'Дата изменения' = DATA DATE (StageHistory);
+time = DATA TIME (StageHistory);
 user = DATA Employee (StageHistory);
 nameUser 'Автор' (StageHistory s) = CONCAT ' ', lastName(user(s)), firstName(user(s)) CHARWIDTH 25;
 
 prev (StageHistory s) = PARTITION PREV s ORDER date(s), s BY sale(s);
 prevDate (StageHistory s) = date(prev(s));
-daysBetweenPrev 'Дней с прошлого изменения' (StageHistory s) = daysBetweenDates(prevDate(s), date(s));
+daysBetweenPrev 'Дней с прошлого изменения' (StageHistory s) = daysBetweenDates(date(s), prevDate(s));
 
-WHEN CHANGED(stage(Sale s)) DO {
+WHEN CHANGED(stage(Sale s)) OR CHANGED(amount(s)) OR CHANGED(probability(s)) DO {
     NEW h = StageHistory {
         sale(h) <- s;
         newStage(h) <- stage(s);
         amount(h) <- amount(s);
         probability(h) <- probability(s);
         date(h) <- currentDate();
+        time(h) <- currentTime();
         user(h) <- currentUser();
     }   
 }
@@ -212,10 +214,10 @@ deleteInterraction 'Удалить' (Sale s, Interraction i) {
 } IMAGE 'delete.png' TOOLBAR;
 
 employee = DATA Employee (Interraction);
-nameEmployee 'Сотрудник ' (Interraction i) = name(employee(i)) CHARWIDTH 25;
-namePerson 'Физическое лицо' (Interraction i) = CONCAT ' ', firstName(person(i)), lastName(person(i)), middleName(person(i)) CHARWIDTH 40;
+nameEmployee 'Сотрудник АСБ' (Interraction i) = name(employee(i)) CHARWIDTH 25;
+namePerson 'Контактное лицо' (Interraction i) = CONCAT ' ', firstName(person(i)), lastName(person(i)), middleName(person(i)) CHARWIDTH 40;
 role = DATA SaleRole (Interraction);
-nameRolePerson 'Роль в продаже' (Interraction i) = name(role(i)) CHARWIDTH 20;
+nameRolePerson 'Роль контактного лица' (Interraction i) = name(role(i)) CHARWIDTH 20;
 phonePerson 'Телефон' (Interraction i) = phone(person(i));
 emailPerson 'Email' (Interraction i) = email(person(i));
 
@@ -252,7 +254,8 @@ FORM sale 'Продажа'
 //    FILTERS in(p2, s)
     
     OBJECTS h = StageHistory
-    PROPERTIES(h) READONLY nameNewStage, amount, probability, daysBetweenPrev, date, nameUser
+    PROPERTIES(h) READONLY nameNewStage, amount, probability, daysBetweenPrev, date, nameUser, time SHOWIF NULL
+    ORDERS date(h) DESC, time(h) DESC
     FILTERS sale(h) == s
     
     EDIT Sale OBJECT s
@@ -270,7 +273,7 @@ DESIGN sale {
             type = TABBED;
             MOVE BOX(i) { caption = 'Журнал взаимодействия'; }
             //MOVE BOX(p2) { caption = 'Роли в продаже'; }
-            MOVE BOX(h) { caption = 'История этапов'; }
+            MOVE BOX(h) { caption = 'История'; }
         }
     }
 }
