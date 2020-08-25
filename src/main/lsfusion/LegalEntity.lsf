@@ -130,7 +130,6 @@ FORM legalEntity 'Юридическое лицо'
                   addressIsActual, actualAddress READONLYIF addressIsActual(o), addressIsMailing, mailingAddress READONLYIF addressIsMailing(o),
                   email, note,
                   nameRepresentative, positionRepresentative, baseRepresentative, phone, okpo, okato, oktmo, okved, numberAccount
-    ORDERS shortName(o)
     
     OBJECTS a=Account
     PROPERTIES(a) number, nameBank, bicBank, swiftBank, NEW, DELETE GRID
@@ -147,6 +146,7 @@ DESIGN legalEntity {
             fill = 1;
             type = TABBED;
             NEW main {
+                //type = SCROLL;
                 caption = 'Главная';
                 NEW first {
                     type = CONTAINERH;
@@ -191,10 +191,6 @@ DESIGN legalEntity {
                             MOVE PROPERTY (baseRepresentative(o)) { caption = 'Основание'; }
                         }
                     }
-                    MOVE PROPERTY(note(o)) {
-                        panelCaptionAbove = TRUE;
-                        height = 70;
-                    }
                 }
                 NEW numbers {
                     caption = 'Информация';
@@ -208,7 +204,7 @@ DESIGN legalEntity {
                         MOVE PROPERTY (okato(o));
                     }
                 }
-                MOVE BOX(a) { fill = 1; }
+                MOVE BOX(a) { fill = 1; height = 250; }
             }
         }
     }
@@ -279,10 +275,10 @@ EXTEND FORM legalEntity
     PROPERTIES DRAW p TOOLBAR addPerson(o), deletePerson(o, p)
     FILTERS in(p, o)
     
-    OBJECTS p2 = Person
-    PROPERTIES(p2) READONLY lastName, firstName, middleName
-    PROPERTIES(p2) GPH, prepaidDate, salary, benefits, actList, other
-    FILTERS in(p2, o)
+//    OBJECTS p2 = Person
+//    PROPERTIES(p2) READONLY lastName, firstName, middleName
+//    PROPERTIES(p2) GPH, prepaidDate, salary, benefits, actList, other
+//    FILTERS in(p2, o)
 ;
 
 DESIGN legalEntity {
@@ -290,7 +286,11 @@ DESIGN legalEntity {
         NEW persons {
             caption = 'Физические лица';
             MOVE BOX(p);
-            MOVE BOX(p2) { caption = 'Сотрудники'; }
+            //MOVE BOX(p2) { caption = 'Сотрудники'; }
+            MOVE PROPERTY(note(o)) {
+                panelCaptionAbove = TRUE;
+                height = 70;
+            }
         }
     }
 }
@@ -394,5 +394,28 @@ EXTEND FORM legalEntity
 DESIGN legalEntity {
     first {
         MOVE PROPERTY(nameConterparties) AFTER PROPERTY(nameCustomer(o));
+    }
+}
+
+CLASS LeFile 'Файл';
+
+file = DATA FILE (LeFile);
+legalEntity = DATA LegalEntity (LeFile) NONULL DELETE;
+name 'Наименование' = DATA STRING (LeFile);
+
+open 'Открыть' (LeFile f) { open(file(f)); }
+load 'Загрузить' (LeFile f) {
+    INPUT ff=file(f) CHANGE DO {}
+}
+
+EXTEND FORM legalEntity
+    OBJECTS f = LeFile 
+    PROPERTIES name(f), open(f) GRID, load(f) GRID, NEW(f), DELETE(f)
+    FILTERS legalEntity(f) == o
+;
+
+DESIGN legalEntity {
+    persons {
+        MOVE BOX(f) { height = 150; }
     }
 }

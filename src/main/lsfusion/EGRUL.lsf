@@ -37,7 +37,7 @@ ogrn 'ОГРН' = DATA ISTRING (LegalEntity) IN params; // Контейнер п
 director 'ФИО директора' = DATA ISTRING(LegalEntity) IN params; // Контейнер под ФИО директора
 zipcode 'Почтовый индекс' = DATA ISTRING(LegalEntity) IN params; // Контейнер под Почтовый Индекс
 
-EXTEND FORM legalEntity PROPERTIES (o) legalName, legalPure, legalLatin, legalShort, legalLong, inn, kpp, ogrn, address, director, zipcode;
+EXTEND FORM legalEntity PROPERTIES (o) legalName, legalPure, legalLatin, inn, kpp, ogrn, address, director, zipcode;
 
 DESIGN legalEntity {
     tabPane {
@@ -115,7 +115,7 @@ EXTEND FORM legalEntity
 DESIGN legalEntity {
     tabPane {
         NEW params {
-            caption = 'Параметры';
+            caption = 'Дополнительная информация';
             fill = 1;
             MOVE GROUP (params, o) { alignment = STRETCH; }
             MOVE BOX (l);
@@ -143,6 +143,9 @@ getEgrulData 'Импорт из ЕГРЮЛ' (LegalEntity a) {
 }
 
 getEgrulDataUser 'Импорт из ЕГРЮЛ' (LegalEntity c) {
+    APPLY;
+    IF canceled() THEN RETURN;
+    
     IF NOT ogrn(c) THEN {
         MESSAGE 'Не задан ОГРН';
     } ELSE NEWSESSION {
@@ -375,6 +378,28 @@ DESIGN legalEntity {
             MOVE PROPERTY(audit(o));
             MOVE PROPERTY(seal(o));
             MOVE PROPERTY(facsimile(o));
+        }
+    }
+}
+
+WHEN SETCHANGED(legalShort(LegalEntity l)) DO { shortName(l) <- ISTRING[250](legalShort(l)); }
+WHEN SETCHANGED(legalLong(LegalEntity l)) DO { fullName(l) <- ISTRING[250](legalLong(l)); }
+
+DESIGN legalEntity {
+    main {
+        NEW parameters BEFORE BOX(a) {
+            fill = 1;
+            MOVE PROPERTY(inn(o));
+            MOVE PROPERTY(kpp(o));
+            MOVE PROPERTY(ogrn(o));
+            MOVE PROPERTY(director(o));
+            MOVE PROPERTY(getEgrulDataUser(o));
+            MOVE PROPERTY(website(o));
+            MOVE PROPERTY(nameTaxMode(o));
+            MOVE PROPERTY(skolkovoMember(o));
+            MOVE PROPERTY(industry(o));
+            MOVE PROPERTY(nameSourceCustomer(o));
+            MOVE PROPERTY(nameResponsible(o));
         }
     }
 }
