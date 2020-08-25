@@ -145,10 +145,13 @@ CONSTRAINT taskType(Task t) AND practice(t) AND NOT in(taskType(t), practice(t))
     MESSAGE 'Тип задачи должен соответствовать практике';
 
 changeTaskType (Task t) {
-    DIALOG dialogTaskType OBJECTS a INPUT, g INPUT DO {
-        taskType(t) <- a;
-        practice(t) <- g;
-    } 
+    NEWSESSION {
+        DIALOG dialogTaskType OBJECTS a INPUT, g INPUT DO {
+            taskType(t) <- a;
+            practice(t) <- g;
+        } 
+        APPLY;
+    }
 }
 
 // --- Редактирование задачи

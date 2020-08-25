@@ -114,7 +114,8 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     
     OBJECTS ce = Task PANEL
     PROPERTIES(ce) nameCustomerProject READONLY
-    PROPERTIES(ce) READONLYIF isReadonlyTask(ce) nameProject, nameTaskType, name, dateTimeStart, currentHours, description PANEL
+    PROPERTIES(ce) READONLYIF isReadonlyTask(ce) nameProject, nameTaskType  ON CHANGE { changeTaskType(ce); }, namePractice READONLY, 
+        name, dateTimeStart, currentHours, description PANEL
     FILTERS ce == fe AND NOT markDelete(fe), active(taskType(ce))
     ORDERS nameCustomerProject(ce)
     
@@ -137,6 +138,7 @@ startTimeEntry 'Начать новую задачу' (TaskType tt) {
                     employee(t) <- currentEmployee();
                     project(t) <- p;
                     taskType(t) <- tt;
+                    practice(t) <- GROUP MAX Practice pp IF in(tt, pp);
                     NEW e = TimeEntry {
                         task(e) <- t;
                         dateTimeStart(e) <- currentDateTime();
@@ -186,6 +188,7 @@ DESIGN timeDashboard {
                 MOVE PROPERTY(nameCustomerProject(ce)) { alignment = STRETCH; }
                 MOVE PROPERTY(nameProject(ce)) { alignment = STRETCH; }
                 MOVE PROPERTY(nameTaskType(ce)) { alignment = STRETCH; }
+                MOVE PROPERTY(namePractice(ce)) { alignment = STRETCH; }
                 MOVE PROPERTY(name(ce)) { alignment = STRETCH; }
                 MOVE PROPERTY(dateTimeStart(ce)) { alignment = STRETCH; }
                 MOVE PROPERTY(currentHours(ce)) { alignment = STRETCH; }
