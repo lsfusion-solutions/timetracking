@@ -141,8 +141,8 @@ practice = DATA Practice(Task);
 namePractice 'Практика' (Task t) = name(practice(t));
 nameParent 'Услуги' (Task t) = name(parent(practice(t)));
 
-CONSTRAINT taskType(Task t) AND practice(t) AND NOT in(taskType(t), practice(t))
-    MESSAGE 'Тип задачи должен соответствовать практике';
+//CONSTRAINT taskType(Task t) AND practice(t) AND NOT in(taskType(t), practice(t))
+//    MESSAGE 'Тип задачи должен соответствовать практике';
 
 changeTaskType (Task t) {
     NEWSESSION {
