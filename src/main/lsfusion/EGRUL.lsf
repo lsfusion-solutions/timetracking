@@ -403,3 +403,78 @@ DESIGN legalEntity {
         }
     }
 }
+
+CLASS OKVED 'ОКВЭД';
+
+id 'Номер' = DATA STRING[10] (OKVED);
+okved (id) = GROUP AGGR OKVED o BY id (o);
+
+name 'Вид деятельности' = DATA STRING[250] (OKVED);
+
+FORM okved 'ОКВЭД'
+    OBJECTS o = OKVED PANEL 
+    PROPERTIES(o) id, name
+    
+    EDIT OKVED OBJECT o
+;
+
+FORM okveds 'Справочник ОКВЭД'
+    OBJECTS o = OKVED
+    PROPERTIES(o) READONLY id, name
+    ORDERS id(o)
+    PROPERTIES(o) NEWSESSION NEW, EDIT, DELETE 
+    
+    LIST OKVED OBJECT o
+;
+
+NAVIGATOR {
+    masterData {
+        NEW okveds;
+    }
+}
+
+importOKVED 'Импорт видов деятельности' () {
+    NEWSESSION {
+        LOCAL id = STRING[10] (INTEGER);
+        LOCAL name = STRING[250] (INTEGER);
+        
+        INPUT f = EXCELFILE DO {
+            IMPORT XLS FROM f TO id, name;
+            
+            FOR imported(INTEGER i) AND i > 0 AND NOT okved(id(i)) DO {
+                NEW o = OKVED {
+                    id(o) <- id(i);
+                    name(o) <- name(i);
+                }
+            }  
+        }
+        APPLY;
+    }
+}
+
+fillOKVED 'Заполнить виды деятельности' () {
+    NEWSESSION {
+        FOR okved(LegalEntity l) DO {
+            okvedName(l) <- name(okved(okved(l)));
+        }
+        APPLY;
+    }
+}
+
+EXTEND FORM integrationData
+    PROPERTIES() importOKVED, fillOKVED
+;
+
+DESIGN integrationData {  //  Just Design настройки
+    egrul {
+        NEW okved {
+            type = CONTAINERH;
+            MOVE PROPERTY(importOKVED());
+            MOVE PROPERTY(fillOKVED());
+        }
+    }  
+}
+
+WHEN LOCAL SETCHANGED(okved(LegalEntity l)) DO {
+    okvedName(l) <- name(okved(okved(l)));
+}

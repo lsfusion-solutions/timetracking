@@ -48,7 +48,7 @@ phone 'Номер телефона' = DATA ISTRING[50](LegalEntity) CHARWIDTH 15
 okpo 'ОКПО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
 okato 'ОКАТО' = DATA ISTRING[100](LegalEntity) CHARWIDTH 50;
 oktmo 'ОКТМО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
-okved 'ОКВЭД' = DATA ISTRING[100](LegalEntity) CHARWIDTH 50;
+okved 'ОКВЭД' = DATA ISTRING[100](LegalEntity) CHARWIDTH 10;
 
 CONSTRAINT representative(LegalEntity l) AND NOT customer(representative(l)) == customer(l) CHECKED BY representative[LegalEntity] 
     MESSAGE 'Клиент представителя не совпадает с клиентом организации';
@@ -124,12 +124,14 @@ WHEN LOCAL DROPPED(addressIsMailing(LegalEntity l)) DO mailingAddress(l) <- '';
 email '{authentication.email.contact}'= DATA STRING[400] (LegalEntity) CHARWIDTH 20 REGEXP '[-!#-\'*+/-9=?A-Z^-~]+(\\.[-!#-\'*+/-9=?A-Z^-~]+)*@[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?(\\.[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?)+' '<html>{authentication.email.contact.incorrect}</html>';
 note 'Комментарий' = DATA TEXT (LegalEntity);
 
+okvedName 'Вид деятельности' = DATA STRING[250] (LegalEntity) CHARWIDTH 150;
+
 FORM legalEntity 'Юридическое лицо'
     OBJECTS o = LegalEntity PANEL
     PROPERTIES(o) shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, addr = address, nameEmployee, country,
                   addressIsActual, actualAddress READONLYIF addressIsActual(o), addressIsMailing, mailingAddress READONLYIF addressIsMailing(o),
                   email, note,
-                  nameRepresentative, positionRepresentative, baseRepresentative, phone, okpo, okato, oktmo, okved, numberAccount
+                  nameRepresentative, positionRepresentative, baseRepresentative, phone, okpo, okato, oktmo, okved, okvedName, numberAccount
     
     OBJECTS a=Account
     PROPERTIES(a) number, nameBank, bicBank, swiftBank, NEW, DELETE GRID
@@ -146,6 +148,7 @@ DESIGN legalEntity {
             fill = 1;
             type = TABBED;
             NEW main {
+                fill = 1;
                 //type = SCROLL;
                 caption = 'Главная';
                 NEW first {
@@ -194,14 +197,22 @@ DESIGN legalEntity {
                 }
                 NEW numbers {
                     caption = 'Информация';
+                    fill = 1;
                     NEW line1 {
                         type = CONTAINERH;
                         MOVE PROPERTY (okpo(o));
                         MOVE PROPERTY (oktmo(o));
-                    } 
+                    }
                     NEW line2 {
-                        MOVE PROPERTY (okved(o));
                         MOVE PROPERTY (okato(o));
+                    } 
+                    NEW line3 {
+                        fill = 1;
+                        NEW okved {
+                            type = CONTAINERH;
+                        MOVE PROPERTY (okved(o));
+                        MOVE PROPERTY (okvedName(o));
+                        }
                     }
                 }
                 MOVE BOX(a) { fill = 1; height = 250; }
