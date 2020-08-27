@@ -180,6 +180,38 @@ DESIGN options {
 
 isDayoff 'Выходной' = DATA BOOLEAN (DATE);
 
+nowork2020 = DATA LOCAL STRING(INTEGER);
+holidays = DATA LOCAL STRING(INTEGER);
+preholidays = DATA LOCAL STRING(INTEGER);
+
+FORM generated
+
+OBJECTS nowork2020 = INTEGER
+PROPERTIES(nowork2020) nowork2020 EXTID 'value'
+
+OBJECTS holidays = INTEGER
+PROPERTIES(holidays) holidays EXTID 'value'
+
+OBJECTS preholidays = INTEGER
+PROPERTIES(preholidays) preholidays EXTID 'value';
+
+importJson 'Имортировать календарь' () {
+    NEWSESSION {  
+        LOCAL str = STRING(); 
+        EXTERNAL HTTP GET 'https://raw.githubusercontent.com/d10xa/holidays-calendar/master/json/calendar.json' TO str;
+        stringToFile(str(), 'UTF-8', 'json');  
+        IMPORT generated JSON FROM resultFile();
+            
+        FOR DATE d == toDateFormat(holidays(INTEGER i),'yyyy-MM-dd') DO {
+            isDayoff(d) <- TRUE;
+        } 
+        FOR DATE d == toDateFormat(nowork2020(INTEGER i),'yyyy-MM-dd') DO {
+            isDayoff(d) <- TRUE;
+        }
+        APPLY;
+    }
+}
+
 FORM workDays 'Производственный календарь'
     OBJECTS df = DATE PANEL, dt = DATE PANEL
     PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'по' = VALUE(dt)
@@ -187,6 +219,8 @@ FORM workDays 'Производственный календарь'
     OBJECTS d = DATE 
     PROPERTIES date 'Дата' = VALUE(d), extractMonthName(d), extractDOWName(d), isDayoff(d)
     FILTERS iterate(d, df, dt)
+    
+    PROPERTIES importJson() TOOLBAR 
 ;
 
 DESIGN workDays {
