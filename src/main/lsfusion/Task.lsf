@@ -141,24 +141,24 @@ practice = DATA Practice(Task);
 namePractice 'Практика' (Task t) = name(practice(t));
 nameParent 'Услуги' (Task t) = name(parent(practice(t)));
 
+nameTypePactice 'Описание' (Task t) = CONCAT '', nameTaskType(t), ', ' + namePractice(t) CHARWIDTH 55;
+
 //CONSTRAINT taskType(Task t) AND practice(t) AND NOT in(taskType(t), practice(t))
 //    MESSAGE 'Тип задачи должен соответствовать практике';
 
 changeTaskType (Task t) {
-    NEWSESSION {
-        DIALOG dialogTaskType OBJECTS a INPUT, g INPUT DO {
-            taskType(t) <- a;
-            practice(t) <- g;
-        } 
-        APPLY;
-    }
+    DIALOG dialogTaskType OBJECTS a INPUT, g INPUT DO {
+        taskType(t) <- a;
+        practice(t) <- g;
+    } 
+    APPLY;
 }
 
 // --- Редактирование задачи
 
 FORM task 'Задача'
     OBJECTS t = Task PANEL
-    PROPERTIES(t) nameCustomerProject, nameProject, nameTaskType ON CHANGE { changeTaskType(t); }, namePractice READONLY, name, description
+    PROPERTIES(t) nameCustomerProject, nameProject, nameTypePactice ON CHANGE { changeTaskType(t); }, name, description
     ORDERS nameCustomerProject(t)
     
     EDIT Task OBJECT t
@@ -172,8 +172,7 @@ DESIGN task {
             type = CONTAINERH;
             MOVE PROPERTY(nameCustomerProject(t));
             MOVE PROPERTY(nameProject(t));
-            MOVE PROPERTY(nameTaskType(t));
-            MOVE PROPERTY(namePractice(t));
+            MOVE PROPERTY(nameTypePactice(t));
             MOVE PROPERTY(name(t));
         }
         
