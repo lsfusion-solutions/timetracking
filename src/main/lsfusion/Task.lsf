@@ -142,7 +142,7 @@ namePractice 'Практика' (Task t) = name(practice(t));
 nameParent 'Услуги' (Task t) = name(parent(practice(t)));
 
 nameTypePactice 'Описание' (Task t) = CONCAT '', nameTaskType(t), ', ' + namePractice(t) CHARWIDTH 55;
-
+nameCustomerAndProject 'Клиент/проект' (Task t) = CONCAT '', nameCustomerProject(t), ', ' + nameProject(t) CHARWIDTH 55;
 //CONSTRAINT taskType(Task t) AND practice(t) AND NOT in(taskType(t), practice(t))
 //    MESSAGE 'Тип задачи должен соответствовать практике';
 
@@ -154,12 +154,19 @@ changeTaskType (Task t) {
     APPLY;
 }
 
+changeCustomerProject (Task t) {
+    DIALOG dialogProject OBJECTS p INPUT DO {
+        project(t) <- p;
+    } 
+    APPLY;
+}
+
 // --- Редактирование задачи
 
 FORM task 'Задача'
     OBJECTS t = Task PANEL
-    PROPERTIES(t) nameCustomerProject, nameProject, nameTypePactice ON CHANGE { changeTaskType(t); }, name, description
-    ORDERS nameCustomerProject(t)
+    PROPERTIES(t) nameCustomerAndProject ON CHANGE { changeCustomerProject(t); }, nameTypePactice ON CHANGE { changeTaskType(t); },
+        name, description
     
     EDIT Task OBJECT t
 ;
@@ -170,8 +177,7 @@ DESIGN task {
         NEW projectInfo FIRST {
             caption = 'Проект';
             type = CONTAINERH;
-            MOVE PROPERTY(nameCustomerProject(t));
-            MOVE PROPERTY(nameProject(t));
+            MOVE PROPERTY(nameCustomerAndProject(t));
             MOVE PROPERTY(nameTypePactice(t));
             MOVE PROPERTY(name(t));
         }
