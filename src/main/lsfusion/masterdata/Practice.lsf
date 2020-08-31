@@ -44,10 +44,16 @@ newPractice 'Добавить' (Practice p) {
     APPLY;
 } IMAGE 'add.png';
 
+deleteParent 'Удалить' (Practice p) {
+    FOR parent(Practice pp) == p DO { DELETE(pp); }
+    DELETE(p);
+    APPLY;
+} IMAGE 'delete.png';
+
 FORM practices 'Практики'
     OBJECTS p 'Родитель' = Practice 
     PROPERTIES(p) READONLY name
-    //PROPERTIES(p) NEWSESSION NEW, EDIT, DELETE
+    PROPERTIES(p) NEWSESSION NEW, EDIT, deleteParent
     FILTERS NOT parent(p)
 
     OBJECTS g 'Практики' = Practice
