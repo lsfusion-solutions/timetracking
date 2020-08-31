@@ -1,9 +1,9 @@
 MODULE TimeTracking;
 
-REQUIRE Scheduler, Service, SystemEvents, Backup, EvalScript, SQLUtils, ProcessUtils, Chat, FrontUser,
+REQUIRE Scheduler, Service, SystemEvents, Backup, EvalScript, SQLUtils, ProcessUtils, Chat, 
         Employee, Customer, Project, Category, ProjectDocument,
         TimeReports, TimeDashboardMobile, 
         InvoiceDashboard, InvoiceWord,
-        LegalEntity, FrontLegalEntity, FrontBank, FrontPerson, FrontContract,
+        LegalEntity, 
         EmploymentContract, CustomerDashboard, TimeEntryWord, EGRUL, InvoiceEmail, TaskMonitoringWord, Sale,
         TaskNotification, EnterpriseDataTimeTracking;

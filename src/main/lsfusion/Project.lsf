@@ -126,3 +126,24 @@ onStarted() +{
         migrateASB() <- TRUE;
     }
 }
+
+include 'Вкл' = DATA BOOLEAN (Project, CustomUser);
+
+EXTEND FORM customer
+    OBJECTS u = CustomUser
+    PROPERTIES include(p, u)
+    PROPERTIES (u) login, sha256Password, firstName, lastName, email
+    
+    FILTERS in(u, userRoleSID('selfRegister'))
+;
+
+DESIGN customer {
+    tabPane {
+        NEW users {
+            caption = 'Внешние пользователи';
+            MOVE BOX(u) { 
+                caption = 'Внешние пользователи';
+            }
+        }
+    }
+}

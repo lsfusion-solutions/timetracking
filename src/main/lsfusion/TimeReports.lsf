@@ -325,6 +325,10 @@ EXTEND FORM options
 filterProject 'Проект' = DATA LOCAL Project ();
 nameFilterProject 'Проект' = name(filterProject());
 
+CONSTRAINT filterProject() AND in(currentUser(), userRoleSID('selfRegister')) AND NOT include(filterProject(), currentUser())
+    CHECKED BY filterProject
+    MESSAGE 'Внешний пользователь должен иметь доступ к проекту';
+
 status 'Статус задачи' (TimeEntry e) = status(task(e));
 rate 'Ставка руб.' (TimeEntry e) = rate(project(e), category(task(e)));
 sum 'Сумма руб.' (TimeEntry e) = round2(hours(e) * rate(e));
@@ -333,6 +337,8 @@ nameResponsible 'Ответственный за проект' (TimeEntry e) = n
 
 dateFrom 'Дата с' = DATA LOCAL DATE ();
 dateTo 'Дата по' = DATA LOCAL DATE ();
+
+validSelfRegister(Project p) = IF in(currentUser(), userRoleSID('selfRegister')) THEN include(p, currentUser()) ELSE TRUE;
 
 FORM taskMonitoring 'Мониторинг задач по проекту'
 
@@ -352,7 +358,8 @@ FORM taskMonitoring 'Мониторинг задач по проекту'
         rate, sum
     FILTERS project(t) == filterProject(),
             dateStart(t) >= dateFrom() AND dateFinish(t) <= dateTo(),
-            NOT markDelete(task(t))
+            NOT markDelete(task(t)),
+            validSelfRegister(project(t))
             
     FILTERGROUP practices
         FILTER 'Юридические услуги' GROUP SUM 1 IF in(taskType(task(t)), Practice pp) AND nameParent(pp) == 'Юридические услуги'
