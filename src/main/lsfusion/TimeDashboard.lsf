@@ -123,9 +123,11 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     //PROPERTIES startTimeEntry(t)
                 
     OBJECTS pa = TimeEntry
-    PROPERTIES (pa) READONLY dateTimeCreated SHOWIF validUser(), nameEmployee, dateTimeStart BACKGROUND dateTimeStartChanged(pa) AND validUser(),
-        dateTimeStartChanged SHOWIF validUser() AND dateTimeStartChanged(pa), dateTimeFinish BACKGROUND dateTimeFinishChanged(pa) AND validUser(), 
-        dateTimeFinishChanged SHOWIF validUser() AND dateTimeFinishChanged(pa), nameActivity, hours BACKGROUND userHours(pa), comment PANEL
+    PROPERTIES(pa) dateTimeCreated SHOWIF validUser() READONLY, nameEmployee READONLY, dateTimeStart BACKGROUND dateTimeStartChanged(pa) AND validUser() READONLYIF NOT currentEmployee(),
+        dateTimeStartChanged SHOWIF validUser() READONLY, dateTimeFinish BACKGROUND dateTimeFinishChanged(pa) AND validUser() READONLYIF NOT currentEmployee(), 
+        dateTimeFinishChanged SHOWIF validUser() READONLY, nameActivity READONLYIF NOT currentEmployee(), 
+        hours BACKGROUND userHours(pa) READONLYIF NOT currentEmployee(), comment PANEL READONLYIF NOT currentEmployee()
+    PROPERTIES(pa) SHOWIF currentEmployee() NEW, DELETE
     FILTERS task(pa) == fe
 ;
 
@@ -152,8 +154,12 @@ startTimeEntry 'Начать новую задачу' (TaskType tt) {
         MESSAGE 'Вы должны быть залогинены под сотрудником, чтобы начать работу';
 }
 
+saveTimeDashboard 'Сохранить' () {
+    APPLY;
+} IMAGE 'save.png';
+
 EXTEND FORM timeDashboard
-    PROPERTIES startTimeEntry(t)
+    PROPERTIES startTimeEntry(t), saveTimeDashboard()
 ;
 
 DESIGN timeDashboard {
@@ -218,6 +224,9 @@ DESIGN timeDashboard {
                         panelCaptionAbove = TRUE;
                         fill = 1;
                     } 
+                    TOOLBARRIGHT(pa) {
+                        MOVE PROPERTY(saveTimeDashboard());
+                    }
                 }
             }
         }
