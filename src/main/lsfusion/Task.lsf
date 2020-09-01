@@ -141,7 +141,7 @@ practice = DATA Practice(Task);
 namePractice 'Практика' (Task t) = name(practice(t));
 nameParent 'Услуги' (Task t) = name(parent(practice(t)));
 
-nameTypePactice 'Описание' (Task t) = CONCAT '', nameTaskType(t), ', ' + namePractice(t) CHARWIDTH 55;
+nameTypePactice 'Тип задачи' (Task t) = CONCAT '', nameTaskType(t), ', ' + namePractice(t) CHARWIDTH 55;
 nameCustomerAndProject 'Клиент/проект' (Task t) = CONCAT '', nameCustomerProject(t), ', ' + nameProject(t) CHARWIDTH 55;
 //CONSTRAINT taskType(Task t) AND practice(t) AND NOT in(taskType(t), practice(t))
 //    MESSAGE 'Тип задачи должен соответствовать практике';
