@@ -455,3 +455,41 @@ EXTEND FORM projects
 EXTEND FORM employees
     PROPERTIES(t) READONLY rate, sum
 ;
+
+FORM timeEntryPeriod 'Период'
+    OBJECTS df = DATE PANEL, dt = DATE PANEL
+    PROPERTIES dFrom = VALUE(df), dTo = VALUE(dt)
+;
+
+DESIGN timeEntryPeriod {
+    OBJECTS {
+        type = CONTAINERH;
+        MOVE PROPERTY(dFrom);
+        MOVE PROPERTY(dTo);
+    }
+}
+
+createTimeEntryPeriod 'Трудозатраты за период' (Task t) {
+    NEWSESSION {
+        DIALOG timeEntryPeriod OBJECTS df INPUT, dt INPUT DO {
+            FOR iterate(DATE d, df, dt) AND NOT isDayoff(d) DO {
+                NEW te = TimeEntry {
+                    task(te) <- t;
+                    dateTimeStart(te) <- DATETIME(d);
+                    userHours(te) <- 8;
+                }
+            }
+        }
+        APPLY;
+    }
+}
+
+EXTEND FORM timeDashboard 
+    PROPERTIES createTimeEntryPeriod(fe) DRAW pa TOOLBAR SHOWIF nameParent(fe) == 'Административные задачи'
+;
+
+DESIGN timeDashboard {
+    TOOLBAR(pa) {
+        MOVE PROPERTY(createTimeEntryPeriod(fe)) FIRST;
+    }
+}
