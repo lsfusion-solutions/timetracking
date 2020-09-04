@@ -96,7 +96,7 @@ createInvoiceDates 'Выставить счет за период' (Project p)  
         NEW i = Invoice {
             project(i) <- p;
             author(i) <- currentEmployee();
-            invoice(TimeEntry e) <- i WHERE NOT DATE (dateTimeFinish(e)) < dateFrom() AND NOT DATE (dateTimeFinish(e)) > dateTo() AND project(e) = p AND NOT skip(e);
+            invoice(TimeEntry e) <- i WHERE NOT DATE(OVERRIDE dateTimeFinish(e), dateTimeStart(e)) < dateFrom() AND NOT DATE(OVERRIDE dateTimeFinish(e), dateTimeStart(e)) > dateTo() AND project(e) = p AND NOT skip(e);
             DIALOG invoice OBJECTS i = i DO {
                 SEEK invoiceDashboard.i = i;
             }
