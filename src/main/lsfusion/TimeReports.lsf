@@ -476,8 +476,10 @@ createTimeEntryPeriod 'Трудозатраты за период' (Task t) {
                 NEW te = TimeEntry {
                     task(te) <- t;
                     dateTimeStart(te) <- DATETIME(d);
+                    dateTimeFinish(te) <- sumMinutes(dateTimeStart(te), 480);
                     userHours(te) <- 8;
                 }
+                IF status(t) == StatusTask.inProcess THEN initPaused(t) <- TRUE;
             }
         }
         APPLY;
