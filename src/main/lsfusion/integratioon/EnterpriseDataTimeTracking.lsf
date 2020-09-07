@@ -52,10 +52,10 @@ in (Invoice i, TaskType tt) += GROUP LAST taskType(Task t) == tt IF hours(i, t) 
 
 item(Invoice i, TaskType tt) += tt AS TaskType IF in(i, tt);
 
-quantity (Invoice i, TaskType tt) = GROUP SUM hours(i, Task t) BY taskType(t);
+quantity (Invoice i, TaskType tt) = GROUP SUM hoursPay(i, Task t) BY taskType(t);
 quantity (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,3](quantity(i, tt)), 0.0;
 
-sum (Invoice i, TaskType tt) = GROUP SUM sum(i, Task t) BY taskType(t);
+sum (Invoice i, TaskType tt) = GROUP SUM sumPay(i, Task t) BY taskType(t);
 sum (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i,tt)), 0.0;
 
 price (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i, tt) / quantity(i, tt)) IF quantity(i, tt) != 0.0, NUMERIC[15,2](sum(i, tt)), 0.0;
