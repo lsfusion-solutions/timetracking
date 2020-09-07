@@ -295,7 +295,7 @@ sendNotificationsManager 'Уведомления для руководителе
     IF NOT isDayoff(currentDate()) THEN {
         
         FOR sendNotificationManager(Employee e) AND isManager(e) AND email(e) AND isTimeShortageEmployees(e) DO {
-            FOR managers(Employee employee, e) AND isTimeShortage(employee) DO {
+            FOR managers(Employee employee, e) AND isTimeShortage(employee) AND NOT fired(employee) DO {
                 messageManager(employee) <- NULL;
                 messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
                 FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND (hours(employee, d) < hoursSet() OR NOT hours(employee, d)) DO {
