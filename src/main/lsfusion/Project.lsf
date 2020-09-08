@@ -1,6 +1,6 @@
 MODULE Project;
 
-REQUIRE Customer, Employee;
+REQUIRE Customer, Employee, Currency;
 
 CLASS Project 'Проект';
 TABLE project(Project);
@@ -43,6 +43,28 @@ name 'Тип проекта' (ProjectType t) = staticCaption(t);
 type 'Тип проекта' = DATA ProjectType (Project);
 nameType 'Тип проекта' (Project p) = name(type(p));
 
+currency = DATA Currency (Project);
+nameCurrency 'Валюта' (Project p) = name(currency(p));
+currency(i) <- currencyShortName('RUR') WHEN SET(i IS Project);
+
+setCurrency = DATA BOOLEAN ();
+onStarted() +{
+    //setCurrency() <- NULL;
+    IF NOT currencyShortName('RUR') THEN NEW c = Currency {
+        shortName(c) <- 'RUR';
+        name(c) <- 'Российский рубль';
+    }
+    IF NOT (GROUP SUM 1 IF currency(TypeExchange t) == currencyShortName('RUR')) THEN NEW t = TypeExchange {
+        currency(t) <- currencyShortName('RUR');
+        name(t) <- 'ЦБРФ';
+    }
+        
+    IF NOT setCurrency() THEN {
+         currency(Project p) <- currencyShortName('RUR');
+    }
+    setCurrency() <- TRUE;
+}
+
 FORM ProjectTypes 'Типы проектов'
     OBJECTS t = ProjectType
     PROPERTIES READONLY name(t)
@@ -53,7 +75,7 @@ FORM ProjectTypes 'Типы проектов'
 
 EXTEND FORM customer
     OBJECTS p = Project
-    PROPERTIES(p) name, nameType, NEW, DELETE
+    PROPERTIES(p) name, nameType, nameCurrency, NEW, DELETE
     FILTERS customer(p) == c
 ;
 
@@ -65,7 +87,7 @@ DESIGN customer {
 
 FORM dialogProject 'Выбор проекта'
     OBJECTS p = Project
-    PROPERTIES(p) READONLY nameCustomer, name
+    PROPERTIES(p) READONLY nameCustomer, name, nameCurrency
     
     FILTERGROUP active FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
     
@@ -106,7 +128,7 @@ changeResponsible (Project p) {
 
 FORM projects 'Проекты'
     OBJECTS p = Project
-    PROPERTIES(p) nameCustomer, name, nameType, nameResponsible ON CHANGE changeResponsible(p)
+    PROPERTIES(p) nameCustomer, name, nameType, nameResponsible ON CHANGE changeResponsible(p), nameCurrency
     PROPERTIES(p) NEW, DELETE
 ;
 

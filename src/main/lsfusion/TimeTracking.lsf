@@ -6,4 +6,4 @@ REQUIRE Scheduler, Service, SystemEvents, Backup, EvalScript, SQLUtils, ProcessU
         InvoiceDashboard, InvoiceWord,
         LegalEntity, 
         EmploymentContract, CustomerDashboard, TimeEntryWord, EGRUL, InvoiceEmail, TaskMonitoringWord, Sale,
-        TaskNotification, EnterpriseDataTimeTracking;
+        TaskNotification, EnterpriseDataTimeTracking, Currency;

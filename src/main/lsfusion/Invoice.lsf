@@ -16,6 +16,9 @@ nameCustomer 'Клиент' (Invoice i) = name(customer(i));
 date 'Дата' = DATA DATE (Invoice) NONULL;
 date(i) <- currentDate() WHEN SET(i IS Invoice);
 
+currency (Invoice i) = currency(project(i));
+nameCurrency 'Валюта' (Invoice i) = name(currency(i));
+
 @defineNumbered(Invoice);
 @defineNumeratedDefault(Invoice, 'Счета', '');
 
@@ -31,15 +34,6 @@ CONSTRAINT project(TimeEntry t) != project(invoice(t)) MESSAGE 'Проект с�
 fromDate 'Дата с' = DATA DATE (Invoice);
 toDate 'Дата по' = DATA DATE (Invoice);
 
-changeInvoiceDates = DATA BOOLEAN ();
-onStarted() + {
-    IF NOT changeInvoiceDates() THEN {
-        fromDate(Invoice i) <- GROUP MIN dateStart(TimeEntry e) IF invoice(e) == i;
-        toDate(Invoice i) <- lastDayOfMonth(fromDate(i));
-        changeInvoiceDates() <- TRUE;
-    }
-}
-
 fromDate(Invoice i) <- (GROUP MIN dateStart(TimeEntry e) IF invoice(e) == i) WHEN SET (i IS Invoice);
 
 WHEN LOCAL CHANGED (fromDate(Invoice i)) AND NOT CHANGED (toDate(i)) DO {
@@ -53,7 +47,7 @@ hours 'Часов' = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY invoice(e) MA
 hours 'Часов' (Invoice i, Task t) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY invoice(e), task(e) MATERIALIZED;
 hours 'Часов' (Invoice i, Category c) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY invoice(e), category(task(e)) MATERIALIZED;
 
-rate 'Ставка, руб.' = DATA NUMERIC[14,2] (Invoice, Task);
+rate 'Ставка' = DATA NUMERIC[14,2] (Invoice, Task);
 rate(Invoice i, Task t) <- rate(project(i), category(t)) WHEN SET(hours(i, t)) OR CHANGED(category(t));
 
 hoursMonthly 'Часов в абонентской плате' = DATA NUMERIC[14,2] (Invoice);
@@ -62,8 +56,8 @@ hoursMonthly (Invoice i) <- hoursMonthly(project(i)) WHEN CHANGED(project(i));
 sumMonthly 'Сумма абонентской платы' = DATA NUMERIC[14,2] (Invoice);
 sumMonthly (Invoice i) <- sumMonthly(project(i)) WHEN CHANGED(project(i));
 
-sum 'Сумма, руб.' (Invoice i, Task t) = hours(i, t) * rate(i, t);
-sum 'Сумма, руб.' (Invoice i) = GROUP SUM sum(i, Task t);
+sum 'Сумма' (Invoice i, Task t) = hours(i, t) * rate(i, t);
+sum 'Сумма' (Invoice i) = GROUP SUM sum(i, Task t);
 
 hoursMonthly 'Часов в абонентской плате'  = DATA NUMERIC[14,1](Project, Category);
 hoursMonthly 'Часов в абонентской плате' (Invoice i, Category c) = hoursMonthly(project(i), c);
@@ -150,7 +144,8 @@ sumVAT 'НДС' (Invoice i, Task t) = CASE WHEN vat(i) == VAT.ten THEN round2(su
 FORM invoice 'Счет'
     OBJECTS i = Invoice PANEL
     PROPERTIES(i) date, nameNumerator, series, number, nameCustomer, nameProject, fromDate, toDate, hours, hoursMonthly, 
-        hoursPay, sum, sumMonthly, sumPay, nameDiscount, sumDiscount SHOWIF discount(i) == Discount.document, nameVAT, sumVAT SHOWIF vat(i)
+        hoursPay, sum, sumMonthly, sumPay, nameDiscount, sumDiscount SHOWIF discount(i) == Discount.document, nameVAT, 
+        sumVAT SHOWIF vat(i), nameCurrency READONLY 
     
     OBJECTS t = Task
     PROPERTIES(t) READONLY nameProject, codeEmployee, nameCategoryEmployee, nameEmployee, nameTaskType
@@ -198,6 +193,7 @@ DESIGN invoice {
         }
         NEW sum {
             type = CONTAINERH;
+            MOVE PROPERTY(nameCurrency(i));
             MOVE PROPERTY(nameDiscount(i));
             MOVE PROPERTY(sumDiscount(i));
             MOVE PROPERTY(sumPay(i));

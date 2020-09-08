@@ -329,9 +329,10 @@ CONSTRAINT filterProject() AND in(currentUser(), userRoleSID('selfRegister')) AN
     CHECKED BY filterProject
     MESSAGE 'Внешний пользователь должен иметь доступ к проекту';
 
-status 'Статус задачи' (TimeEntry e) = status(task(e));
-rate 'Ставка руб.' (TimeEntry e) = rate(project(e), category(task(e)));
-sum 'Сумма руб.' (TimeEntry e) = round2(hours(e) * rate(e));
+status 'Статус задачи' (TimeEntry e) = nameStatus(task(e));
+rate 'Ставка' (TimeEntry e) = rate(project(e), category(task(e)));
+nameCurrency 'Валюта' (TimeEntry e) = name(currency(project(e)));
+sum 'Сумма' (TimeEntry e) = round2(hours(e) * rate(e));
 
 nameResponsible 'Ответственный за проект' (TimeEntry e) = nameResponsible(project(e));
 
@@ -355,7 +356,7 @@ FORM taskMonitoring 'Мониторинг задач по проекту'
     OBJECTS t = TimeEntry
     PROPERTIES(t) READONLY dateStart, dateFinish, status, nameTask, 'Описание' = nameTaskType, 
         'Исполнитель' = nameEmployee,  namePractice, nameParent, nameResponsible, hours, 
-        rate, sum
+        rate, nameCurrency, sum
     FILTERS project(t) == filterProject(),
             dateStart(t) >= dateFrom() AND dateFinish(t) <= dateTo(),
             NOT markDelete(task(t)),
@@ -449,11 +450,11 @@ onWebClientStarted () + {
 }
 
 EXTEND FORM projects
-    PROPERTIES(t) READONLY rate, sum
+    PROPERTIES(t) READONLY rate, nameCurrency, sum
 ;
 
 EXTEND FORM employees
-    PROPERTIES(t) READONLY rate, sum
+    PROPERTIES(t) READONLY rate, nameCurrency, sum
 ;
 
 FORM timeEntryPeriod 'Период'

@@ -1,24 +1,32 @@
 MODULE Category;
 
-REQUIRE Employee, Project, Dashboard;
+REQUIRE Employee, Project, Dashboard, Currency;
 
 CLASS Category 'Категория';
 TABLE category (Category);
 
 name 'Название' = DATA STRING[50] (Category) CHARWIDTH 15;
 rate 'Ставка, руб.' = DATA NUMERIC[14,2] (Category);
+currencyRate 'Ставка' = DATA NUMERIC[14,2] (Category, Currency);
 
 FORM category 'Категория'
     OBJECTS c = Category PANEL
-    PROPERTIES(c) name, rate
+    PROPERTIES(c) name
     
     EDIT Category OBJECT c
 ;
 
 FORM categories 'Категории'
+    OBJECTS cur = Currency PANEL 
+    PROPERTIES name(cur) ON CHANGE { DIALOG dialogCurrencies OBJECTS c INPUT DO { SEEK categories.cur = c; }}
+    
     OBJECTS c = Category
-    PROPERTIES(c) READONLY name, rate
+    PROPERTIES(c) READONLY name
+    PROPERTIES currencyRate(c, cur)
     PROPERTIES(c) NEWSESSION NEW, EDIT, DELETE
+    
+    EVENTS 
+        ON INIT { SEEK categories.cur = currencyShortName('RUR'); }
 ;
 
 FORM dialogCategory 'Выбор категории'
@@ -48,15 +56,41 @@ EXTEND FORM employees
 hoursMonthly 'Часов в абонентской плате' = DATA NUMERIC[14,2] (Project);
 sumMonthly 'Сумма абонентской платы' = DATA NUMERIC[14,2] (Project);
 
+calcRate (Category cc, Currency c) = OVERRIDE
+    round2(currencyRate(cc, currencyShortName('RUR')) / curRate((GROUP MAX TypeExchange t IF currency(t) == currencyShortName('RUR')), c)),
+    round2((GROUP MAX currencyRate(cc, Currency cur) * curRate((GROUP MAX TypeExchange t IF currency(t) == currencyShortName('RUR')), cur) IF cur IS Currency) / 
+    curRate((GROUP MAX TypeExchange t IF currency(t) == currencyShortName('RUR')), c));
+
 TABLE project(Project, Category);
-dataRate 'Ставка, руб.' = DATA NUMERIC[14,2] (Project, Category);
-rate 'Ставка, руб.' (Project p, Category cc) = OVERRIDE dataRate(p, cc), (rate(cc) IF p IS Project); 
+dataRate 'Ставка' = DATA NUMERIC[14,2] (Project, Category);
+rate 'Ставка' (Project p, Category cc) = 
+    OVERRIDE dataRate(p, cc), (currencyRate(cc, currency(p)) IF p IS Project), calcRate(cc, currency(p)); 
+    
+copyRates = DATA BOOLEAN ();
+onStarted() +{
+    //copyRates() <- NULL;
+    IF NOT currencyShortName('RUR') THEN NEW c = Currency {
+        shortName(c) <- 'RUR';
+        name(c) <- 'Российский рубль';
+    }
+    IF NOT (GROUP SUM 1 IF currency(TypeExchange t) == currencyShortName('RUR')) THEN NEW t = TypeExchange {
+        currency(t) <- currencyShortName('RUR');
+        name(t) <- 'ЦБРФ';
+    }
+    
+    IF NOT copyRates() THEN {
+        FOR Category c IS Category DO {
+            currencyRate(c, currencyShortName('RUR')) <- rate(c);
+        }
+        copyRates() <- TRUE;
+    }
+}
 
 EXTEND FORM customer
     PROPERTIES(p) PANEL hoursMonthly, sumMonthly
 
     OBJECTS cc = Category
-    PROPERTIES name(cc) READONLY, rate(p, cc) BACKGROUND dataRate(p, cc)
+    PROPERTIES name(cc) READONLY, rate(p, cc) BACKGROUND dataRate(p, cc) HEADER('Ставка, ' + nameCurrency(p))
 ;
 
 DESIGN customer {
