@@ -9,6 +9,11 @@ META defProp(name, caption, type, class)
     WHEN CHANGED(name(class o)) DO packet(o) <- NULL;
 END
 
+META defPropDetail(name, caption, type, class)
+    name caption = ABSTRACT type (class, class##Detail);
+    WHEN CHANGED(name(class o, class##Detail d)) AND in(o, d) DO packet(o) <- NULL;
+END
+
 dateTimeToString = FORMULA STRING 'to_char($1, \'YYYY-MM-DD"T"HH24:MI:SS\')';
 
 idSended 'Номер переданного сообщения' = DATA INTEGER ();
@@ -164,10 +169,10 @@ dateTimeString 'Дата' (Document d) = dateTimeToString(dateTime(d));
 
 @defProp(id, 'Номер', ISTRING, Document);
 
-GROUP keyProperties EXTID 'КлючевыеСвойства';
-
 // sale order
 CLASS ABSTRACT SaleOrder 'Документ.ЗаказКлиента' : Document;
+
+GROUP keyPropertiesSaleOrder EXTID 'КлючевыеСвойства';
 
 @defProp(company, 'Организация', Company, SaleOrder);
 @defProp(customer, 'Контрагент', Partner, SaleOrder);
@@ -179,10 +184,12 @@ settlements (SaleOrder s) = '' IF s IS SaleOrder;
 CLASS ABSTRACT SaleOrderDetail 'Строка';
 
 in = ABSTRACT BOOLEAN (SaleOrder, SaleOrderDetail);
-item 'Номенклатура' = ABSTRACT Item (SaleOrder, SaleOrderDetail);
-quantity 'Количество' = ABSTRACT NUMERIC[15,3] (SaleOrder, SaleOrderDetail);
-sum 'Сумма' = ABSTRACT NUMERIC[15,2] (SaleOrder, SaleOrderDetail);
-price 'Цена' = ABSTRACT NUMERIC[15,2] (SaleOrder, SaleOrderDetail);
+//WHEN CHANGED(in(SaleOrder o, SaleOrderDetail d)) DO packet(o) <- NULL;
+
+@defPropDetail(item, 'Номенклатура', Item, SaleOrder);
+@defPropDetail(quantity, 'Количество', NUMERIC[15,3], SaleOrder);
+@defPropDetail(sum, 'Сумма', NUMERIC[15,2], SaleOrder);
+@defPropDetail(price, 'Цена', NUMERIC[15,2], SaleOrder);
 
 CLASS ABSTRACT SaleOrderServiceDetail 'Услуги.Строка' : SaleOrderDetail;
 
@@ -190,9 +197,9 @@ GROUP services EXTID 'Услуги';
 
 EXTEND FORM sendMessage  
     OBJECTS saleOrder = SaleOrder EXTID 'Документ.ЗаказКлиента' IN body
-    PROPERTIES(saleOrder) IN keyProperties uid EXTID 'Ссылка', dateTimeString EXTID 'Дата', id EXTID 'Номер'
+    PROPERTIES(saleOrder) IN keyPropertiesSaleOrder uid EXTID 'Ссылка', dateTimeString EXTID 'Дата', id EXTID 'Номер'
     
-    OBJECTS companySaleOrder = Company EXTID 'Организация' IN keyProperties
+    OBJECTS companySaleOrder = Company EXTID 'Организация' IN keyPropertiesSaleOrder
     PROPERTIES(companySaleOrder) name EXTID 'Наименование', idType EXTID 'ЮридическоеФизическоеЛицо'
     FILTERS companySaleOrder = company(saleOrder)
     
