@@ -350,6 +350,8 @@ dateFrom 'Дата с' = DATA LOCAL DATE ();
 dateTo 'Дата по' = DATA LOCAL DATE ();
 
 validSelfRegister(Project p) = IF in(currentUser(), userRoleSID('selfRegister')) THEN include(p, currentUser()) ELSE TRUE;
+visibleToSelfRegister (TimeEntry t) = 
+    (in(currentUser(), userRoleSID('selfRegister')) AND visible(task(t))) OR NOT in(currentUser(), userRoleSID('selfRegister'));
 
 FORM taskMonitoring 'Мониторинг задач по проекту'
 
@@ -370,7 +372,8 @@ FORM taskMonitoring 'Мониторинг задач по проекту'
     FILTERS project(t) == filterProject(),
             dateStart(t) >= dateFrom() AND dateFinish(t) <= dateTo(),
             NOT markDelete(task(t)),
-            validSelfRegister(project(t))
+            validSelfRegister(project(t)),
+            visibleToSelfRegister(t)
             
     FILTERGROUP practices 
         FILTER 'Юридические услуги' GROUP SUM 1 IF in(taskType(task(t)), Practice pp) AND nameParent(pp) == 'Юридические услуги'

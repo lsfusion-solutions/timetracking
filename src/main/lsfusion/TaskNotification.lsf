@@ -11,7 +11,26 @@ CLASS TaskNotificationPeriod {
     year 'Повторять по годам'
 }
 
-name (TaskNotificationPeriod p) = staticCaption(p);
+name 'Период уведомления' (TaskNotificationPeriod p) = staticCaption(p);
+index (TaskNotificationPeriod p) = CASE 
+    WHEN p == TaskNotificationPeriod.day THEN 1
+    WHEN p == TaskNotificationPeriod.week THEN 2
+    WHEN p == TaskNotificationPeriod.month THEN 3
+    WHEN p == TaskNotificationPeriod.year THEN 4;
+
+FORM taskNotificationPeriod 'Повторять'
+    OBJECTS p = TaskNotificationPeriod
+    PROPERTIES READONLY name(p), index(p) SHOWIF NULL
+    ORDERS index(p)
+    
+    LIST TaskNotificationPeriod OBJECT p
+;
+
+DESIGN taskNotificationPeriod {
+    OBJECTS {
+        MOVE BOX(p) { caption = ''; }
+    }
+}
 
 CLASS TaskNotification 'Уведомление о задаче';
 
@@ -22,6 +41,8 @@ nextNotificationDate 'Дата следующего уведомления' = DA
 
 taskNotificationPeriod = DATA TaskNotificationPeriod (TaskNotification);
 nameTaskNotificationPeriod 'Период уведомления' (TaskNotification n) = name(taskNotificationPeriod(n));
+
+message 'Текст уведомления' = DATA TEXT (TaskNotification);
 
 //day
 nDay 'Каждый n-день' = DATA BOOLEAN (TaskNotification);
@@ -124,7 +145,7 @@ FORM taskNotification 'Уведомление о задаче'
                nYearNumber(n) SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.year,
                caption7 = 'года' SHOWIF taskNotificationPeriod(n) == TaskNotificationPeriod.year
                
-    PROPERTIES endDate(n), nextNotificationDate(n) READONLY, notificationTime(n)
+    PROPERTIES endDate(n), nextNotificationDate(n) READONLY, notificationTime(n), message(n)
     
     EDIT TaskNotification OBJECT n;
 ;
@@ -332,6 +353,10 @@ DESIGN taskNotification {
             MOVE PROPERTY(notificationTime(n));
             MOVE PROPERTY(setToday(n));
         }
+        NEW row12 {
+            fill = 1;
+            MOVE PROPERTY(message(n)) { panelCaptionAbove = TRUE; }
+        }
     }
 }
 
@@ -343,7 +368,8 @@ sendTaskNotifications 'Отправить уведомления о задача
         LOCAL body = STRING ();
         body() <- CONCAT '', firstName(employee(t)), ', у Вас есть задача ', 
             (OVERRIDE '"' + name(t) + '"', 'клиента ' + nameCustomerProject(t)), 
-            ', для которой Вы установили напоминание на сегодня. Пожалуйста посмотрите задачу и если необходимо выполните все необходимые действия.';
+            ', для которой Вы установили напоминание на сегодня. ', 
+            (OVERRIDE message(taskNotification(t)), 'Пожалуйста посмотрите задачу и если необходимо выполните все необходимые действия.');
         
         EMAIL
             SUBJECT 'Уведомление о задаче'
