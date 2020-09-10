@@ -350,8 +350,7 @@ dateFrom 'Дата с' = DATA LOCAL DATE ();
 dateTo 'Дата по' = DATA LOCAL DATE ();
 
 validSelfRegister(Project p) = IF in(currentUser(), userRoleSID('selfRegister')) THEN include(p, currentUser()) ELSE TRUE;
-visibleToSelfRegister (TimeEntry t) = 
-    (in(currentUser(), userRoleSID('selfRegister')) AND visible(task(t))) OR NOT in(currentUser(), userRoleSID('selfRegister'));
+visibleToSelfRegister (TimeEntry t) = IF in(currentUser(), userRoleSID('selfRegister')) THEN visible(task(t)) ELSE TRUE;
 
 FORM taskMonitoring 'Мониторинг задач по проекту'
 
