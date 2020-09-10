@@ -19,8 +19,10 @@ generateTaskMonitoringTemplate 'Создать шаблон для монито�
             }
             
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'PROJECT_NAME'; description(e) <- 'Проект'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'CLIENT_NAME'; description(e) <- 'Клиент'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'FROM_DATE'; description(e) <- 'Дата с'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'TO_DATE'; description(e) <- 'Дата по'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'INVOICE_DATE'; description(e) <- 'Дата'; }
 
             DIALOG template OBJECTS t = t DO { 
                 taskMonitoringTemplateWord() <- t;
@@ -54,14 +56,18 @@ DESIGN options {
     }
 }
 
+toDateTimeDDMMYY = FORMULA STRING[15] 'to_char(($1),\'DD.MM.YY, HH:mi\')';
+
 generateWordTaskMonitoring 'Сформировать (WORD)' (DATE df, DATE dt, Project p) {
     IF taskMonitoringTemplateWord() THEN {
         value(TemplateEntry detail) <- NULL;
         FOR template (TemplateEntry detail) == taskMonitoringTemplateWord() DO {
             value(detail) <- tableText(df, dt) WHERE key(detail) == 'TABLE';
             value(detail) <- TEXT(name(p)) WHERE key(detail) == 'PROJECT_NAME';
+            value(detail) <- TEXT(nameCustomer(p)) WHERE key(detail) == 'CLIENT_NAME';
             value(detail) <- TEXT(toDateDDMMYY(df)) WHERE key(detail) == 'FROM_DATE';
             value(detail) <- TEXT(toDateDDMMYY(dt)) WHERE key(detail) == 'TO_DATE';
+            value(detail) <- TEXT(toDateTimeDDMMYY(currentDateTime())) WHERE key(detail) == 'INVOICE_DATE';
         }
         process(taskMonitoringTemplateWord());
         open(resultTemplate(), replace(replace((CONCAT '_',nameCustomer(p), name(p), toDateDDMMYYYY(df) + '-' + toDateDDMMYYYY(dt)), ',' ,''), '\\', ''));

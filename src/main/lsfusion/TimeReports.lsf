@@ -323,7 +323,17 @@ EXTEND FORM options
 ;
 
 filterProject 'Проект' = DATA LOCAL Project ();
-nameFilterProject 'Проект' = name(filterProject());
+nameFilterProject 'Проект' = CONCAT ', ', name(filterProject()), nameCustomer(filterProject()) CHARWIDTH 40;
+
+EXTEND FORM dialogProject
+    FILTERS (in(currentUser(), userRoleSID('selfRegister')) AND include(p, currentUser())) OR NOT in(currentUser(), userRoleSID('selfRegister'))
+;
+
+changeProject () {
+    DIALOG dialogProject OBJECTS p INPUT DO {
+        filterProject() <- p;
+    }
+}
 
 CONSTRAINT filterProject() AND in(currentUser(), userRoleSID('selfRegister')) AND NOT include(filterProject(), currentUser())
     CHECKED BY filterProject
@@ -343,7 +353,7 @@ validSelfRegister(Project p) = IF in(currentUser(), userRoleSID('selfRegister'))
 
 FORM taskMonitoring 'Мониторинг задач по проекту'
 
-    PROPERTIES ()  dFrom = dateFrom, dTo = dateTo, nameFilterProject PANEL
+    PROPERTIES ()  dFrom = dateFrom, dTo = dateTo, nameFilterProject PANEL ON CHANGE changeProject()
     
     OBJECTS p = Project
     FILTERS p == filterProject()
@@ -362,10 +372,16 @@ FORM taskMonitoring 'Мониторинг задач по проекту'
             NOT markDelete(task(t)),
             validSelfRegister(project(t))
             
-    FILTERGROUP practices
+    FILTERGROUP practices 
         FILTER 'Юридические услуги' GROUP SUM 1 IF in(taskType(task(t)), Practice pp) AND nameParent(pp) == 'Юридические услуги'
         FILTER 'Бухгалтерские услуги' GROUP SUM 1 IF in(taskType(task(t)), Practice pp) AND nameParent(pp) == 'Бухгалтерские услуги'
+        
+    EVENTS ON INIT {
+        IF in(currentUser(), userRoleSID('selfRegister')) THEN filterProject() <- GROUP MAX Project pp IF include(pp, currentUser());
+    }
 ;
+
+//showFilterGroup () = NOT in(currentUser(), userRoleSID('selfRegister'));
 
 DESIGN taskMonitoring {
     OBJECTS {
