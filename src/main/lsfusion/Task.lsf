@@ -57,18 +57,6 @@ name 'Название' = DATA STRING[50] (TaskType) CHARWIDTH 15;
 in 'Вкл.' = DATA BOOLEAN (TaskType, Practice) CHARWIDTH 3;
 inPracticGroup (TaskType t, Practice pc) = GROUP MAX level(pc, Practice pp) IF in(t, pp);
 
-existInChild() = GROUP SUM 1 IF parent(Practice pc) AND in(TaskType t, pc); 
-
-onStarted() + {
-    IF existInChild() THEN NEWSESSION {
-        useTreePractics() <- TRUE;
-        APPLY;
-    }
-}
-
-CONSTRAINT DROPPED(useTreePractics()) AND existInChild()
-    MESSAGE 'Невозможно отключить использование дерева практик пока есть типы задач для подчиненных практик'; 
-
 practics 'Практики' (TaskType t) = GROUP CONCAT name(Practice p) IF in(t,p), ', ' CHARWIDTH 30;
 active 'Активный' = DATA BOOLEAN (TaskType);
 
@@ -80,12 +68,7 @@ FORM taskTypes 'Типы задач'
     OBJECTS a = TaskType
     PROPERTIES (a) name, practics READONLY, NEW, DELETE, active
     
-    OBJECTS p 'Список' = Practice
-    PROPERTIES(p) READONLY name
-    PROPERTIES in(a, p)
-    FILTERS NOT parent(p)
-    
-    OBJECTS g 'Дерево' = Practice 
+    OBJECTS g 'Практики' = Practice 
     PROPERTIES READONLY name(g), nameParent(g), canonicalName(g)
     PROPERTIES in(a, g)
     FILTERS parent(g)
@@ -99,8 +82,7 @@ DESIGN taskTypes {
             type = TABBED;
             fill = 1;
             caption = 'Практики';
-            MOVE BOX (g) { showIf = useTreePractics(); }
-            MOVE BOX (p) { showIf = NOT useTreePractics(); }
+            MOVE BOX(g);
         }
     }
 }
@@ -123,7 +105,7 @@ FORM dialogTaskType 'Выбор типа задачи'
 DESIGN dialogTaskType {
     OBJECTS {
         type = CONTAINERH;
-        MOVE BOX (g); //{ showIf = useTreePractics(); }
+        MOVE BOX (g);
         MOVE BOX (a);
     }
     
@@ -217,46 +199,5 @@ WHEN LOCAL (CHANGED (employee(Task t)) OR CHANGED (project(t))) AND NOT CHANGED 
 onStarted() + {
     FOR Task t IS Task AND NOT category(t) DO {
         category(t) <- OVERRIDE category(employee(t), project(t)), category(employee(t));
-    }
-}
-
-newPractices = DATA BOOLEAN ();
-onStarted() +{
-    IF NOT newPractices() THEN {
-        useTreePractics() <- TRUE;
-        NEW p = Practice {
-            name(p) <- 'Юридическая практика';
-            parent(p) <- GROUP MAX Practice pp IF name(pp) == 'Юридические услуги';
-        }
-        NEW p = Practice {
-            name(p) <- 'Венчурная практика';
-            parent(p) <- GROUP MAX Practice pp IF name(pp) == 'Юридические услуги';
-        }
-        NEW p = Practice {
-            name(p) <- 'M&A практика';
-            parent(p) <- GROUP MAX Practice pp IF name(pp) == 'Юридические услуги';
-        }  
-        NEW p = Practice {
-            name(p) <- 'Due Dilligence практика';
-            parent(p) <- GROUP MAX Practice pp IF name(pp) == 'Юридические услуги';
-        }  
-        NEW p = Practice {
-            name(p) <- 'Бухгалтерская практика';
-            parent(p) <- GROUP MAX Practice pp IF name(pp) == 'Бухгалтерские услуги';
-        }   
-        
-        newPractices() <- TRUE;
-        FOR in(TaskType t, Practice p) DO 
-            FOR level(Practice pp, p) DO in(t, pp) <- TRUE;
-    }
-}
-
-newPractices2 = DATA BOOLEAN ();
-onStarted() +{
-    IF NOT newPractices2() THEN {
-        FOR taskType(Task t) DO {
-            practice(t) <- GROUP MAX Practice p IF in(taskType(t), p);
-        }
-        newPractices2() <- TRUE;
     }
 }

@@ -7,16 +7,6 @@ NAMESPACE Employee;
 CLASS Practice 'Практика';
 TABLE practice (Practice);
 
-useTreePractics 'Использовать дерево практик' = DATA BOOLEAN ();
-
-EXTEND FORM options PROPERTIES useTreePractics();
-
-DESIGN options {
-    commons {
-        MOVE PROPERTY (useTreePractics());
-    }
-}
-
 name 'Наименование' = DATA STRING[50] (Practice) IN id CHARWIDTH 25;
 
 parent 'Родитель' = DATA Practice (Practice);
@@ -31,7 +21,7 @@ canonicalName 'Каноническое имя' (Practice pr) =
 
 FORM practice 'Практика'
     OBJECTS p = Practice PANEL
-    PROPERTIES(p) name//, nameParent SHOWIF useTreePractics()
+    PROPERTIES(p) name, nameParent
     
     EDIT Practice OBJECT p
 ;
@@ -82,24 +72,21 @@ DESIGN practices {
 }
 
 FORM dialogPractices 'Выбор практики'
-    OBJECTS p 'Список' = Practice 
-    PROPERTIES(p) READONLY name
-    FILTERS NOT parent(p) OR useTreePractics()
-
-    OBJECTS g 'Дерево' = Practice
+    OBJECTS g 'Практики' = Practice
     PROPERTIES(g) READONLY name, nameParent, canonicalName 
     PROPERTIES(g) NEWSESSION NEW, EDIT, DELETE
-    FILTERS parent(g)
-    //EVENTS ON CHANGE g { SEEK dialogPractices.p = g; }
+    
+    FILTERGROUP parent 
+        FILTER 'Детальные' parent(g) DEFAULT
+        FILTER 'Общие' NOT parent(g)  
         
-    LIST Practice OBJECT p
+    LIST Practice OBJECT g
 ;
 
 DESIGN dialogPractices {
     OBJECTS {
         type = CONTAINERH;
-        MOVE BOX (g) { showIf = useTreePractics(); }
-        MOVE BOX(p){ showIf = NOT useTreePractics(); }
+        MOVE BOX(g);
     }
 }
 
