@@ -41,7 +41,7 @@ FORM invoiceDashboard 'Выставление счетов'
             (DATE (dateTimeFinish(t)) >= dateFrom() OR NOT dateFrom()) AND (DATE (dateTimeFinish(t)) <= dateTo() OR NOT dateTo())
     
     OBJECTS i = Invoice
-    PROPERTIES(i) READONLY date, series, number, nameCustomer, nameProject, fromDate, toDate, hours, nameAuthor
+    PROPERTIES(i) READONLY date, series, number, nameCustomer, nameProject, fromDate, toDate, hours, nameAuthor, sumDiscount, sumVAT
     PROPERTIES(i) TOOLBAR generateTimeEntriesWord, generateWord
     PROPERTIES(i) NEWSESSION EDIT, DELETE
     ORDERS date(i) DESC
