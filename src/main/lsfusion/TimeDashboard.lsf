@@ -12,7 +12,9 @@ FORM selectProject 'Выбор проекта'
     FILTERGROUP activep FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
 ;
 
-visible 'Видимая' = DATA BOOLEAN (Task);
+visible 'Видимая' = DATA BOOLEAN (Task); // на всякий случай оставил, но потом надо удалить
+
+invisible 'Невидимая' = DATA BOOLEAN (Task);
 
 isReadonlyTask (Task t) = t IS Task AND NOT employee(t) == currentEmployee();
 showTask (Task t) = (GROUP SUM 1 IF currentEmployee() == employee(Task task) AND project(task) == project(t) AND
@@ -99,10 +101,10 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(fe) nameCustomerProject ON CHANGE { DIALOG contactsDocuments OBJECTS p = project(fe); }
     PROPERTIES(fe) READONLY nameProject, nameTaskType, namePractice, nameParent, name, dateTimeStart, dateTimeFinish
     //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
-    PROPERTIES(fe) visible SHOWIF currentEmployee()//, markDelete READONLY 
+    PROPERTIES(fe) invisible SHOWIF currentEmployee()//, markDelete READONLY 
     PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, ed = EDIT, deleteTask READONLYIF isReadonlyTask(fe) SHOWIF NOT markDelete(fe),
         cancelDelete  READONLYIF isReadonlyTask(fe) SHOWIF markDelete(fe)
-    FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND visible(fe)),
+    FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND NOT invisible(fe)),
             markDeleteDateTime(fe) >= dateTimeToDateTime(sum(currentDate(), -1), currentTime()) OR NOT markDelete(fe)
     ORDERS nameCustomerProject(fe)
     FILTERGROUP  myTasks

@@ -46,7 +46,9 @@ rowText (TimeEntry e) = CONCAT 'lsFusionCSep', [FORMULA TEXT 'to_char(($1),\'DD.
                         (OVERRIDE TEXT(sum(e)), '');
 
 tableText (DATE df, DATE dt) = GROUP CONCAT rowText(TimeEntry t), 'lsFusionRSep' IF project(t) == filterProject() AND
-    dateStart(t) >= df AND dateFinish(t) <= dt;
+    dateStart(t) >= df AND dateFinish(t) <= dt AND NOT markDelete(task(t)) AND
+                                                       validSelfRegister(project(t)) AND
+                                                       visibleToSelfRegister(t);
 
 EXTEND FORM options PROPERTIES nameTaskMonitoringTemplateWord(), generateTaskMonitoringTemplate();
 DESIGN options {
