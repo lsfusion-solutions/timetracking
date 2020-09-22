@@ -1,6 +1,6 @@
 MODULE EnterpriseDataTimeTracking;
 
-REQUIRE EnterpriseData, Task, Invoice;
+REQUIRE EnterpriseDataSend, EnterpriseDataReceive, Task, Invoice, EGRUL;
 
 // item
 EXTEND CLASS TaskType : Item;
@@ -59,3 +59,22 @@ sum (Invoice i, TaskType tt) = GROUP SUM sumPay(i, Task t) BY taskType(t);
 sum (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i,tt)), 0.0;
 
 price (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i, tt) / quantity(i, tt)) IF quantity(i, tt) != 0.0, NUMERIC[15,2](sum(i, tt)), 0.0;
+
+// receive
+// todo: Это временное решение
+EXTEND CLASS LegalEntity : Partner;
+
+legalEntity (ISTRING inn) = GROUP AGGR LegalEntity le BY inn(le);
+
+afterReceive () + {
+    FOR ISTRING inn = innPartner(INTEGER i) AND NOT legalEntity(inn) AND typePartner(i) = 'ЮридическоеЛицо' DO NEW le = LegalEntity {
+        inn(le) <- inn;
+        uid(le) <- NULL;
+    }
+    FOR innPartner(INTEGER i) = inn(LegalEntity le) DO {
+        shortName(le) <- ISTRING[250](namePartner(i));
+        fullName(le) <- ISTRING[250](fullNamePartner(i));
+        kpp(le) <- kppPartner(i);
+    }
+    APPLY;
+}

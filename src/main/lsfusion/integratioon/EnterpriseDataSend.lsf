@@ -1,0 +1,101 @@
+MODULE EnterpriseDataSend;
+
+REQUIRE EnterpriseData;
+
+NAMESPACE EnterpriseData;
+
+// all references
+CLASS ABSTRACT Reference : EnterpriseData;
+
+@defProp(name, 'Наименование', STRING, Reference);
+@defProp(id, 'Код', STRING, Reference);
+
+// items
+CLASS ABSTRACT Item 'Справочник.Номенклатура' : Reference;
+
+CLASS TypePartner {
+    legalEntity 'ЮридическоеЛицо',
+    individual 'ФизическоеЛицо'
+};
+
+// patner
+CLASS ABSTRACT Partner 'Справочник.Контрагенты' : Reference;
+
+@defProp(type, 'ЮридическоеФизическоеЛицо', TypePartner, Partner);
+idType 'ЮридическоеФизическоеЛицо' (Partner p) = staticCaption(type(p));
+
+// company
+CLASS ABSTRACT Company 'Справочник.Организация' : Partner;
+
+// currency
+CLASS ABSTRACT Currency 'Справочник.Валюты': Reference;
+
+// all documents
+CLASS ABSTRACT Document 'Документ' : EnterpriseData;
+
+@defProp(dateTime, 'Дата', DATETIME, Document);
+dateTimeString 'Дата' (Document d) = dateTimeToString(dateTime(d));
+
+@defProp(id, 'Номер', ISTRING, Document);
+
+// sale order
+CLASS ABSTRACT SaleOrder 'Документ.ЗаказКлиента' : Document;
+
+GROUP keyPropertiesSaleOrder EXTID 'КлючевыеСвойства';
+
+@defProp(company, 'Организация', Company, SaleOrder);
+@defProp(customer, 'Контрагент', Partner, SaleOrder);
+@defProp(currency, 'Валюта', Currency, SaleOrder);
+@defProp(note, 'Комментарий', STRING, SaleOrder);
+
+settlements (SaleOrder s) = '' IF s IS SaleOrder;
+
+CLASS ABSTRACT SaleOrderDetail 'Строка';
+
+in = ABSTRACT BOOLEAN (SaleOrder, SaleOrderDetail);
+//WHEN CHANGED(in(SaleOrder o, SaleOrderDetail d)) DO packet(o) <- NULL;
+
+@defPropDetail(item, 'Номенклатура', Item, SaleOrder);
+@defPropDetail(quantity, 'Количество', NUMERIC[15,3], SaleOrder);
+@defPropDetail(sum, 'Сумма', NUMERIC[15,2], SaleOrder);
+@defPropDetail(price, 'Цена', NUMERIC[15,2], SaleOrder);
+
+CLASS ABSTRACT SaleOrderServiceDetail 'Услуги.Строка' : SaleOrderDetail;
+
+GROUP services EXTID 'Услуги';
+
+EXTEND FORM sendMessage  
+    OBJECTS saleOrder = SaleOrder EXTID 'Документ.ЗаказКлиента' IN body
+    PROPERTIES(saleOrder) IN keyPropertiesSaleOrder uid EXTID 'Ссылка', dateTimeString EXTID 'Дата', id EXTID 'Номер'
+    
+    OBJECTS companySaleOrder = Company EXTID 'Организация' IN keyPropertiesSaleOrder
+    PROPERTIES(companySaleOrder) name EXTID 'Наименование', idType EXTID 'ЮридическоеФизическоеЛицо'
+    FILTERS companySaleOrder = company(saleOrder)
+    
+    OBJECTS currencySaleOrder = Currency EXTID 'Валюта'
+    PROPERTIES(currencySaleOrder) id EXTID 'Код', name EXTID 'Наименование'
+    FILTERS currencySaleOrder = currency(saleOrder)
+    
+    OBJECTS customerSaleOrder = Partner EXTID 'Контрагент'
+    PROPERTIES(customerSaleOrder) uid EXTID 'Ссылка', name EXTID 'Наименование', idType EXTID 'ЮридическоеФизическоеЛицо'
+    FILTERS customerSaleOrder = customer(saleOrder)
+    
+    PROPERTIES(saleOrder) settlements EXTID 'ДанныеВзаиморасчетов', note EXTID 'Комментарий'
+        
+    OBJECTS saleOrderServiceDetail = SaleOrderServiceDetail EXTID 'Строка' IN services
+    
+    OBJECTS saleOrderServiceDetailItem = Item EXTID 'Номенклатура'
+    PROPERTIES(saleOrderServiceDetailItem) uid EXTID 'Ссылка', name EXTID 'Наименование'
+    FILTERS saleOrderServiceDetailItem = item(saleOrder, saleOrderServiceDetail) 
+    
+    PROPERTIES(saleOrder, saleOrderServiceDetail) quantity EXTID 'Количество', sum EXTID 'Сумма', price EXTID 'Цена'
+    FILTERS in(saleOrder, saleOrderServiceDetail)
+    
+    FILTERS NOT DATE(dateTime(saleOrder)) < dateStartExchange() AND NOT packet(saleOrder) <= idTicket()
+;
+
+afterSend () + { 
+    FOR SaleOrder so IS SaleOrder AND NOT packet(so) AND NOT DATE(dateTime(so)) < dateStartExchange() DO {
+        packet(so) <- messageNo();
+    }
+}
