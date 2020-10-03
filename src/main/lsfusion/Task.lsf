@@ -119,7 +119,7 @@ NAVIGATOR {
 
 taskType 'Тип задачи' = DATA TaskType (Task) NONULL;
 nameTaskType 'Тип задачи' (Task t) = name(taskType(t));
-practice = DATA Practice(Task);
+practice 'Практика' = DATA Practice(Task) NONULL;
 namePractice 'Практика' (Task t) = name(practice(t));
 nameParent 'Услуги' (Task t) = name(parent(practice(t)));
 
