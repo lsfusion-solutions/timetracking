@@ -20,6 +20,8 @@ idSended 'Номер переданного сообщения' = DATA INTEGER (
 isSended 'Сообщение передано' = DATA BOOLEAN ();
 idTicket 'Получена квитанция' = DATA INTEGER ();
 
+WHEN LOCAL CHANGED(idSended()) AND NOT idSended() > idTicket() DO idTicket() <- idSended();
+
 idReceived 'Номер принятого сообщения' = DATA INTEGER ();
 isReceived 'Сообщение принято' = DATA BOOLEAN ();
 
@@ -63,12 +65,12 @@ FORM receiveMessage FORMEXTID 'Message'
 // exchange properties
 CLASS ABSTRACT EnterpriseData 'Универсальный обмен 1С';
 
-uid 'UID' = DATA ISTRING[36] (EnterpriseData) INDEXED;
-object 'Объект ЕД' = GROUP AGGR EnterpriseData ed BY uid(ed);
+uid 'UID' = DATA STRING[36] (EnterpriseData) INDEXED;
+object 'Объект ЕД' (STRING[36] id) = GROUP AGGR EnterpriseData ed BY uid(ed);
 
 packet 'Пакет' = DATA INTEGER (EnterpriseData);
 
-WHEN SET (EnterpriseData ed IS EnterpriseData) DO {
+WHEN SET (EnterpriseData ed IS EnterpriseData) AND NOT uid(ed) DO {
     generateUUID();
     uid(ed) <- generatedUUID();
 }
@@ -117,7 +119,6 @@ sendMessage 'Передать' () {
 EXTEND FORM options
     PROPERTIES () idSended BACKGROUND (IF isSended() THEN RGB(225,255,225) ELSE RGB(255, 225, 225)),
                   idReceived BACKGROUND (IF isReceived() THEN RGB(225,255,225) ELSE RGB(255, 225, 225)),
-                  idTicket READONLY,
                   dateStartExchange, toBase, fromBase, path,
                   sendMessage, receiveMessage
 ;
@@ -130,7 +131,6 @@ DESIGN options {
                 type = CONTAINERH;
                 MOVE PROPERTY (idSended());
                 MOVE PROPERTY (idReceived());
-                MOVE PROPERTY (idTicket());
             }
             NEW basic {
                 type = CONTAINERH;      

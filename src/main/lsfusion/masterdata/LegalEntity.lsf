@@ -1,23 +1,28 @@
 MODULE LegalEntity;
 
-REQUIRE Customer, Person;
+REQUIRE Customer, Person, Partner, EnterpriseData;
 
 NAMESPACE LegalEntity;
 
-CLASS LegalEntity 'Юридическое лицо';
+CLASS LegalEntity 'Юридическое лицо' : Partner;
 TABLE legalEntity (LegalEntity);
 
-//id 'Код' = DATA STRING[15] (LegalEntity) INDEXED CHARWIDTH 5 IN id;
-//legalEntity (id) = GROUP AGGR LegalEntity le BY id (le);
+EXTEND CLASS PartnerType {
+    legalEntity 'Юридическое лицо'
+}
+
+type (LegalEntity le) += PartnerType.legalEntity;
 
 shortName 'Сокращённое название' = DATA ISTRING[250] (LegalEntity) CHARWIDTH 20 IN id;
 fullName 'Полное название' = DATA ISTRING[250] (LegalEntity) CHARWIDTH 25;
 
+namePartner (LegalEntity le) += OVERRIDE shortName(le), fullName(le);
+
 shortNameLat 'Сокращённое название латиницей' = DATA ISTRING[250] (LegalEntity) CHARWIDTH 20;
 fullNameLat 'Полное название латиницей' = DATA ISTRING[250] (LegalEntity) CHARWIDTH 25;
 
-customer = DATA Customer(LegalEntity) INDEXED;
-nameCustomer 'Клиент' (LegalEntity l) = name(customer(l)) IN id;
+//customer = DATA Customer(LegalEntity) INDEXED;
+//nameCustomer 'Клиент' (LegalEntity l) = name(customer(l)) IN id;
 
 CLASS Form 'Форма хозяйства' {
     ao 'Акционерное общество',
@@ -61,7 +66,7 @@ account (number) = GROUP MAX Account account BY number(account);
 
 legalEntity = DATA LegalEntity (Account) NONULL DELETE AUTOSET;
 nameLegalEntity 'Организация' (Account account) = shortName(legalEntity(account));
-nameCustomer 'Клиент' (Account account) = name(customer(legalEntity(account)));
+nameCustomer 'Клиент' (Account account) = namePartner(customer(legalEntity(account)));
 
 account (number, legalEntity) = GROUP MAX Account account BY number(account), legalEntity(account);
 defaultAccount(legalEntity) = GROUP MAX Account account BY legalEntity(account);
@@ -128,7 +133,7 @@ okvedName 'Вид деятельности' = DATA STRING[250] (LegalEntity) CHA
 
 FORM legalEntity 'Юридическое лицо'
     OBJECTS o = LegalEntity PANEL
-    PROPERTIES(o) shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, addr = address, nameEmployee, country,
+    PROPERTIES(o) shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer READONLY, addr = address, nameEmployee, country,
                   addressIsActual, actualAddress READONLYIF addressIsActual(o), addressIsMailing, mailingAddress READONLYIF addressIsMailing(o),
                   email, note,
                   nameRepresentative, positionRepresentative, baseRepresentative, phone, okpo, okato, oktmo, okved, okvedName, numberAccount
@@ -358,55 +363,55 @@ EXTEND FORM person
     PROPERTIES namePosition(l, p) AFTER fullName(l)
     PROPERTIES DRAW l TOOLBAR addLegalEntity(p), deletePerson(l, p)
 ;
-
-in 'Вкл' = DATA BOOLEAN (Customer, LegalEntity);
-in 'Вкл' = DATA BOOLEAN (Customer, Person);
-
-FORM conterparties 'Контрагенты'
-    OBJECTS c = Customer PANEL
-    
-    OBJECTS l = LegalEntity
-    PROPERTIES in(c, l)
-    PROPERTIES(l) READONLY shortNameFrom, shortName, shortNameLat
-    
-    OBJECTS p = Person
-    PROPERTIES in(c, p)
-    PROPERTIES(p) READONLY lastName, firstName, middleName
-;
-
-DESIGN conterparties {
-    OBJECTS {
-        type = TABBED;
-        MOVE BOX(l);
-        MOVE BOX(p);
-    }
-}
-
-nameConterparties 'Контрагенты' (Customer c) = CONCAT ', ', (GROUP CONCAT shortName(LegalEntity l) IF in(c, l), ', '),
-    GROUP CONCAT (CONCAT ' ', lastName(Person p), firstName(p), middleName(p)) IF in(c, p), ', ' CHARWIDTH 50;
-
-EXTEND FORM customer
-    PROPERTIES nameConterparties(c) ON CHANGE { DIALOG conterparties OBJECTS c = c; }
-;
-
-DESIGN customer {
-    BOX(c) {
-        NEW lane2 {
-            type = CONTAINERH;
-            MOVE PROPERTY(nameConterparties(c));
-        }
-    }
-}
-
-EXTEND FORM legalEntity
-    PROPERTIES READONLY nameConterparties 'Входит в группу' = nameConterparties(customer(o))
-;
-
-DESIGN legalEntity {
-    first {
-        MOVE PROPERTY(nameConterparties) AFTER PROPERTY(nameCustomer(o));
-    }
-}
+//
+//in 'Вкл' = DATA BOOLEAN (Customer, LegalEntity);
+//in 'Вкл' = DATA BOOLEAN (Customer, Person);
+//
+//FORM conterparties 'Контрагенты'
+//    OBJECTS c = Customer PANEL
+//    
+//    OBJECTS l = LegalEntity
+//    PROPERTIES in(c, l)
+//    PROPERTIES(l) READONLY shortNameFrom, shortName, shortNameLat
+//    
+//    OBJECTS p = Person
+//    PROPERTIES in(c, p)
+//    PROPERTIES(p) READONLY lastName, firstName, middleName
+//;
+//
+//DESIGN conterparties {
+//    OBJECTS {
+//        type = TABBED;
+//        MOVE BOX(l);
+//        MOVE BOX(p);
+//    }
+//}
+//
+//nameConterparties 'Контрагенты' (Customer c) = CONCAT ', ', (GROUP CONCAT shortName(LegalEntity l) IF in(c, l), ', '),
+//    GROUP CONCAT (CONCAT ' ', lastName(Person p), firstName(p), middleName(p)) IF in(c, p), ', ' CHARWIDTH 50;
+//
+//EXTEND FORM customer
+//    PROPERTIES nameConterparties(c) ON CHANGE { DIALOG conterparties OBJECTS c = c; }
+//;
+//
+//DESIGN customer {
+//    BOX(c) {
+//        NEW lane2 {
+//            type = CONTAINERH;
+//            MOVE PROPERTY(nameConterparties(c));
+//        }
+//    }
+//}
+//
+//EXTEND FORM legalEntity
+//    PROPERTIES READONLY nameConterparties 'Входит в группу' = nameConterparties(customer(o))
+//;
+//
+//DESIGN legalEntity {
+//    first {
+//        MOVE PROPERTY(nameConterparties) AFTER PROPERTY(nameCustomer(o));
+//    }
+//}
 
 CLASS LeFile 'Файл';
 

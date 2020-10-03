@@ -10,11 +10,10 @@ id (TaskType tt) += CONCAT '-', prefix(), STRING(tt);
 name (TaskType tt) += Task.name(tt);
 
 // partner
-EXTEND CLASS Customer : Partner;
+EXTEND CLASS Partner.Partner : EnterpriseData.Partner;
 
-id (Customer c) += CONCAT '-', prefix(), STRING(c);
-name (Customer c) += STRING(Customer.name(c));
-type (Customer c) += IF Customer.type[Customer](c) = CounterpartyType.person THEN TypePartner.individual ELSE TypePartner.legalEntity;
+EnterpriseData.name (Partner.Partner p) += STRING(namePartner(p));
+type (Partner.Partner p) += IF p IS Person THEN TypePartner.individual ELSE TypePartner.legalEntity;
 
 // company - hardcode
 CLASS Company : EnterpriseData.Company;
@@ -41,7 +40,7 @@ EXTEND CLASS Invoice : SaleOrder;
 
 company (Invoice i) += Company.this;
 currency (Invoice i) += Currency.this;
-customer (Invoice i) += Invoice.customer(i);
+customer (Invoice i) += partner(Invoice.customer(i));
 dateTime (Invoice i) += DATETIME(date(i));
 id (Invoice i) += CONCAT '-', '00' + prefix(), seriesNumber(i);
 
@@ -61,20 +60,25 @@ sum (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i,tt)), 0.0;
 price (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i, tt) / quantity(i, tt)) IF quantity(i, tt) != 0.0, NUMERIC[15,2](sum(i, tt)), 0.0;
 
 // receive
-// todo: Это временное решение
-EXTEND CLASS LegalEntity : Partner;
-
-legalEntity (ISTRING inn) = GROUP AGGR LegalEntity le BY inn(le);
-
 afterReceive () + {
-    FOR ISTRING inn = innPartner(INTEGER i) AND NOT legalEntity(inn) AND typePartner(i) = 'ЮридическоеЛицо' DO NEW le = LegalEntity {
-        inn(le) <- inn;
-        uid(le) <- NULL;
+    FOR uidPartner(INTEGER i) AND NOT object(uidPartner(i)) AND typePartner(i) = 'ЮридическоеЛицо' DO NEW le = LegalEntity {
+        uid(le) <- uidPartner(i);
     }
-    FOR innPartner(INTEGER i) = inn(LegalEntity le) DO {
+    FOR uidPartner(INTEGER i) = uid(LegalEntity le) AND typePartner(i) = 'ЮридическоеЛицо' DO {
+        inn(le) <- innPartner(i);
         shortName(le) <- ISTRING[250](namePartner(i));
         fullName(le) <- ISTRING[250](fullNamePartner(i));
         kpp(le) <- kppPartner(i);
+        ogrn(le) <- nonResidentNumber(i);
     }
+    
+    FOR uidPartner(INTEGER i) AND NOT object(uidPartner(i)) AND typePartner(i) = 'ФизическоеЛицо' DO NEW p = Person {
+        uid(p) <- uidPartner(i);    
+    }
+    FOR uidPartner(INTEGER i) = uid(Person p) AND typePartner(i) = 'ФизическоеЛицо' DO {
+        lastName(p) <- getWord(namePartner(i), ' ', 1);
+        firstName(p) <- getWord(namePartner(i), ' ', 2);
+        middleName(p) <- getWord(namePartner(i), ' ', 3);
+    }    
     APPLY;
 }

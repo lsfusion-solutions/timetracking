@@ -1,6 +1,6 @@
 MODULE Customer;
 
-REQUIRE MasterData;
+REQUIRE MasterData, Partner;
 
 CLASS Customer 'Клиент';
 TABLE customer(Customer);
@@ -9,9 +9,27 @@ name 'Наименование' = DATA ISTRING[200] (Customer) CHARWIDTH 15;
 inactive 'Неактивный' = DATA BOOLEAN (Customer);
 active 'Активный' (Customer c) = c IS Customer AND NOT inactive(c);
 
+partner 'Контрагент' = DATA Partner (Customer);
+namePartner 'Контрагент' (Customer c) = namePartner(partner(c));
+
+requirePartner 'Контрагент для каждого клиента' = DATA BOOLEAN ();
+
+CONSTRAINT requirePartner() AND NOT partner(Customer c) AND c IS Customer MESSAGE 'Не задан контрагент для клиента';
+
+EXTEND FORM options PROPERTIES requirePartner();
+
+DESIGN options {
+    commons {
+        MOVE PROPERTY (requirePartner());
+    }    
+}
+
+customer 'Клиент' (Partner p) = GROUP AGGR Customer c BY partner(c);
+nameCustomer 'Клиент' (Partner p) = namePartner(p);
+
 FORM customer 'Клиент'
     OBJECTS c = Customer PANEL
-    PROPERTIES(c) name, inactive
+    PROPERTIES(c) name, namePartner, inactive
 
     EDIT Customer OBJECT c
 ;
@@ -26,6 +44,7 @@ DESIGN customer {
                 NEW lane1 {
                     type = CONTAINERH;
                     MOVE PROPERTY(name(c));
+                    MOVE PROPERTY(namePartner(c));
                     MOVE PROPERTY(inactive(c));
                 }
             }
@@ -63,20 +82,3 @@ NAVIGATOR {
         NEW customers;
     }
 }
-
-CLASS CounterpartyType 'Тип контрагента' {
-    person 'Физическое лицо',
-    legalEntity 'Юридическое лицо'
-}
-
-name 'Тип' (CounterpartyType t) = staticCaption(t);
-
-type = DATA CounterpartyType (Customer);
-nameType 'Тип контрагента' (Customer c) = name(type(c));
-
-FORM counterpartyType 'Тип контрагента'
-    OBJECTS t = CounterpartyType
-    PROPERTIES(t) READONLY name
-    
-    LIST CounterpartyType OBJECT t
-;

@@ -1,0 +1,19 @@
+MODULE Partner;
+
+CLASS ABSTRACT Partner 'Контранент';
+
+namePartner 'Наименование' = ABSTRACT ISTRING (Partner);
+
+CLASS PartnerType 'Тип контрагента';
+
+type 'Тип контрагента' = ABSTRACT PartnerType (Partner);
+
+nameType 'Тип контрагента' (Partner p) = staticCaption(type(p));
+
+FORM partners 'Контрагенты'
+    
+    OBJECTS p = Partner
+    PROPERTIES (p) READONLY namePartner, nameType
+    
+    LIST Partner OBJECT p
+;

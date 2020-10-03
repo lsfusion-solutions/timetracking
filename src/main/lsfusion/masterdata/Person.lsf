@@ -1,10 +1,10 @@
 MODULE Person;
 
-REQUIRE Doc, OpenCV, Project;
+REQUIRE Doc, OpenCV, Project, Partner;
 
 NAMESPACE Person;
 
-CLASS Person 'Физическое лицо' : Contact;
+CLASS Person 'Физическое лицо' : Contact, Partner;
 TABLE person (Person);
 
 CLASS Address 'Доп. адреса';
@@ -19,10 +19,17 @@ CLASS Email 'Доп. E-mail';
 email 'E-mail' = DATA STRING[400] (Email) CHARWIDTH 20 REGEXP '[-!#-\'*+/-9=?A-Z^-~]+(\\.[-!#-\'*+/-9=?A-Z^-~]+)*@[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?(\\.[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?)+' '<html>{authentication.email.contact.incorrect}</html>';
 person = DATA Person (Email);
 
-customer 'Клиент' = DATA Customer (Person);
-nameCustomer 'Клиент' (Person p) = name(customer(p));
+nameCustomer 'Клиент' (Person p) = namePartner(customer(p));
 
 middleName 'Отчество' = DATA ISTRING[250](Person) CHARWIDTH 15;
+
+namePartner (Person p) += name(p);
+
+EXTEND CLASS PartnerType {
+    person 'Физическое лицо'
+}
+
+type (Person p) += PartnerType.person;
 
 firstNameRp 'Имя род. падеж' = DATA ISTRING[250](Person) CHARWIDTH 15;
 lastNameRp 'Фамилия род. падеж' = DATA ISTRING[250](Person) CHARWIDTH 15;
@@ -136,7 +143,7 @@ children 'Дети' (Person p) = GROUP CONCAT name(Child c), ', ' ORDER birthday
 
 FORM person 'Физическое лицо'
     OBJECTS p = Person PANEL 
-    PROPERTIES (p) nameCustomer, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, email,
+    PROPERTIES (p) nameCustomer READONLY, lastName, firstName, middleName, lastNameRp, firstNameRp, middleNameRp, birthday, address, email,
                    seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, phone, inn, snils, numberAccount, nameBank,
                    openFileSnils SHOWIF TRUE IF fileSnils(p), loadFileSnils,
                    openFilePassport SHOWIF TRUE IF filePassport(p), loadFilePassport,

@@ -4,7 +4,7 @@ REQUIRE EmploymentContract, Dashboard;
 
 addLegalEntity 'Добавить' (Customer c) {
     NEWSESSION NEW l = LegalEntity {
-        customer(l) <- c;
+        //customer(l) <- c;
         SHOW legalEntity OBJECTS o = l DOCKED;
     }
 } IMAGE 'add.png';
