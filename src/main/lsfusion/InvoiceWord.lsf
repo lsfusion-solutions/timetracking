@@ -4,6 +4,8 @@ REQUIRE Invoice, Word, Time;
 
 NAMESPACE Invoice;
 
+shortNameCurrency (Invoice i) = reportName(currency(i));
+
 // Генерация шаблона
 generateInvoiceTemplate 'Создать шаблон для счета' ()  { 
     NEWSESSION {
@@ -30,6 +32,7 @@ generateInvoiceTemplate 'Создать шаблон для счета' ()  {
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_MONTHLY'; description(e) <- 'Сумма абонентской платы'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_HOURS'; description(e) <- 'Сумма к оплате'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_PAY'; description(e) <- 'Сумма к оплате (всего)'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- 'NAME_CUR'; description(e) <- 'Валюта'; }
             DIALOG template OBJECTS t = t DO {
                 SEEK templates.t = t;
             }
@@ -61,7 +64,10 @@ generateInvoiceTemplate 'Создать шаблон для счета' ()  {
 customerTemplateWord 'Шаблон для счета по проекту (Word)' = DATA Template (Project);
 nameCustomerTemplateWord 'Шаблон для счета по проекту (Word)' (Project p) = name(customerTemplateWord(p));
 
-templateWord 'Шаблон для счета' (Invoice i) = OVERRIDE customerTemplateWord(project(i)), 
+invoiceTemplateWord 'Шаблон для счета по проекту (Word)'  = DATA Template ();
+nameInvoiceTemplateWord 'Шаблон для счета по проекту (Word)' () = name(invoiceTemplateWord());
+
+templateWord 'Шаблон для счета' (Invoice i) = OVERRIDE customerTemplateWord(project(i)), invoiceTemplateWord(),
     templateId('invoiceMonthly') IF (hoursMonthly(i) OR hoursMonthlyCategory(i)), templateId('invoiceGeneral');
 
 EXTEND FORM customer
@@ -73,6 +79,14 @@ DESIGN customer {
         header {
             MOVE PROPERTY(nameCustomerTemplateWord(p));
         }
+    }
+}
+
+EXTEND FORM options PROPERTIES nameInvoiceTemplateWord(), generateInvoiceTemplate();
+DESIGN options {
+    commons {
+        MOVE PROPERTY (nameInvoiceTemplateWord());
+        MOVE PROPERTY (generateInvoiceTemplate());
     }
 }
 
@@ -114,9 +128,10 @@ generateWord 'Сгенерировать (Word)' (Invoice i) {
             value(detail) <- TEXT(hoursMonthlyWord(i)) WHERE key(detail) == 'HOURS_MONTHLY';
             value(detail) <- TEXT(formatHours(OVERRIDE hoursPay(i), 0.0)) WHERE key(detail) == 'HOURS_PAY';
             value(detail) <- TEXT(formatPrice(sum(i))) WHERE key(detail) == 'SUM_INIT';
-            value(detail) <- TEXT(formatPrice(sumMonthly(i))) WHERE key(detail) == 'SUM_MONTHLY';
+            value(detail) <- TEXT(formatPrice(OVERRIDE sumMonthly(i), 0.0)) WHERE key(detail) == 'SUM_MONTHLY';
             value(detail) <- TEXT(formatPrice(sumPay(i))) WHERE key(detail) == 'SUM_HOURS';
             value(detail) <- TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))) WHERE key(detail) == 'SUM_PAY';
+            value(detail) <- TEXT(shortNameCurrency(i)) WHERE key(detail) == 'NAME_CUR';
         }
         process(templateWord(i));
         open(resultTemplate(), replace(replace((CONCAT '_',nameCustomer(i), seriesNumber(i), toDateDDMMYYYY(fromDate(i)) + '-' + toDateDDMMYYYY(toDate(i))), ',' ,''), '\\', ''));

@@ -8,6 +8,7 @@ TABLE currency(Currency);
 
 name 'Наименование' = DATA ISTRING[50](Currency);
 shortName 'Наименование (сокр.)' = DATA BPSTRING[3] (Currency) CHARWIDTH 4;
+reportName 'Наименование (для отчета)' = DATA STRING[25] (Currency) CHARWIDTH 8;
 
 currencyShortName (string) = GROUP AGGR Currency currency WHERE currency IS Currency BY shortName(currency);
 
@@ -18,14 +19,14 @@ currencyShortName (string) = GROUP AGGR Currency currency WHERE currency IS Curr
 
 FORM currency 'Валюта'
     OBJECTS c = Currency PANEL
-    PROPERTIES (c)  name, shortName
+    PROPERTIES (c)  name, shortName, reportName
 
     EDIT Currency OBJECT c
 ;
 
 FORM currencies 'Валюты'
     OBJECTS c = Currency
-    PROPERTIES(c) READONLY name, shortName
+    PROPERTIES(c) READONLY name, shortName, reportName
     ORDERS name(c)    
 
     PROPERTIES(c) NEWSESSION NEW, EDIT, DELETE 
