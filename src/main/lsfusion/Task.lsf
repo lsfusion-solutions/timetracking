@@ -5,7 +5,7 @@ REQUIRE Project, Employee, Email, Category;
 CLASS Task 'Задача';
 TABLE task(Task);
 
-name 'Название' = DATA STRING[100] (Task) CHARWIDTH 20;
+name 'Название' = DATA STRING[200] (Task) CHARWIDTH 20;
 
 description 'Описание' = DATA TEXT (Task);
 
