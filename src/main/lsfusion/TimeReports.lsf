@@ -61,7 +61,7 @@ DESIGN projects {
     OBJECTS {
         NEW timeEntry {
             fill = 2;
-            type = SPLITH;
+            //type = SPLITH;
             MOVE BOX(t) {
                 fill = 3;
                 //PROPERTY(managers(t)) { hide = TRUE; }
@@ -132,7 +132,7 @@ DESIGN employees {
     OBJECTS {
         NEW timeEntry {
             fill = 2;
-            type = SPLITH;
+            //type = SPLITH;
             MOVE BOX(t) {
                 fill = 3;
             }
