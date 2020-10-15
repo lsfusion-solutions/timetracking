@@ -66,8 +66,8 @@ hoursMonthlyCategory 'Часов в абонентской плате по ка�
 
 EXTEND FORM customer PROPERTIES hoursMonthly(p, cc);
 
-hoursPayCategory (Invoice i, Task t) = hours(i,t) (-) PARTITION UNGROUP hoursMonthly LIMIT hours(i,t) ORDER rate(i,t), fromDate(i,t), t BY i, category(t);
-hoursPay 'Часов к оплате' (Invoice i, Task t) = hoursPayCategory(i,t) (-) PARTITION UNGROUP hoursMonthly LIMIT hoursPayCategory(i,t) ORDER rate(i,t), fromDate(i,t), t BY i;
+hoursPayCategory (Invoice i, Task t) = hours(i,t) (-) PARTITION UNGROUP hoursMonthly LIMIT hours(i,t) ORDER fromDate(i,t), t BY i, category(t);
+hoursPay 'Часов к оплате' (Invoice i, Task t) = hoursPayCategory(i,t) (-) PARTITION UNGROUP hoursMonthly LIMIT hoursPayCategory(i,t) ORDER fromDate(i,t), t BY i;
 hoursPay 'Часов к оплате' (Invoice i) = GROUP SUM hoursPay(i, Task t);
 hoursPay 'Часов к оплате' (Invoice i, Category c) = GROUP SUM hoursPay(i, Task t) BY category(t);
 
