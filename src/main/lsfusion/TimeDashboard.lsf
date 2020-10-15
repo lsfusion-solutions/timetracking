@@ -163,7 +163,6 @@ EXTEND FORM timeDashboard
 
 DESIGN timeDashboard {
     NEW pane FIRST {
-        //type = SPLITV;
         fill = 1;
 //        NEW projectPane {
 //            fill = 1;
