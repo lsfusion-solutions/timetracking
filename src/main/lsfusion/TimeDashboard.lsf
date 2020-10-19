@@ -131,26 +131,23 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
 
 startTimeEntry 'Начать новую задачу' () { 
     IF currentEmployee() THEN {
-        NEWSESSION {
-            
-                NEW t = Task {
-                    employee(t) <- currentEmployee();
-                    DIALOG selectProject OBJECTS p INPUT DO {
-                        project(t) <- p;
-                    }
-                    DIALOG dialogTaskType OBJECTS g INPUT, a INPUT DO {
-                        taskType(t) <- a;
-                        practice(t) <- g;
-                    }
-                    NEW e = TimeEntry {
-                        task(e) <- t;
-                        dateTimeStart(e) <- currentDateTime();
-                    }
-                    APPLY;
-                    SEEK timeDashboard.fe = t;
+        NEWSESSION {       
+            NEW t = Task {
+                employee(t) <- currentEmployee();
+                DIALOG selectProject OBJECTS p INPUT DO {
+                    project(t) <- p;
                 }
-            
-            //APPLY;
+                DIALOG dialogTaskType OBJECTS g INPUT, a INPUT DO {
+                    taskType(t) <- a;
+                    practice(t) <- g;
+                }
+                NEW e = TimeEntry {
+                    task(e) <- t;
+                    dateTimeStart(e) <- currentDateTime();
+                }
+                APPLY;
+                SEEK timeDashboard.fe = t;
+            }
         }
     } ELSE
         MESSAGE 'Вы должны быть залогинены под сотрудником, чтобы начать работу';
