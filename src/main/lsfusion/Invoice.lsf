@@ -19,7 +19,7 @@ date(i) <- currentDate() WHEN SET(i IS Invoice);
 currency (Invoice i) = currency(project(i));
 nameCurrency 'Валюта' (Invoice i) = name(currency(i));
 
-@defineNumbered(Invoice);
+@defineNumbered(Invoice, STRING);
 @defineNumeratedDefault(Invoice, 'Счета', '');
 
 author 'Автор' = DATA Employee (Invoice);

@@ -119,10 +119,6 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(ce) READONLYIF isReadonlyTask(ce) nameTypePactice ON CHANGE { changeTaskType(ce); }, 
         name, dateTimeStart, currentHours, description PANEL
     FILTERS ce == fe AND NOT markDelete(fe), active(taskType(ce))
-    
-    OBJECTS t = TaskType PANEL
-    PROPERTIES(t) SELECTOR name SHOWIF NOT ce
-    //PROPERTIES startTimeEntry(t)
                 
     OBJECTS pa = TimeEntry
     PROPERTIES(pa) dateTimeCreated SHOWIF validUser() READONLY, nameEmployee READONLY, dateTimeStart BACKGROUND dateTimeStartChanged(pa) AND validUser() READONLYIF NOT currentEmployee(),
@@ -133,15 +129,19 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     FILTERS task(pa) == fe
 ;
 
-startTimeEntry 'Начать новую задачу' (TaskType tt) { 
+startTimeEntry 'Начать новую задачу' () { 
     IF currentEmployee() THEN {
         NEWSESSION {
-            DIALOG selectProject OBJECTS p INPUT DO {
+            
                 NEW t = Task {
                     employee(t) <- currentEmployee();
-                    project(t) <- p;
-                    taskType(t) <- tt;
-                    practice(t) <- GROUP MAX Practice pp IF in(tt, pp);
+                    DIALOG selectProject OBJECTS p INPUT DO {
+                        project(t) <- p;
+                    }
+                    DIALOG dialogTaskType OBJECTS g INPUT, a INPUT DO {
+                        taskType(t) <- a;
+                        practice(t) <- g;
+                    }
                     NEW e = TimeEntry {
                         task(e) <- t;
                         dateTimeStart(e) <- currentDateTime();
@@ -149,7 +149,7 @@ startTimeEntry 'Начать новую задачу' (TaskType tt) {
                     APPLY;
                     SEEK timeDashboard.fe = t;
                 }
-            }
+            
             //APPLY;
         }
     } ELSE
@@ -161,7 +161,7 @@ saveTimeDashboard 'Сохранить' () {
 } IMAGE 'save.png';
 
 EXTEND FORM timeDashboard
-    PROPERTIES startTimeEntry(t), saveTimeDashboard()
+    PROPERTIES startTimeEntry(), saveTimeDashboard()
 ;
 
 DESIGN timeDashboard {
@@ -189,8 +189,8 @@ DESIGN timeDashboard {
             type = SPLITH;
             NEW current {
                 caption = 'Текущее время';
-                MOVE PROPERTY(name(t)) { caption = 'Тип задачи'; alignment = STRETCH; }
-                MOVE PROPERTY(startTimeEntry(t)) { fill = 1; }
+                //MOVE PROPERTY(name(t)) { caption = 'Тип задачи'; alignment = STRETCH; }
+                MOVE PROPERTY(startTimeEntry()) { fill = 1; }
 
                 MOVE PROPERTY(nameCustomerAndProject(ce)) { alignment = STRETCH; }
                 MOVE PROPERTY(nameTypePactice(ce)) { alignment = STRETCH; }
@@ -304,7 +304,7 @@ DESIGN timeDashboard {
         //MOVE PROPERTY(finish(fe)) { alignment = STRETCH; fontStyle = 'bold'; }
         MOVE PROPERTY(pause(ce)) { alignment = STRETCH; }
         MOVE PROPERTY(restart(ce)) { alignment = STRETCH; fontStyle = 'bold'; }
-        MOVE PROPERTY(startTimeEntry(t)) { fontStyle = 'bold'; }
+        MOVE PROPERTY(startTimeEntry()) { fontStyle = 'bold'; }
     }
 }
 
