@@ -4,16 +4,6 @@ REQUIRE Time, Utils;
 
 NAMESPACE EnterpriseData;
 
-META defProp(name, caption, type, class)
-    name caption = ABSTRACT type (class);
-    WHEN CHANGED(name(class o)) DO packet(o) <- NULL;
-END
-
-META defPropDetail(name, caption, type, class)
-    name caption = ABSTRACT type (class, class##Detail);
-    WHEN CHANGED(name(class o, class##Detail d)) AND in(o, d) DO packet(o) <- NULL;
-END
-
 dateTimeToString = FORMULA STRING 'to_char($1, \'YYYY-MM-DD"T"HH24:MI:SS\')';
 
 idSended 'Номер переданного сообщения' = DATA INTEGER ();
@@ -70,6 +60,9 @@ object 'Объект ЕД' (STRING[36] id) = GROUP AGGR EnterpriseData ed BY uid
 
 packet 'Пакет' = DATA INTEGER (EnterpriseData);
 
+isDeleted 'Пометка удаления' = ABSTRACT BOOLEAN (EnterpriseData);
+WHEN CHANGED (isDeleted(EnterpriseData ed)) AND ed IS EnterpriseData DO packet(ed) <- NULL;
+
 WHEN SET (EnterpriseData ed IS EnterpriseData) AND NOT uid(ed) DO {
     generateUUID();
     uid(ed) <- generatedUUID();
@@ -116,14 +109,14 @@ sendMessage 'Передать' () {
     }
 }
 
-EXTEND FORM options
+EXTEND FORM integrationData
     PROPERTIES () idSended BACKGROUND (IF isSended() THEN RGB(225,255,225) ELSE RGB(255, 225, 225)),
                   idReceived BACKGROUND (IF isReceived() THEN RGB(225,255,225) ELSE RGB(255, 225, 225)),
                   dateStartExchange, toBase, fromBase, path,
                   sendMessage, receiveMessage
 ;
 
-DESIGN options {
+DESIGN integrationData {
     pane {
         NEW ennterpriseData {
             caption = 'Обмен 1С';
@@ -146,3 +139,91 @@ DESIGN options {
         }
     }
 }
+
+GROUP link EXTID 'СсылкаНаОбъект';
+GROUP linkInLink EXTID 'СсылкаНаОбъект' : link;
+
+META defProp(name, caption, type, class)
+    name caption = ABSTRACT type (class);
+    WHEN CHANGED(name(class o)) DO packet(o) <- NULL;
+END
+
+META defPropObject(name, caption, type, class)
+    @defProp(name, caption, type, ###class);
+    @def###type(name, class);
+END
+
+META defPropId(name, caption, type, class)
+    @defProp(name, caption, type, ###class);
+    id###name###class caption (###class class) = staticCaption(name(class));
+    EXTEND FORM sendMessage
+        PROPERTIES (class) id###name###class EXTID caption
+    ;
+END
+
+META defPropSimple(name, caption, type, class)
+    @defProp(name, caption, type, ###class);
+    EXTEND FORM sendMessage
+        PROPERTIES (class) name EXTID caption
+    ;
+END
+
+META defPropBoolean(name, caption, class);
+    @defProp(name, caption, BOOLEAN, ###class);
+    ##name##BooleanString (###class class) = IF class THEN 'true' ELSE 'false';
+    EXTEND FORM sendMessage
+        PROPERTIES (class) name EXTID caption
+    ;
+END
+
+META defPropDetail(name, caption, type, class)
+    name caption = ABSTRACT type (class, class##Detail);
+    WHEN CHANGED(name(class o, class##Detail d)) AND in(o, d) DO packet(o) <- NULL;
+END
+
+META extDeleteObject(objtype, caption)
+    EXTEND FORM sendMessage
+        OBJECTS objtype##Deleted = ###objtype EXTID 'УдалениеОбъекта' IN body
+        PROPERTIES(objtype##Deleted) IN link IN linkInLink uid EXTID caption
+        FILTERS uid(objtype##Deleted), EnterpriseData.isDeleted(objtype##Deleted)
+        
+        FILTERS NOT DATE(dateTime(objtype##Deleted)) < dateStartExchange(), NOT packet(objtype##Deleted) <= idTicket()
+    ;
+END
+
+META extDocument(doctype, caption)
+    CLASS ABSTRACT ###doctype caption : Document;
+    
+    CLASS ABSTRACT ###doctype##Detail 'Строка';
+    
+    in = ABSTRACT BOOLEAN (###doctype, ###doctype##Detail);
+    
+    GROUP keyProperties###doctype EXTID 'КлючевыеСвойства';
+    
+    @defProp(company, 'Организация', Company, ###doctype);
+    
+    EXTEND FORM sendMessage
+        OBJECTS doctype = ###doctype EXTID caption IN body
+        PROPERTIES(doctype) IN keyProperties###doctype dateTimeString EXTID 'Дата', id EXTID 'Номер'
+        FILTERS dateTimeString(doctype), id(doctype), NOT EnterpriseData.isDeleted(doctype)
+       
+        OBJECTS company###doctype = Company EXTID 'Организация' IN keyProperties###doctype
+        PROPERTIES(company###doctype) name EXTID 'Наименование', idType EXTID 'ЮридическоеФизическоеЛицо'
+       
+        PROPERTIES(doctype) IN keyProperties###doctype uid EXTID 'Ссылка' 
+        FILTERS company###doctype = company(doctype)
+
+        FILTERS NOT DATE(dateTime(doctype)) < dateStartExchange(), NOT packet(doctype) <= idTicket()
+    ;
+    
+    afterSend () + { 
+        FOR ###doctype doctype IS ###doctype AND NOT packet(doctype) AND NOT DATE(dateTime(doctype)) < dateStartExchange() DO {
+            packet(doctype) <- messageNo();
+        }
+}
+END
+
+META extDocument(doctype, caption, delcaption)
+    @extDocument(doctype, caption);
+    @extDeleteObject(doctype, delcaption);
+END
