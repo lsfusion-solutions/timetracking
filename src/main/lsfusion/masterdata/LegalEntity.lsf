@@ -133,7 +133,7 @@ okvedName 'Вид деятельности' = DATA STRING[250] (LegalEntity) CHA
 
 FORM legalEntity 'Юридическое лицо'
     OBJECTS o = LegalEntity PANEL
-    PROPERTIES(o) shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer READONLY, addr = address, nameEmployee, country,
+    PROPERTIES(o) shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, addr = address, nameEmployee, country,
                   addressIsActual, actualAddress READONLYIF addressIsActual(o), addressIsMailing, mailingAddress READONLYIF addressIsMailing(o),
                   email, note,
                   nameRepresentative, positionRepresentative, baseRepresentative, phone, okpo, okato, oktmo, okved, okvedName, numberAccount
@@ -228,7 +228,7 @@ DESIGN legalEntity {
 
 FORM legalEntities 'Юридические лица'
     OBJECTS o = LegalEntity
-    PROPERTIES(o) READONLY shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, nameCustomer, address, nameRepresentative, 
+    PROPERTIES(o) READONLY shortNameFrom, shortName, fullName, shortNameLat, fullNameLat, address, nameRepresentative, 
                            baseRepresentative, positionRepresentative, phone, okpo, okato, oktmo, okved, numberAccount
     PROPERTIES (o) NEWSESSION NEW, EDIT, DELETE
     ORDERS shortName(o)

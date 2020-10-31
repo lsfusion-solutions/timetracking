@@ -24,8 +24,8 @@ DESIGN options {
     }    
 }
 
-customer 'Клиент' (Partner p) = GROUP AGGR Customer c BY partner(c);
-nameCustomer 'Клиент' (Partner p) = namePartner(p);
+//customer 'Клиент' (Partner p) = GROUP AGGR Customer c BY partner(c);
+customer 'Клиент' (Partner p) = GROUP LAST Customer c ORDER c BY partner(c);
 
 FORM customer 'Клиент'
     OBJECTS c = Customer PANEL
