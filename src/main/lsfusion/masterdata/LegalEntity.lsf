@@ -160,7 +160,6 @@ DESIGN legalEntity {
                     type = CONTAINERH;
                     caption = 'Основые параметры';
                     //MOVE PROPERTY (id(o));
-                    MOVE PROPERTY (nameCustomer(o));
                     MOVE PROPERTY (shortNameFrom(o));
                 }
                 NEW names {
