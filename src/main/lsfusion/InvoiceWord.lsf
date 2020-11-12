@@ -33,6 +33,7 @@ generateInvoiceTemplate 'Создать шаблон для счета' ()  {
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_HOURS'; description(e) <- 'Сумма к оплате'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_PAY'; description(e) <- 'Сумма к оплате (всего)'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'NAME_CUR'; description(e) <- 'Валюта'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- '\{DETAILS\}'; }
             DIALOG template OBJECTS t = t DO {
                 SEEK templates.t = t;
             }
@@ -112,29 +113,45 @@ tableText (Invoice i) = GROUP CONCAT rowText(i, Task t), 'lsFusionRSep' ORDER fr
 hoursMonthlyWord (Invoice i) = CONCAT '', TEXT (formatHours(hoursMonthly(i))), '\n', 
     (GROUP CONCAT (CONCAT ' ', TEXT (formatHours(hoursMonthly(i, Category c))) + ' часов', name(c)) IF hoursMonthly(i, c), '\n' ORDER hoursMonthly(i, c), c);
 
+CLASS InvoiceDetailsType 'Реквизиты' {
+    ASB 'АСБ',
+    Aacounting 'А-Аккаунтинг'
+}
+
+FORM dialogInvoiceDetailsTypes 'Выбор реквизитов'
+    OBJECTS t = InvoiceDetailsType
+    PROPERTIES 'Реквизиты' = staticCaption(t)
+;
+
 generateWord 'Сгенерировать (Word)' (Invoice i) { 
-    IF templateWord(i) THEN {
-        value(TemplateEntry detail) <- NULL;
-        FOR template (TemplateEntry detail) == templateWord(i) DO {
-            value(detail) <- tableText(i) WHERE key(detail) == 'TABLE';
-            value(detail) <- TEXT(toDateDDMMYY(date(i))) WHERE key(detail) == 'INVOICE_DATE';
-            value(detail) <- TEXT(series(i)) WHERE key(detail) == 'SERIES';
-            value(detail) <- TEXT(number(i)) WHERE key(detail) == 'NUMBER';
-            value(detail) <- TEXT(nameCustomer(i)) WHERE key(detail) == 'CUSTOMER_NAME';
-            value(detail) <- TEXT(nameProject(i)) WHERE key(detail) == 'PROJECT_NAME';
-            value(detail) <- TEXT(toDateDDMMYY(fromDate(i))) WHERE key(detail) == 'FROM_DATE';
-            value(detail) <- TEXT(toDateDDMMYY(toDate(i))) WHERE key(detail) == 'TO_DATE';
-            value(detail) <- TEXT(formatHours(hours(i))) WHERE key(detail) == 'HOURS_INIT';
-            value(detail) <- TEXT(hoursMonthlyWord(i)) WHERE key(detail) == 'HOURS_MONTHLY';
-            value(detail) <- TEXT(formatHours(OVERRIDE hoursPay(i), 0.0)) WHERE key(detail) == 'HOURS_PAY';
-            value(detail) <- TEXT(formatPrice(sum(i))) WHERE key(detail) == 'SUM_INIT';
-            value(detail) <- TEXT(formatPrice(OVERRIDE sumMonthly(i), 0.0)) WHERE key(detail) == 'SUM_MONTHLY';
-            value(detail) <- TEXT(formatPrice(sumPay(i))) WHERE key(detail) == 'SUM_HOURS';
-            value(detail) <- TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))) WHERE key(detail) == 'SUM_PAY';
-            value(detail) <- TEXT(shortNameCurrency(i)) WHERE key(detail) == 'NAME_CUR';
-        }
-        process(templateWord(i));
-        open(resultTemplate(), replace(replace((CONCAT '_',nameCustomer(i), seriesNumber(i), toDateDDMMYYYY(fromDate(i)) + '-' + toDateDDMMYYYY(toDate(i))), ',' ,''), '\\', ''));
-    } ELSE
-        MESSAGE 'Не выбран шаблон для клиента';
+    DIALOG dialogInvoiceDetailsTypes OBJECTS t INPUT DO {
+        IF templateWord(i) THEN {
+            value(TemplateEntry detail) <- NULL;
+            FOR template (TemplateEntry detail) == templateWord(i) DO {
+                value(detail) <- tableText(i) WHERE key(detail) == 'TABLE';
+                value(detail) <- TEXT(toDateDDMMYY(date(i))) WHERE key(detail) == 'INVOICE_DATE';
+                value(detail) <- TEXT(series(i)) WHERE key(detail) == 'SERIES';
+                value(detail) <- TEXT(number(i)) WHERE key(detail) == 'NUMBER';
+                value(detail) <- TEXT(nameCustomer(i)) WHERE key(detail) == 'CUSTOMER_NAME';
+                value(detail) <- TEXT(nameProject(i)) WHERE key(detail) == 'PROJECT_NAME';
+                value(detail) <- TEXT(toDateDDMMYY(fromDate(i))) WHERE key(detail) == 'FROM_DATE';
+                value(detail) <- TEXT(toDateDDMMYY(toDate(i))) WHERE key(detail) == 'TO_DATE';
+                value(detail) <- TEXT(formatHours(hours(i))) WHERE key(detail) == 'HOURS_INIT';
+                value(detail) <- TEXT(hoursMonthlyWord(i)) WHERE key(detail) == 'HOURS_MONTHLY';
+                value(detail) <- TEXT(formatHours(OVERRIDE hoursPay(i), 0.0)) WHERE key(detail) == 'HOURS_PAY';
+                value(detail) <- TEXT(formatPrice(sum(i))) WHERE key(detail) == 'SUM_INIT';
+                value(detail) <- TEXT(formatPrice(OVERRIDE sumMonthly(i), 0.0)) WHERE key(detail) == 'SUM_MONTHLY';
+                value(detail) <- TEXT(formatPrice(sumPay(i))) WHERE key(detail) == 'SUM_HOURS';
+                value(detail) <- TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))) WHERE key(detail) == 'SUM_PAY';
+                value(detail) <- TEXT(shortNameCurrency(i)) WHERE key(detail) == 'NAME_CUR';
+                value(detail) <- TEXT(IF t == InvoiceDetailsType.ASB THEN 
+                    'ИНН/КПП: 7725718426/770501001 ОГРН: 1117746197447\n' + 'р/с: 40702810173000028366 ФИЛИАЛ ЦЕНТРАЛЬНЫЙ ПАО БАНКА /"ФК ОТКРЫТИЕ/" Г. МОСКВА\nк/с: 30101810945250000297 БИК: 044525297' ELSE 
+                    'ИНН/КПП: 9705145234/770501001 ОГРН: 1207700222223\nр/с: 40702810901460008635 ФИЛИАЛ ЦЕНТРАЛЬНЫЙ ПАО БАНКА /"ФК ОТКРЫТИЕ/" Г. МОСКВА\nк/с: 30101810945250000297 БИК: 044525297') 
+                    WHERE key(detail) == '\{DETAILS\}';
+            }
+            process(templateWord(i));
+            open(resultTemplate(), replace(replace((CONCAT '_',nameCustomer(i), seriesNumber(i), toDateDDMMYYYY(fromDate(i)) + '-' + toDateDDMMYYYY(toDate(i))), ',' ,''), '\\', ''));
+        } ELSE
+            MESSAGE 'Не выбран шаблон для клиента';
+    }
 }
