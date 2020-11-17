@@ -44,7 +44,7 @@ GROUP params 'Параметры';
 
 address 'Юридический адрес' = DATA ISTRING[250](LegalEntity) CHARWIDTH 20 IN params;
 
-representative = DATA Person(LegalEntity);
+representative = DATA Person (LegalEntity);
 nameRepresentative 'Представитель по умолчанию' (LegalEntity l) = name(representative(l)) CHARWIDTH 20;
 baseRepresentative 'Основание представителя' = DATA ISTRING[250](LegalEntity) CHARWIDTH 20;
 positionRepresentative 'Должность представителя' = DATA ISTRING[250](LegalEntity) CHARWIDTH 20;
@@ -54,9 +54,6 @@ okpo 'ОКПО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
 okato 'ОКАТО' = DATA ISTRING[100](LegalEntity) CHARWIDTH 50;
 oktmo 'ОКТМО' = DATA ISTRING[50](LegalEntity) CHARWIDTH 10;
 okved 'ОКВЭД' = DATA ISTRING[100](LegalEntity) CHARWIDTH 10;
-
-CONSTRAINT representative(LegalEntity l) AND NOT customer(representative(l)) == customer(l) CHECKED BY representative[LegalEntity] 
-    MESSAGE 'Клиент представителя не совпадает с клиентом организации';
 
 CLASS Account 'Банковский счёт';
 TABLE account (Account);
@@ -244,6 +241,9 @@ baseRepresentative (LegalEntity c) <- 'Устава' WHEN SET (c IS LegalEntity)
 positionRepresentative (LegalEntity c) <- 'Генеральный директор' WHEN SET (c IS LegalEntity);
 
 in 'Вкл' = DATA BOOLEAN (Person, LegalEntity);
+
+CONSTRAINT representative(LegalEntity l) AND NOT in(representative(l), l) CHECKED BY representative[LegalEntity] 
+    MESSAGE 'Представитель долен быть физ. лицом организации';
 
 EXTEND FORM person
     OBJECTS l = LegalEntity

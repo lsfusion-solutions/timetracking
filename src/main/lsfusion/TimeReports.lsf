@@ -1,6 +1,6 @@
 MODULE TimeReports;
 
-REQUIRE TimeEntry, Project, Reports, TimeDashboard;
+REQUIRE TimeEntry, Project, Reports, TimeDashboard, EnterpriseDataTimeTracking;
 
 NAMESPACE Time;
 
@@ -510,5 +510,98 @@ EXTEND FORM timeDashboard
 DESIGN timeDashboard {
     TOOLBAR(pa) {
         MOVE PROPERTY(createTimeEntryPeriod(fe)) FIRST;
+    }
+}
+
+documentRef_OtchietKomissionieraOProdazhakh = DATA LOCAL STRING(INTEGER);
+documentRef_PrikhodnyiKassovyiOrdier = DATA LOCAL STRING(INTEGER);
+documentRef_RaskhodnyiKassovyiOrdier = DATA LOCAL STRING(INTEGER);
+documentRef_KorriektirovkaDolgha = DATA LOCAL STRING(INTEGER);
+documentRef_AvansovyiOtchiet = DATA LOCAL STRING(INTEGER);
+documentRef_PostuplieniieTovarovUslugh = DATA LOCAL STRING(INTEGER);
+documentRef_SpisaniieMatierialovIzEkspluatatsii = DATA LOCAL STRING(INTEGER);
+documentRef_PostuplieniieNaRaschietnyiSchiet = DATA LOCAL STRING(INTEGER);
+documentRef_SpisaniieSRaschietnoghoSchieta = DATA LOCAL STRING(INTEGER);
+documentRef_RiealizatsiiaTovarovUslugh = DATA LOCAL STRING(INTEGER);
+kontraghient = DATA LOCAL STRING(INTEGER);
+documentRef_OpieratsiiaBukh = DATA LOCAL STRING(INTEGER);
+otvietstviennyi = DATA LOCAL STRING(INTEGER);
+kolichiestvoProvodok = DATA LOCAL INTEGER(INTEGER);
+data = DATA LOCAL DATETIME(INTEGER);
+nomier = DATA LOCAL STRING(INTEGER);
+priedstavlieniie = DATA LOCAL STRING(INTEGER);
+nomPP = DATA LOCAL STRING(INTEGER);
+IB = DATA LOCAL STRING();
+orghanizatsiiaGUID = DATA LOCAL STRING();
+orghanizatsiiaINN = DATA LOCAL STRING();
+orghanizatsiiaImia = DATA LOCAL STRING();
+dataVyghruzki = DATA LOCAL STRING();
+konietsPierioda = DATA LOCAL STRING();
+nachaloPierioda = DATA LOCAL STRING();
+
+FORM data FORMEXTID 'Данные'
+    PROPERTIES() IB EXTID 'ИБ' ATTR, 
+                 orghanizatsiiaGUID EXTID 'ОрганизацияGUID' ATTR, 
+                 orghanizatsiiaINN EXTID 'ОрганизацияИНН' ATTR, 
+                 orghanizatsiiaImia EXTID 'ОрганизацияИмя' ATTR, 
+                 dataVyghruzki EXTID 'ДатаВыгрузки' ATTR, 
+                 konietsPierioda EXTID 'КонецПериода' ATTR, 
+                 nachaloPierioda EXTID 'НачалоПериода' ATTR
+    
+    OBJECTS dokumient = INTEGER EXTID 'Документ'
+    PROPERTIES(dokumient) documentRef_OtchietKomissionieraOProdazhakh EXTID 'DocumentRef.ОтчетКомиссионераОПродажах', 
+                 documentRef_PrikhodnyiKassovyiOrdier EXTID 'DocumentRef.ПриходныйКассовыйОрдер', 
+                 documentRef_RaskhodnyiKassovyiOrdier EXTID 'DocumentRef.РасходныйКассовыйОрдер', 
+                 documentRef_KorriektirovkaDolgha EXTID 'DocumentRef.КорректировкаДолга', 
+                 documentRef_AvansovyiOtchiet EXTID 'DocumentRef.АвансовыйОтчет', 
+                 documentRef_PostuplieniieTovarovUslugh EXTID 'DocumentRef.ПоступлениеТоваровУслуг', 
+                 documentRef_SpisaniieMatierialovIzEkspluatatsii EXTID 'DocumentRef.СписаниеМатериаловИзЭксплуатации', 
+                 documentRef_PostuplieniieNaRaschietnyiSchiet EXTID 'DocumentRef.ПоступлениеНаРасчетныйСчет', 
+                 documentRef_SpisaniieSRaschietnoghoSchieta EXTID 'DocumentRef.СписаниеСРасчетногоСчета', 
+                 documentRef_RiealizatsiiaTovarovUslugh EXTID 'DocumentRef.РеализацияТоваровУслуг', 
+                 kontraghient EXTID 'Контрагент', 
+                 documentRef_OpieratsiiaBukh EXTID 'DocumentRef.ОперацияБух', 
+                 otvietstviennyi EXTID 'Ответственный', 
+                 kolichiestvoProvodok EXTID 'КоличествоПроводок', 
+                 data EXTID 'Дата' ATTR, 
+                 nomier EXTID 'Номер' ATTR, 
+                 priedstavlieniie EXTID 'Представление' ATTR, 
+                 nomPP EXTID 'НомПП' ATTR
+;
+
+quantityOperation 'Кол-во проводок' (Partner.Partner l, DATE df, DATE dt) = 
+    GROUP SUM kolichiestvoProvodok(INTEGER i) IF kontraghient(i) == uid(l) AND data(i) >= dateTimeToDateTime(df, 00:00) AND 
+    data(i) < dateTimeToDateTime(sum(dt, 1), 00:00);
+
+fill 'Заполнить' () {
+    INPUT f = XMLFILE DO {
+        IMPORT data XML FROM f;
+    }
+}
+
+FORM operationsReport 'Отчёт по операциям'
+    OBJECTS df = DATE PANEL, dt = DATE PANEL 
+    PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'по' = VALUE(dt)
+
+    OBJECTS p = Partner.Partner
+    PROPERTIES namePartner(p), quantityOperation(p, df, dt), fill()  
+    FILTERS quantityOperation(p, df, dt)
+;
+
+DESIGN operationsReport {
+    OBJECTS {
+        NEW header {
+            type = CONTAINERH;
+            MOVE PROPERTY(dFrom);
+            MOVE PROPERTY(dTo);
+            MOVE PROPERTY(fill());
+        }
+        MOVE BOX(p);
+    }
+}
+
+NAVIGATOR {
+    reports {
+        NEW operationsReport;
     }
 }

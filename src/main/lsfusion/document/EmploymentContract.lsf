@@ -32,6 +32,7 @@ generateEmployeeAgreement 'Создать шаблон для трудового
             NEW te = TemplateEntry { key(te) <- '\{АСБ_КЛИЕНТ.НАЗВАНИЕ_ОРГАНИЗАЦИИ_КРАТКОЕ\}'; template(te) <- t; }
             NEW te = TemplateEntry { key(te) <- '\{АСБ_КЛИЕНТ.ЮР_АДРЕС\}'; template(te) <- t; }
             NEW te = TemplateEntry { key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ДОЛЖНОСТЬ\}'; template(te) <- t; }
+            NEW te = TemplateEntry { key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ДОЛЖНОСТЬ2\}'; template(te) <- t; }
             NEW te = TemplateEntry { key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_ПОЛНОЕ\}'; template(te) <- t; }
             NEW te = TemplateEntry { key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_ПОЛНОЕ_РОДИТЕЛЬНЫЙ_ПАДЕЖ\}'; template(te) <- t; }
             NEW te = TemplateEntry { key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_КРАТКОЕ\}'; template(te) <- t; }
@@ -148,6 +149,7 @@ lastNameEmployerRp 'Фамилия работодателя (Р.п.)' (Employmen
 middleNameEmployerRp 'Отчество работодателя (Р.п.)' (EmploymentContract c) = middleNameRp(representative(legalEntity(c)));
 baseEmployer 'Основание' (EmploymentContract c) = baseRepresentative(legalEntity(c));
 positionEmployer 'Должность работодателя' (EmploymentContract c) = positionRepresentative(legalEntity(c));
+positionEmployerRp 'Должность работодателя (Р.п.)' = DATA STRING (EmploymentContract);
 addressEmployer 'Юридический адрес работодателя' (EmploymentContract c) = address(legalEntity(c));
 innEmployer 'ИНН работодателя' (EmploymentContract c) =  inn(legalEntity(c));
 kppEmployer 'КПП работодателя' (EmploymentContract c) =  kpp(legalEntity(c));
@@ -196,6 +198,7 @@ createTemplateEntries (EmploymentContract c, Template t) {
     NEW te = TemplateEntry { value(te) <- addressEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ЮР_АДРЕС\}'; template(te) <- t; }
     NEW te = TemplateEntry { value(te) <- addressEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ЮР_АДРЕС2\}'; template(te) <- t; }
     NEW te = TemplateEntry { value(te) <- positionEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ДОЛЖНОСТЬ\}'; template(te) <- t; }
+    NEW te = TemplateEntry { value(te) <- positionEmployerRp(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ДОЛЖНОСТЬ2\}'; template(te) <- t; }
     NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployer(c), firstNameEmployer(c), middleNameEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_ПОЛНОЕ\}'; template(te) <- t; }
     NEW te = TemplateEntry { value(te) <- CONCAT ' ', lastNameEmployerRp(c), firstNameEmployerRp(c), middleNameEmployerRp(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_ПОЛНОЕ_РОДИТЕЛЬНЫЙ_ПАДЕЖ\}'; template(te) <- t; }
     NEW te = TemplateEntry { value(te) <- CONCAT '', left(firstNameEmployer(c), 1) + '.', left(middleNameEmployer(c), 1) + '.', ' ' + lastNameEmployer(c); key(te) <- '\{АСБ_КЛИЕНТ.ПРЕДСТАВИТЕЛЬ_ФИО_КРАТКОЕ\}'; template(te) <- t; }
@@ -235,9 +238,9 @@ createTemplate 'Сформировать по шаблону' (EmploymentContrac
         createTemplateEntries(c, defaultEmplomentContractTemplate());
         process(defaultEmplomentContractTemplate());
         open(resultTemplate(), CONCAT '_', shortNameLegalEntity(c), idDocument(c), toDateDDMMYYYY(date(c)));
-        open(defaultEmplomentContractSecret());
-        open(defaultEmplomentContractStatement());
-        open(defaultEmplomentContractData());
+        open(defaultEmplomentContractSecret(), 'Положение о коммерческой тайне и конфиденциальной информации');
+        open(defaultEmplomentContractStatement(), 'Положение о служебных произведениях');
+        open(defaultEmplomentContractData(), 'Положение об обработке персональных данных');
     }
 }
 
@@ -254,7 +257,7 @@ createTemplateCEO 'Сформировать по шаблону (ген. дир.
 
 FORM employmentContract 'Трудовой договор'
     OBJECTS e = EmploymentContract PANEL 
-    PROPERTIES (e) idDocument, city, date, nameLegalEntity, shortNameLegalEntity, positionEmployer, lastNameEmployer, firstNameEmployer, middleNameEmployer,
+    PROPERTIES (e) idDocument, city, date, nameLegalEntity, shortNameLegalEntity, positionEmployer, lastNameEmployer, firstNameEmployer, middleNameEmployer, positionEmployerRp,
                    baseEmployer, firstNameEmployee, lastNameEmployee, middleNameEmployee, positionEmployee, addressWork, dateFrom, duration, salary, shortNameForm, 
                    birthdayEmployee,
                    seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, addressEmployee,
@@ -282,6 +285,7 @@ DESIGN employmentContract {
                 MOVE PROPERTY (middleNameEmployer(e)) { caption = 'Отчество'; }
                 MOVE PROPERTY (positionEmployer(e)) { caption = 'Должность'; }
                 MOVE PROPERTY (baseEmployer(e));
+                MOVE PROPERTY (positionEmployerRp(e));
             }
         }
         NEW employee {

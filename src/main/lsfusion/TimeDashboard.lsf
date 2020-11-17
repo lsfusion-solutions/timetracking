@@ -134,12 +134,12 @@ startTimeEntry 'Начать новую задачу' () {
         NEWSESSION {       
             NEW t = Task {
                 employee(t) <- currentEmployee();
-                DIALOG selectProject OBJECTS p INPUT DO {
-                    project(t) <- p;
-                }
                 DIALOG dialogTaskType OBJECTS g INPUT, a INPUT DO {
                     taskType(t) <- a;
                     practice(t) <- g;
+                }
+                DIALOG selectProject OBJECTS p INPUT DO {
+                    project(t) <- p;
                 }
                 NEW e = TimeEntry {
                     task(e) <- t;
