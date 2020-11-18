@@ -604,3 +604,7 @@ NAVIGATOR {
         NEW operationsReport;
     }
 }
+
+EXTEND FORM employeeHierarchies
+    PROPERTIES READONLY nameManagers(e)
+;
