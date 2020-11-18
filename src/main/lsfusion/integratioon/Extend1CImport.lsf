@@ -38,7 +38,8 @@ receiveEntries 'Получить проводки' () {
             READ receivePath() TO f;
             IMPORT importedEntries XML FROM f();
             // Не можем быть уверены в уникальности нумерации, поэтому просто сносим все
-            DELETE EntryDetail e WHERE DATE(dateTime(e)) <= dateStop() AND DATE(dateTime(e)) >= dateStart();
+            IF f() THEN 
+                DELETE EntryDetail e WHERE DATE(dateTime(e)) <= dateStop() AND DATE(dateTime(e)) >= dateStart();
             FOR DATE(dateTime(INTEGER i)) <= dateStop() AND DATE(dateTime(i)) >= dateStart() NEW e = EntryDetail DO {
                 dateTime(e) <- dateTime(i);
                 number(e) <- number(i);

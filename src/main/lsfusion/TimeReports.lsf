@@ -1,6 +1,6 @@
 MODULE TimeReports;
 
-REQUIRE TimeEntry, Project, Reports, TimeDashboard, EnterpriseDataTimeTracking;
+REQUIRE TimeEntry, Project, Reports, TimeDashboard, Extend1CImport;
 
 NAMESPACE Time;
 
@@ -569,22 +569,22 @@ FORM data FORMEXTID 'Данные'
                  nomPP EXTID 'НомПП' ATTR
 ;
 
-quantityOperation 'Кол-во проводок' (Partner.Partner l, DATE df, DATE dt) = 
-    GROUP SUM kolichiestvoProvodok(INTEGER i) IF kontraghient(i) == uid(l) AND data(i) >= dateTimeToDateTime(df, 00:00) AND 
-    data(i) < dateTimeToDateTime(sum(dt, 1), 00:00);
+//fill 'Заполнить' () {
+//    INPUT f = XMLFILE DO {
+//        IMPORT data XML FROM f;
+//    }
+//}
 
-fill 'Заполнить' () {
-    INPUT f = XMLFILE DO {
-        IMPORT data XML FROM f;
-    }
-}
+quantityOperation 'Кол-во проводок' (Partner.Partner l, DATE df, DATE dt) = 
+    GROUP SUM quantityEntries(EntryDetail i) IF partner(i) == l AND dateTime(i) >= dateTimeToDateTime(df, 00:00) AND 
+    dateTime(i) < dateTimeToDateTime(sum(dt, 1), 00:00);
 
 FORM operationsReport 'Отчёт по операциям'
     OBJECTS df = DATE PANEL, dt = DATE PANEL 
     PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'по' = VALUE(dt)
 
     OBJECTS p = Partner.Partner
-    PROPERTIES namePartner(p), quantityOperation(p, df, dt), fill()  
+    PROPERTIES namePartner(p), quantityOperation(p, df, dt) 
     FILTERS quantityOperation(p, df, dt)
 ;
 
@@ -594,7 +594,6 @@ DESIGN operationsReport {
             type = CONTAINERH;
             MOVE PROPERTY(dFrom);
             MOVE PROPERTY(dTo);
-            MOVE PROPERTY(fill());
         }
         MOVE BOX(p);
     }
