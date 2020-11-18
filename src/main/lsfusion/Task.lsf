@@ -192,7 +192,7 @@ DESIGN options { commons { MOVE PROPERTY (nameEmailTaskType()); } }
 category = DATA Category(Task) INDEXED;
 nameCategory 'Категория для задачи' (Task t) = name(category(t));
 
-WHEN LOCAL (CHANGED (employee(Task t)) OR CHANGED (project(t))) AND NOT CHANGED (category(t)) DO {
+WHEN LOCAL (CHANGED (employee(Task t)) OR CHANGED (project(t)) OR CHANGED(category(employee(t), project(t)))) AND NOT CHANGED (category(t)) DO {
     category(t) <- OVERRIDE category(employee(t), project(t)), category(employee(t));
 }
 
