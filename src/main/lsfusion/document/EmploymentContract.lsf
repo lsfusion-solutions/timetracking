@@ -235,23 +235,18 @@ createTemplateEntries (EmploymentContract c, Template t) {
 
 createTemplate 'Сформировать по шаблону' (EmploymentContract c) {
     NEWSESSION {
-        createTemplateEntries(c, defaultEmplomentContractTemplate());
-        process(defaultEmplomentContractTemplate());
-        open(resultTemplate(), CONCAT '_', shortNameLegalEntity(c), idDocument(c), toDateDDMMYYYY(date(c)));
+        IF positionEmployee(c) == 'Генеральный директор' THEN {
+            createTemplateEntries(c, defaultEmplomentContractTemplateCEO());
+            process(defaultEmplomentContractTemplateCEO());
+            open(resultTemplate(), CONCAT '_', shortNameLegalEntity(c), idDocument(c), toDateDDMMYYYY(date(c)));
+        } ELSE {
+            createTemplateEntries(c, defaultEmplomentContractTemplate());
+            process(defaultEmplomentContractTemplate());
+            open(resultTemplate(), CONCAT '_', shortNameLegalEntity(c), idDocument(c), toDateDDMMYYYY(date(c)));
+        }
         open(defaultEmplomentContractSecret(), 'Положение о коммерческой тайне и конфиденциальной информации');
         open(defaultEmplomentContractStatement(), 'Положение о служебных произведениях');
         open(defaultEmplomentContractData(), 'Положение об обработке персональных данных');
-    }
-}
-
-createTemplateCEO 'Сформировать по шаблону (ген. дир.)' (EmploymentContract c) {
-    NEWSESSION {
-        createTemplateEntries(c, defaultEmplomentContractTemplateCEO());
-        process(defaultEmplomentContractTemplateCEO());
-        open(resultTemplate(), CONCAT '_', shortNameLegalEntity(c), idDocument(c), toDateDDMMYYYY(date(c)));
-        open(defaultEmplomentContractSecret());
-        open(defaultEmplomentContractStatement());
-        open(defaultEmplomentContractData());
     }
 }
 
@@ -332,7 +327,7 @@ FORM employmentContracts 'Трудовые договоры'
     PROPERTIES (e) READONLY idDocument, city, date, nameLegalEntity, shortNameLegalEntity, positionEmployer, lastNameEmployer, firstNameEmployer, middleNameEmployer,
                    baseEmployer, firstNameEmployee, lastNameEmployee, middleNameEmployee, positionEmployee, addressWork, dateFrom, duration, salary, shortNameForm, 
                    birthdayEmployee, seriesPassport, numberPassport, authorityPassport, dateIssuePassport, codeUnitPassport, addressEmployee, phoneEmployee, innEmployee
-    PROPERTIES createTemplate(e) TOOLBAR, createTemplateCEO(e) TOOLBAR 
+    PROPERTIES createTemplate(e) TOOLBAR
     PROPERTIES (e) NEWSESSION NEW, EDIT, DELETE
 ;
 

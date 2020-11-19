@@ -269,6 +269,8 @@ notificationPeriod () = OVERRIDE dataNotificationPeriod(), 7;
 
 isManager (Employee manager) = GROUP SUM 1 IF managers(Employee employee, manager);
 
+level (Employee employee, Employee manager) = RECURSION 1l IF employee IS Employee AND manager == employee
+                                                                  STEP 2l IF managers($manager, manager);
 EXTEND FORM options
     PROPERTIES sendNotificationManager(e) READONLYIF NOT isManager(e), dataNotificationPeriod()
 ;
@@ -279,12 +281,13 @@ DESIGN options {
     }
 }
 
-
 isTimeShortage (Employee e) = 
-    GROUP SUM 1 IF (hours(e, DATE d) < hoursSet() OR NOT hours(e, d)) AND NOT isDayoff(d) AND iterate(d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1));
+    GROUP SUM 1 IF (hours(e, DATE d) < hoursSet() OR NOT hours(e, d) OR hours(e, d) > 24) AND NOT isDayoff(d) AND iterate(d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1));
 isTimeShortageEmployees (Employee manager) = GROUP SUM 1 IF managers(Employee e, manager) AND isTimeShortage(e);
 timeShortageNumeric (Employee e, DATE d) = hoursSet() (-) hours(e, d);
-timeShortageString (Employee e, DATE d) = CONCAT '', INTEGER(trunc(timeShortageNumeric(e, d), 0)), ' час(-ов) ', 
+timeShortageString (Employee e, DATE d) = 
+    IF hours(e, d) > 24 THEN 'Заполнено более 24 часов: ' + hours(e, d) 
+    ELSE CONCAT '', INTEGER(trunc(timeShortageNumeric(e, d), 0)), ' час(-ов) ', 
     round0(60 * (timeShortageNumeric(e, d) - INTEGER(trunc(timeShortageNumeric(e, d), 0)))), ' минут(а)';
     
 messageManager = DATA LOCAL STRING (Employee);
@@ -293,10 +296,11 @@ sendNotificationsManager 'Уведомления для руководителе
     IF NOT isDayoff(currentDate()) THEN {
         
         FOR sendNotificationManager(Employee e) AND isManager(e) AND email(e) AND isTimeShortageEmployees(e) DO {
-            FOR managers(Employee employee, e) AND isTimeShortage(employee) AND NOT fired(employee) DO {
+            FOR level(Employee employee, e) AND isTimeShortage(employee) AND NOT fired(employee) AND NOT employee == e DO {
                 messageManager(employee) <- NULL;
                 messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
-                FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND (hours(employee, d) < hoursSet() OR NOT hours(employee, d)) DO {
+                FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
+                    (hours(employee, d) < hoursSet() OR NOT hours(employee, d) OR hours(e, d) > 24) DO {
                     messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
                 }
                 messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
@@ -304,7 +308,7 @@ sendNotificationsManager 'Уведомления для руководителе
             
             LOCAL body = STRING ();
             body() <- 'Здравствуйте!<br /><br />Пожалуйста, проверьте со следующими сотрудниками заполняемость трудозатрат.<br /><br />В предыдущий период следующие сотрудники внесли недостаточно трудозатрат:<br /><br />';
-            body() <- CONCAT '', body(), (GROUP CONCAT messageManager(Employee employee), '' IF managers(employee, e));
+            body() <- CONCAT '', body(), (GROUP CONCAT messageManager(Employee employee), '' IF level(employee, e) AND NOT employee == e);
             body() <- CONCAT '', body(), 'Спасибо,<br /> Ваша CRM система';
             
             EMAIL
