@@ -239,12 +239,18 @@ NAVIGATOR {
 }
 
 hoursSet 'Кол-во установленных рабочих часов' () = OVERRIDE dataHoursSet(), 6.0;
+hoursSetEmployee 'Кол-во установленных рабочих часов' = DATA NUMERIC[15,2] (Employee);
+overHoursSet (Employee e) = OVERRIDE hoursSetEmployee(e), hoursSet();
 prevWorkDate (DATE d) = GROUP LAST DATE dd IF NOT isDayoff(dd) AND iterate(dd, 2020_01_01, sum(d, -1)) ORDER dd;
+
+EXTEND FORM options
+    PROPERTIES(e) hoursSetEmployee AFTER email(e)
+;
 
 sendNotifications 'Отправить уведомление' () {
     IF NOT isDayoff(currentDate()) THEN {
         
-        FOR sendNotification(Employee e) AND (hours(e, prevWorkDate(currentDate())) < hoursSet() OR NOT hours(e, prevWorkDate(currentDate()))) AND email(e) DO {
+        FOR sendNotification(Employee e) AND (hours(e, prevWorkDate(currentDate())) < overHoursSet(e) OR NOT hours(e, prevWorkDate(currentDate()))) AND email(e) DO {
             EMAIL
                 SUBJECT 'Напоминание о дополнительном внесении времени'
                 TO email(e)
@@ -282,9 +288,9 @@ DESIGN options {
 }
 
 isTimeShortage (Employee e) = 
-    GROUP SUM 1 IF (hours(e, DATE d) < hoursSet() OR NOT hours(e, d) OR hours(e, d) > 24) AND NOT isDayoff(d) AND iterate(d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1));
+    GROUP SUM 1 IF (hours(e, DATE d) < overHoursSet(e) OR NOT hours(e, d) OR hours(e, d) > 24) AND NOT isDayoff(d) AND iterate(d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1));
 isTimeShortageEmployees (Employee manager) = GROUP SUM 1 IF managers(Employee e, manager) AND isTimeShortage(e);
-timeShortageNumeric (Employee e, DATE d) = hoursSet() (-) hours(e, d);
+timeShortageNumeric (Employee e, DATE d) = overHoursSet(e) (-) hours(e, d);
 timeShortageString (Employee e, DATE d) = 
     IF hours(e, d) > 24 THEN 'Заполнено более 24 часов: ' + hours(e, d) 
     ELSE CONCAT '', INTEGER(trunc(timeShortageNumeric(e, d), 0)), ' час(-ов) ', 
@@ -300,7 +306,7 @@ sendNotificationsManager 'Уведомления для руководителе
                 messageManager(employee) <- NULL;
                 messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
                 FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
-                    (hours(employee, d) < hoursSet() OR NOT hours(employee, d) OR hours(e, d) > 24) DO {
+                    (hours(employee, d) < overHoursSet(e) OR NOT hours(employee, d) OR hours(e, d) > 24) DO {
                     messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
                 }
                 messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
@@ -410,8 +416,8 @@ strictNotification 'Жёсткая блокировка' = DATA BOOLEAN (Employe
 notified = DATA BOOLEAN (Employee, DATE);
 needNotify (Employee e, DATE d) = NOT notified(e, d) AND
                                              strictNotification(e) AND 
-                                             NOT hours(e, prevWorkDate(d)) >= hoursSet() AND
-                                             hoursSet();
+                                             NOT hours(e, prevWorkDate(d)) >= overHoursSet(e) AND
+                                             overHoursSet(e);
 
 notifyYes 'Да, я заполнил всё время' () {
     notified(currentUser(), currentDate()) <- TRUE; 
