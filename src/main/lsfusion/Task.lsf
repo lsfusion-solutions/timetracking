@@ -9,7 +9,7 @@ name 'Название' = DATA STRING[200] (Task) CHARWIDTH 20;
 
 description 'Описание' = DATA TEXT (Task);
 
-project 'Проект' = DATA Project (Task);
+project 'Проект' = DATA Project (Task) NONULL;
 nameProject 'Проект' (Task e) = name(project(e)); 
 
 CONSTRAINT DROPPED (Project p IS Project) AND [GROUP SUM 1 BY PREV (project(Task t))](p) MESSAGE 'Нельзя удалить проект, по которому есть задачи';
