@@ -355,7 +355,7 @@ DESIGN taskNotification {
         }
         NEW row12 {
             fill = 1;
-            MOVE PROPERTY(message(n)) { panelCaptionAbove = TRUE; }
+            MOVE PROPERTY(message(n)) { panelCaptionVertical = TRUE; }
         }
     }
 }

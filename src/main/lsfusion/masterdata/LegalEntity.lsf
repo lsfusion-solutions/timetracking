@@ -303,7 +303,7 @@ DESIGN legalEntity {
             MOVE BOX(p);
             //MOVE BOX(p2) { caption = 'Сотрудники'; }
             MOVE PROPERTY(note(o)) {
-                panelCaptionAbove = TRUE;
+                panelCaptionVertical = TRUE;
                 height = 70;
             }
         }

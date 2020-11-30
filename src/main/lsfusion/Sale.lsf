@@ -266,7 +266,7 @@ DESIGN sale {
         MOVE BOX(s);
         NEW note {
             align = STRETCH;
-            MOVE PROPERTY(note(s)) { panelCaptionAbove = TRUE; }
+            MOVE PROPERTY(note(s)) { panelCaptionVertical = TRUE; }
         }
         NEW body {
             fill = 1;

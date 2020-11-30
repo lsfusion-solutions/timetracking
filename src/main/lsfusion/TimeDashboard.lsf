@@ -193,7 +193,7 @@ DESIGN timeDashboard {
                 MOVE PROPERTY(name(ce)) { alignment = STRETCH; }
                 MOVE PROPERTY(dateTimeStart(ce)) { alignment = STRETCH; }
                 MOVE PROPERTY(currentHours(ce)) { alignment = STRETCH; }
-                MOVE PROPERTY(description(ce)) { panelCaptionAbove = TRUE; fill = 1; }
+                MOVE PROPERTY(description(ce)) { panelCaptionVertical = TRUE; fill = 1; }
                 NEW save {
                     alignment = STRETCH;
                     type = CONTAINERH;
@@ -219,7 +219,7 @@ DESIGN timeDashboard {
                         fill = 3;
                     }
                     MOVE PROPERTY(comment(pa)) {
-                        panelCaptionAbove = TRUE;
+                        panelCaptionVertical = TRUE;
                         fill = 1;
                     } 
                     TOOLBARRIGHT(pa) {

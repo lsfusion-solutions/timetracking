@@ -169,7 +169,7 @@ DESIGN task {
             type = SPLITH;
             MOVE PROPERTY(description(t)) {
                 fill = 1;
-                panelCaptionAbove = TRUE;
+                panelCaptionVertical = TRUE;
             }
         }
         

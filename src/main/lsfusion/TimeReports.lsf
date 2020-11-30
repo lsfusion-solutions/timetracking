@@ -67,11 +67,11 @@ DESIGN projects {
             }
 //            NEW description {
 //                MOVE PROPERTY(descriptionTask(t)) {
-//                    panelCaptionAbove = TRUE;
+//                    panelCaptionVertical = TRUE;
 //                    fill = 1;
 //                }
 //                MOVE PROPERTY(comment(t)) {
-//                    panelCaptionAbove = TRUE;
+//                    panelCaptionVertical = TRUE;
 //                    fill = 1;
 //                }
 //            }
@@ -136,11 +136,11 @@ DESIGN employees {
             }
 //            NEW description {
 //                MOVE PROPERTY(descriptionTask(t)) {
-//                    panelCaptionAbove = TRUE;
+//                    panelCaptionVertical = TRUE;
 //                    fill = 1;
 //                }
 //                MOVE PROPERTY(comment(t)) {
-//                    panelCaptionAbove = TRUE;
+//                    panelCaptionVertical = TRUE;
 //                    fill = 1;
 //                }
 //            }

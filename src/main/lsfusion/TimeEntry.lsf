@@ -179,7 +179,7 @@ DESIGN timeEntry {
         MOVE PROPERTY(nameActivity(e));
         MOVE PROPERTY(comment(e)) {
             fill = 1;
-            panelCaptionAbove = TRUE;
+            panelCaptionVertical = TRUE;
             height = 200;
         }
     }
@@ -208,7 +208,7 @@ DESIGN task {
                 }
                 MOVE BOX(e) {
                     MOVE PROPERTY(comment(e)) {
-                        panelCaptionAbove = TRUE;
+                        panelCaptionVertical = TRUE;
                         fill = 1;
                     }
                 }
