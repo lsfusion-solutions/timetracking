@@ -306,7 +306,7 @@ sendNotificationsManager 'Уведомления для руководителе
                 messageManager(employee) <- NULL;
                 messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
                 FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
-                    (hours(employee, d) < overHoursSet(e) OR NOT hours(employee, d) OR hours(e, d) > 24) DO {
+                    (hours(employee, d) < overHoursSet(employee) OR NOT hours(employee, d) OR hours(employee, d) > 24) DO {
                     messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
                 }
                 messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
@@ -617,4 +617,42 @@ NAVIGATOR {
 
 EXTEND FORM employeeHierarchies
     PROPERTIES READONLY nameManagers(e)
+;
+
+sendNotificationsAdmin 'Уведомления для администраторов' = DATA BOOLEAN (Employee);
+excludeNotificationsAdmin 'Исключить из уведомлений для администраторов' = DATA BOOLEAN (Employee);
+
+isTimeShortageEmployeesAdmin () = 
+    GROUP SUM 1 IF Employee e IS Employee AND isTimeShortage(e) AND NOT excludeNotificationsAdmin(e) AND NOT fired(e);
+
+sendNotificationsAdmin 'Уведомления для администраторов' () {
+    IF NOT isDayoff(currentDate()) AND isTimeShortageEmployeesAdmin() THEN {
+           
+        FOR Employee employee IS Employee AND isTimeShortage(employee) AND NOT fired(employee) AND NOT excludeNotificationsAdmin(employee) DO {
+            messageManager(employee) <- NULL;
+            messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
+            FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
+                (hours(employee, d) < overHoursSet(employee) OR NOT hours(employee, d) OR hours(employee, d) > 24) DO {
+                messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
+            }
+            messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
+        }
+            
+        FOR sendNotificationsAdmin(Employee e) AND email(e) DO {    
+            LOCAL body = STRING ();
+            body() <- 'Здравствуйте!<br /><br />Пожалуйста, проверьте со следующими сотрудниками заполняемость трудозатрат.<br /><br />В предыдущий период следующие сотрудники внесли недостаточно трудозатрат:<br /><br />';
+            body() <- CONCAT '', body(), (GROUP CONCAT messageManager(Employee employee), '' IF employee IS Employee);
+            body() <- CONCAT '', body(), 'Спасибо,<br /> Ваша CRM система';
+            
+            EMAIL
+                SUBJECT 'Еженедельное информирование руководителя'
+                TO email(e)
+                BODY body()
+            ;
+        }
+    }
+}
+
+EXTEND FORM options
+    PROPERTIES sendNotificationsAdmin(e), excludeNotificationsAdmin(e), sendNotificationsAdmin() DRAW e TOOLBAR 
 ;
