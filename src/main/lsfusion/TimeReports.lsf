@@ -81,8 +81,25 @@ DESIGN projects {
 
 
 hours 'Часов' (Employee e, DATE d) = GROUP SUM hours(TimeEntry te) BY employee(te), dateStart(te);
+backgroundHours (Employee e, DATE d) = IF hours(e, d) < 6 OR hours(e, d) > 24 THEN RGB(255, 172, 172);
+
 hours 'Часов (всего)' (Employee e, DATE dFrom, DATE dTo) = 
     GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) BY employee(te); 
+    
+hoursASBwork 'Часов по АСБ (без отсутствия на работе)' (Employee e, DATE dFrom, DATE dTo) = 
+    GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) 
+    AND nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО' 
+    AND NOT namePractice(te) == 'Отсутствие на работе'
+    BY employee(te);
+    
+hoursASBnoWork 'Часов по АСБ (Отсутствие на работе)' (Employee e, DATE dFrom, DATE dTo) = 
+    GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) 
+    AND nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО' 
+    AND namePractice(te) == 'Отсутствие на работе'
+    BY employee(te);
+    
+hoursOther 'Часов по остальным клиентам' (Employee e, DATE dFrom, DATE dTo) = hours(e, dFrom, dTo) (-)
+    hoursASBwork(e, dFrom, dTo) (-) hoursASBnoWork(e, dFrom, dTo);
 
 firstNameEmployee 'Имя сотрудника' (TimeEntry t) = firstName(employee(t));
 lastNameEmployee 'Фамилия сотрудника' (TimeEntry t) = lastName(employee(t));
@@ -101,10 +118,10 @@ FORM employees 'По сотрудникам'
     OBJECTS e = Employee
     PROPERTIES in(e)
     PROPERTIES(e) READONLY namePractice, firstName, lastName, login
-    PROPERTIES READONLY hours(e, dFrom, dTo)
+    PROPERTIES(e, dFrom, dTo) READONLY hours, hoursASBwork, hoursASBnoWork, hoursOther
     FILTERS NOT fired(e)
     
-    PROPERTIES READONLY hours(e, d) COLUMNS (d) HEADER header(d)
+    PROPERTIES READONLY hours(e, d) COLUMNS (d) HEADER header(d) BACKGROUND backgroundHours(e, d)
     
     OBJECTS t = TimeEntry
     PROPERTIES(t) READONLY dateTimeCreated SHOWIF validUser(), dateTimeStart BACKGROUND dateTimeStartChanged(t) AND validUser(), 
