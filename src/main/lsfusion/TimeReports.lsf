@@ -86,19 +86,19 @@ backgroundHours (Employee e, DATE d) = IF hours(e, d) < 6 OR hours(e, d) > 24 TH
 hours 'Часов (всего)' (Employee e, DATE dFrom, DATE dTo) = 
     GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) BY employee(te); 
     
-hoursASBwork 'Часов по АСБ (без отсутствия на работе)' (Employee e, DATE dFrom, DATE dTo) = 
+hoursASBwork 'АСБ (всего)' (Employee e, DATE dFrom, DATE dTo) = 
     GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) 
     AND nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО' 
     AND NOT namePractice(te) == 'Отсутствие на работе'
     BY employee(te);
     
-hoursASBnoWork 'Часов по АСБ (Отсутствие на работе)' (Employee e, DATE dFrom, DATE dTo) = 
+hoursASBnoWork 'Отсутствие на работе (всего)' (Employee e, DATE dFrom, DATE dTo) = 
     GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) 
     AND nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО' 
     AND namePractice(te) == 'Отсутствие на работе'
     BY employee(te);
     
-hoursOther 'Часов по остальным клиентам' (Employee e, DATE dFrom, DATE dTo) = hours(e, dFrom, dTo) (-)
+hoursOther 'Клиенты (всего)' (Employee e, DATE dFrom, DATE dTo) = hours(e, dFrom, dTo) (-)
     hoursASBwork(e, dFrom, dTo) (-) hoursASBnoWork(e, dFrom, dTo);
 
 firstNameEmployee 'Имя сотрудника' (TimeEntry t) = firstName(employee(t));
@@ -118,7 +118,7 @@ FORM employees 'По сотрудникам'
     OBJECTS e = Employee
     PROPERTIES in(e)
     PROPERTIES(e) READONLY namePractice, firstName, lastName, login
-    PROPERTIES(e, dFrom, dTo) READONLY hours, hoursASBwork, hoursASBnoWork, hoursOther
+    PROPERTIES(e, dFrom, dTo) READONLY hours
     FILTERS NOT fired(e)
     
     PROPERTIES READONLY hours(e, d) COLUMNS (d) HEADER header(d) BACKGROUND backgroundHours(e, d)
@@ -673,3 +673,61 @@ sendNotificationsAdmin 'Уведомления для администратор
 EXTEND FORM options
     PROPERTIES sendNotificationsAdmin(e), excludeNotificationsAdmin(e), sendNotificationsAdmin() DRAW e TOOLBAR 
 ;
+
+CLASS HoursType {
+    total '1',
+    ASB '2',
+    other '3',
+    noWork '4'
+}
+
+name 'Сотрудник' (HoursType t, Employee e) = CASE
+    WHEN t == HoursType.total THEN CONCAT ' ', firstName(e), lastName(e)
+    WHEN t == HoursType.ASB THEN 'АСБ'
+    WHEN t == HoursType.noWork THEN 'Отсутствие на работе'
+    WHEN t == HoursType.other THEN 'Клиенты';
+    
+backgroundName (HoursType t) = IF t == HoursType.total THEN RGB(212,212,212);
+
+hours 'Часов' (HoursType t, Employee e, DATE d) = CASE 
+    WHEN t == HoursType.total THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d
+    WHEN t == HoursType.ASB THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d 
+        AND nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО' AND NOT namePractice(te) == 'Отсутствие на работе'
+    WHEN t == HoursType.noWork THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d 
+        AND nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО' AND namePractice(te) == 'Отсутствие на работе'
+    WHEN t == HoursType.other THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d
+        AND NOT nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО';
+        
+hoursTotal 'Часов всего' (HoursType t, Employee e, DATE df, DATE dt) = CASE
+    WHEN t == HoursType.total THEN hours(e, df, dt)
+    WHEN t == HoursType.ASB THEN hoursASBwork(e, df, dt)
+    WHEN t == HoursType.noWork THEN hoursASBnoWork(e, df, dt)
+    WHEN t == HoursType.other THEN hoursOther(e, df, dt);
+
+backgroundHours (HoursType t, Employee e, DATE d) = 
+    IF t == HoursType.total AND (hours(e, d) < 6 OR hours(e, d) > 24) THEN RGB(255, 172, 172);
+    
+index (HoursType t, Employee e) = CONCAT '', firstName(e), lastName(e), staticCaption(t);
+
+FORM employeesExtended 'По сотрудникам (расширенный)'
+    OBJECTS dates = (dFrom = DATE, dTo = DATE) PANEL
+    PROPERTIES dFrom 'Дата с' = VALUE(dFrom), dTo 'Дата по' = VALUE(dTo)
+
+    OBJECTS d = DATE 
+    FILTERS hours(d), d >= dFrom, d <= dTo
+
+    OBJECTS et = (e = Employee, t = HoursType)
+    PROPERTIES READONLY name(t, e) BACKGROUND backgroundName(t), index(t, e) SHOWIF NULL
+    PROPERTIES(t, e, dFrom, dTo) READONLY hoursTotal
+    ORDERS index(t, e)
+    FILTERS NOT fired(e),
+                hoursTotal(HoursType.total, e, dFrom, dTo)
+    
+    PROPERTIES(t, e, d) READONLY hours COLUMNS (d) HEADER header(d) BACKGROUND backgroundHours(t, e, d)
+;
+
+NAVIGATOR {
+    reports {
+        NEW employeesExtended; 
+    }
+}
