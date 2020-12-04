@@ -65,8 +65,11 @@ generateInvoiceTemplate 'Создать шаблон для счета' ()  {
 customerTemplateWord 'Шаблон для счета по проекту (Word)' = DATA Template (Project);
 nameCustomerTemplateWord 'Шаблон для счета по проекту (Word)' (Project p) = name(customerTemplateWord(p));
 
-invoiceTemplateWord 'Шаблон для счета по проекту (Word)'  = DATA Template ();
-nameInvoiceTemplateWord 'Шаблон для счета по проекту (Word)' () = name(invoiceTemplateWord());
+invoiceTemplateWord 'Шаблон для счета по проекту (ASB)'  = DATA Template ();
+nameInvoiceTemplateWord 'Шаблон для счета по проекту (ASB)' () = name(invoiceTemplateWord());
+
+invoiceTemplateWordAccounting 'Шаблон для счета по проекту (A-Accounting)'  = DATA Template ();
+nameInvoiceTemplateWordAccounting 'Шаблон для счета по проекту (A-Accounting)' () = name(invoiceTemplateWordAccounting());
 
 templateWord 'Шаблон для счета' (Invoice i) = OVERRIDE customerTemplateWord(project(i)), invoiceTemplateWord(),
     templateId('invoiceMonthly') IF (hoursMonthly(i) OR hoursMonthlyCategory(i)), templateId('invoiceGeneral');
@@ -83,10 +86,11 @@ DESIGN customer {
     }
 }
 
-EXTEND FORM options PROPERTIES nameInvoiceTemplateWord(), generateInvoiceTemplate();
+EXTEND FORM options PROPERTIES nameInvoiceTemplateWord(), nameInvoiceTemplateWordAccounting(), generateInvoiceTemplate();
 DESIGN options {
     commons {
         MOVE PROPERTY (nameInvoiceTemplateWord());
+        MOVE PROPERTY (nameInvoiceTemplateWordAccounting());
         MOVE PROPERTY (generateInvoiceTemplate());
     }
 }
@@ -125,9 +129,14 @@ FORM dialogInvoiceDetailsTypes 'Выбор реквизитов'
 
 generateWord 'Сгенерировать (Word)' (Invoice i) { 
     DIALOG dialogInvoiceDetailsTypes OBJECTS t INPUT DO {
-        IF templateWord(i) THEN {
+        LOCAL templ = Template ();
+        
+        IF t == InvoiceDetailsType.ASB THEN templ() <- invoiceTemplateWord(); 
+        ELSE templ() <- invoiceTemplateWordAccounting();
+        
+        IF templ() THEN {
             value(TemplateEntry detail) <- NULL;
-            FOR template (TemplateEntry detail) == templateWord(i) DO {
+            FOR template (TemplateEntry detail) == templ() DO {
                 value(detail) <- tableText(i) WHERE key(detail) == 'TABLE';
                 value(detail) <- TEXT(toDateDDMMYY(date(i))) WHERE key(detail) == 'INVOICE_DATE';
                 value(detail) <- TEXT(series(i)) WHERE key(detail) == 'SERIES';
@@ -149,7 +158,7 @@ generateWord 'Сгенерировать (Word)' (Invoice i) {
                     'ИНН/КПП: 9705145234/770501001 ОГРН: 1207700222223\nр/с: 40702810901460008635 ФИЛИАЛ ЦЕНТРАЛЬНЫЙ ПАО БАНКА /"ФК ОТКРЫТИЕ/" Г. МОСКВА\nк/с: 30101810945250000297 БИК: 044525297') 
                     WHERE key(detail) == '\{DETAILS\}';
             }
-            process(templateWord(i));
+            process(templ());
             open(resultTemplate(), replace(replace((CONCAT '_',nameCustomer(i), seriesNumber(i), toDateDDMMYYYY(fromDate(i)) + '-' + toDateDDMMYYYY(toDate(i))), ',' ,''), '\\', ''));
         } ELSE
             MESSAGE 'Не выбран шаблон для клиента';
