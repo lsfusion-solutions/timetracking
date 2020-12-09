@@ -7,6 +7,7 @@ REQUIRE EnterpriseDataTimeTracking;
 CLASS EntryDetail 'Импортированные проводки';
 
 dateTime 'Дата и время' = DATA DATETIME (EntryDetail);
+representation 'Представление' = DATA STRING (EntryDetail);
 number 'Номер' = DATA STRING (EntryDetail);
 partner 'Контргент' = DATA Partner.Partner (EntryDetail);
 namePartner 'Контрагент' (EntryDetail e) = name(partner(e)); 
@@ -22,12 +23,13 @@ dateTime = DATA LOCAL DATETIME (INTEGER);
 number = DATA LOCAL STRING(INTEGER);
 dateStop = DATA LOCAL DATE();
 dateStart = DATA LOCAL DATE();
+representation = DATA LOCAL STRING(INTEGER);
 
 FORM importedEntries FORMEXTID 'Данные'
 PROPERTIES() dateStop EXTID 'КонецПериода' ATTR, dateStart EXTID 'НачалоПериода' ATTR
 
 OBJECTS d = INTEGER EXTID 'Документ'
-PROPERTIES(d) partner EXTID 'Контрагент', accountman EXTID 'Ответственный' ATTR, quantityEntries EXTID 'КоличествоПроводок', dateTime EXTID 'Дата' ATTR, number EXTID 'Номер' ATTR;
+PROPERTIES(d) partner EXTID 'Контрагент', accountman EXTID 'Ответственный', quantityEntries EXTID 'КоличествоПроводок', dateTime EXTID 'Дата' ATTR, number EXTID 'Номер' ATTR, representation EXTID 'Представление' ATTR;
 
 receivePath () = path() + '7725718426.xml';
 
@@ -46,6 +48,7 @@ receiveEntries 'Получить проводки' () {
                 partner(e) <- partner(partner(i));
                 accountman(e) <- accountman(i);
                 quantityEntries(e) <- quantityEntries(i);
+                representation(e) <- representation(i);
             }
             APPLY;
             delete(receivePath());
@@ -57,7 +60,7 @@ receiveEntries 'Получить проводки' () {
 
 FORM entryDashboard 'Импортированные проводки'
     OBJECTS e = EntryDetail
-    PROPERTIES (e) dateTime, number, namePartner, quantityEntries
+    PROPERTIES (e) dateTime, number, namePartner, quantityEntries,representation,accountman
     PROPERTIES () receiveEntries
 ;
 
