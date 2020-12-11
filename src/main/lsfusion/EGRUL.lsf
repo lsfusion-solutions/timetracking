@@ -52,6 +52,7 @@ legalShort = DATA LOCAL ISTRING(INTEGER);  // Контейнер под крат
 legalLong = DATA LOCAL ISTRING(INTEGER);  // Контейнер под полное фирменное наименование
 inn = DATA LOCAL ISTRING (INTEGER); // Контейнер под ИНН
 kpp = DATA LOCAL ISTRING (INTEGER); // Контейнер под КПП
+ogrn_date = DATA LOCAL ISTRING (INTEGER); // Контейнер под ОГРН
 ogrn = DATA LOCAL ISTRING (INTEGER); // Контейнер под ОГРН
 address = DATA LOCAL ISTRING (INTEGER); // Контейнер под Адрес
 director = DATA LOCAL ISTRING(INTEGER); // Контейнер под ФИО директора
@@ -65,7 +66,7 @@ GROUP adata EXTID 'data' : address;
 
 FORM dadata   // форма для разбора JSON, ее можно использовать в разных вызовах
     OBJECTS suggestions = INTEGER 
-    PROPERTIES IN data inn = inn(suggestions), kpp = kpp(suggestions), ogrn_date = ogrn(suggestions)
+    PROPERTIES IN data inn = inn(suggestions), kpp = kpp(suggestions), ogrn_date = ogrn_date(suggestions), ogrn = ogrn(suggestions) 
     PROPERTIES IN management name = director(suggestions)
     PROPERTIES IN name short = legalName(suggestions), full = legalPure(suggestions), latin = legalLatin(suggestions), short_with_opf = legalShort(suggestions), full_with_opf = legalLong(suggestions)
     PROPERTIES IN adata source = address(suggestions), postal_code = zipcode(suggestions)
@@ -477,4 +478,17 @@ DESIGN integrationData {  //  Just Design настройки
 
 WHEN LOCAL SETCHANGED(okved(LegalEntity l)) DO {
     okvedName(l) <- name(okved(okved(l)));
+}
+
+WHEN LOCAL (SETCHANGED(inn(Customer c)) OR SETCHANGED(ogrn(c))) DO {
+    LOCAL result = FILE();
+    EXTERNAL HTTP POST dadataEndpoint() HEADERS dadataHeader PARAMS JSONFILE ('\{"query": "' + (OVERRIDE inn(c), ogrn(c)) + '"\}') TO result;
+    IMPORT dadata JSON FROM result();
+    FOR inn(INTEGER suggestions) DO {
+        inn(c) <- inn(suggestions);
+        ogrn(c) <- ogrn(suggestions);
+    }
+
+    IF (GROUP SUM 1 IF inn(c) == inn(Partner p) AND ogrn(c) == ogrn(p)) THEN 
+        partner(c) <- GROUP MAX Partner p IF inn(p) == inn(c) AND ogrn(p) == ogrn(c);
 }

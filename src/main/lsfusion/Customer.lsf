@@ -27,9 +27,12 @@ DESIGN options {
 //customer 'Клиент' (Partner p) = GROUP AGGR Customer c BY partner(c);
 customer 'Клиент' (Partner p) = GROUP LAST Customer c ORDER c BY partner(c);
 
+inn 'ИНН' = DATA ISTRING (Customer) CHARWIDTH 20;
+ogrn 'ОГРН' = DATA ISTRING (Customer) CHARWIDTH 20;
+
 FORM customer 'Клиент'
     OBJECTS c = Customer PANEL
-    PROPERTIES(c) name, namePartner, inactive
+    PROPERTIES(c) name, namePartner, inactive, inn, ogrn
 
     EDIT Customer OBJECT c
 ;
@@ -46,6 +49,11 @@ DESIGN customer {
                     MOVE PROPERTY(name(c));
                     MOVE PROPERTY(namePartner(c));
                     MOVE PROPERTY(inactive(c));
+                }
+                NEW lane2 {
+                    type = CONTAINERH;
+                    MOVE PROPERTY(inn(c));
+                    MOVE PROPERTY(ogrn(c));
                 }
             }
         }
