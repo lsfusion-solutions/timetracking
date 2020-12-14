@@ -66,7 +66,7 @@ DESIGN customer {
 
 FORM customers 'Клиенты'
     OBJECTS c = Customer
-    PROPERTIES(c) READONLY active, name
+    PROPERTIES(c) READONLY active, name, namePartner
     ORDERS name(c)
     
     FILTERGROUP active FILTER 'Активный' active(c) 'F5' DEFAULT
