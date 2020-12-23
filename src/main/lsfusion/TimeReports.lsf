@@ -767,3 +767,44 @@ NAVIGATOR {
         NEW employeesExtended; 
     }
 }
+
+totalHours 'Часов (всего)' (Customer c, DATE df, DATE dt) = 
+    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) BY customer(task(te));
+totalSumInvoiced 'Сумма по выставленным счетам' (Customer c, DATE df, DATE dt) =
+    GROUP SUM sum(Invoice i) IF df <= date(i) AND dt >= date(i) BY customer(i);
+sumCategoryCustomer (Customer c, Category cat, DATE df, DATE dt) = 
+    GROUP SUM hours(TimeEntry t) * rate(project(t), category(task(t))) IF df <= dateStart(t) AND dt >= dateStart(t)
+    BY customer(task(t)), category(task(t));
+sumCategory (Category cat, DATE df, DATE dt) = 
+    GROUP SUM hours(TimeEntry t) * rate(project(t), category(task(t))) IF df <= dateStart(t) AND dt >= dateStart(t)
+    BY category(task(t));
+
+totalHours 'Часов (всего)' (Employee e, Customer c, DATE df, DATE dt) = 
+    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) BY employee(te), customer(task(te));
+sumInvoiced 'Сумма по выставленным счетам' (Employee e, Customer c, DATE df, DATE dt) = 
+    GROUP SUM sum(Invoice i, Task t) IF df <= date(i) AND dt >= date(i) AND customer(t) == c AND customer(i) == c
+    BY employee(t);
+
+FORM partnersExtended ' Расширенный отчёт по клиентам'
+    OBJECTS dates = (dFrom = DATE, dTo = DATE) PANEL
+    PROPERTIES dFrom 'Дата с' = VALUE(dFrom), dTo 'Дата по' = VALUE(dTo)
+    
+    OBJECTS c = Customer
+    PROPERTIES READONLY name(c), totalHours(c, dFrom, dTo)
+    FILTERS totalHours(c, dFrom, dTo)
+    
+    OBJECTS cat = Category
+    PROPERTIES sumCategoryCustomer(c, cat, dFrom, dTo) DRAW c GRID COLUMNS(cat) HEADER name(cat) + ' (сумма)'
+    PROPERTIES totalSumInvoiced(c, dFrom, dTo)
+    FILTERS sumCategory(cat, dFrom, dTo)
+    
+    OBJECTS e = Employee
+    PROPERTIES firstName(e), lastName(e), namePractice(e), totalHours(e, c, dFrom, dTo), sumInvoiced(e, c, dFrom, dTo)
+    FILTERS totalHours(e, c, dFrom, dTo)
+;
+
+NAVIGATOR {
+    reports {
+        NEW partnersExtended;
+    }
+}
