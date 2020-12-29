@@ -43,9 +43,9 @@ WHEN LOCAL CHANGED (fromDate(Invoice i)) AND NOT CHANGED (toDate(i)) DO {
 TABLE invoiceTask (Invoice, Task);
 fromDate 'Дата с' = GROUP MIN dateStart(TimeEntry e) BY invoice(e), task(e) MATERIALIZED;
 
-hours 'Часов' = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY invoice(e) MATERIALIZED;
-hours 'Часов' (Invoice i, Task t) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY invoice(e), task(e) MATERIALIZED;
-hours 'Часов' (Invoice i, Category c) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY invoice(e), category(task(e)) MATERIALIZED;
+hours 'Часов' = GROUP SUM NUMERIC[10,1](hours(TimeEntry e)) BY invoice(e) MATERIALIZED;
+hours 'Часов' (Invoice i, Task t) = GROUP SUM NUMERIC[10,1](hours(TimeEntry e)) BY invoice(e), task(e) MATERIALIZED;
+hours 'Часов' (Invoice i, Category c) = GROUP SUM NUMERIC[10,1](hours(TimeEntry e)) BY invoice(e), category(task(e)) MATERIALIZED;
 
 rate 'Ставка' = DATA NUMERIC[14,2] (Invoice, Task);
 rate(Invoice i, Task t) <- rate(project(i), category(t)) WHEN SET(hours(i, t)) OR (CHANGED(category(t)) AND hours(i, t));
@@ -242,8 +242,8 @@ EXTEND FORM invoice
     PROPERTIES nameCategory(t) BACKGROUND backgroundCategory(t), 'Категория на проекте' = nameCategory(employee(t), project(t)) ON CHANGE changeCategoryProject(i, t) PANEL DRAW t TOOLBAR 
 ;
 
-hours 'Часов' (Project p, Month m, INTEGER y) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY project(e), extractMonth(dateStart(e)), extractYear(dateStart(e));
-hours 'Часов' (Project p, Category c, Month m, INTEGER y) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY project(e), overCategory(employee(e), project(e)), extractMonth(dateStart(e)), extractYear(dateStart(e));
+hours 'Часов' (Project p, Month m, INTEGER y) = GROUP SUM NUMERIC[10,1](hours(TimeEntry e)) BY project(e), extractMonth(dateStart(e)), extractYear(dateStart(e));
+hours 'Часов' (Project p, Category c, Month m, INTEGER y) = GROUP SUM NUMERIC[10,1](hours(TimeEntry e)) BY project(e), overCategory(employee(e), project(e)), extractMonth(dateStart(e)), extractYear(dateStart(e));
 
 CLASS InvoiceHistory 'История изменений';
 invoice = DATA Invoice (InvoiceHistory);
