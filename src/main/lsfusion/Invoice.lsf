@@ -48,7 +48,7 @@ hours 'Часов' (Invoice i, Task t) = GROUP SUM NUMERIC[5,1](hours(TimeEntry 
 hours 'Часов' (Invoice i, Category c) = GROUP SUM NUMERIC[5,1](hours(TimeEntry e)) BY invoice(e), category(task(e)) MATERIALIZED;
 
 rate 'Ставка' = DATA NUMERIC[14,2] (Invoice, Task);
-rate(Invoice i, Task t) <- rate(project(i), category(t)) WHEN SET(hours(i, t)) OR CHANGED(category(t));
+rate(Invoice i, Task t) <- rate(project(i), category(t)) WHEN SET(hours(i, t)) OR (CHANGED(category(t)) AND hours(i, t));
 
 hoursMonthly 'Часов в абонентской плате' = DATA NUMERIC[14,2] (Invoice);
 hoursMonthly (Invoice i) <- hoursMonthly(project(i)) WHEN CHANGED(project(i));
