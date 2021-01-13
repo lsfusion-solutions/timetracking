@@ -1,11 +1,11 @@
 MODULE TimeEntryWord;
 
-REQUIRE TimeEntry, Word, Invoice;
+REQUIRE TimeEntry, Word, InvoiceWord;
 
 NAMESPACE TimeEntry;
 
 // Генерация шаблона
-generateTimeEntriesTemplate 'Создать шаблон для трудозатрат' ()  { 
+generateTimeEntriesTemplate 'Создать шаблон для счета' ()  { 
     NEWSESSION {
         NEW t = Template {
             name(t) <- 'Трудозатраты';
@@ -48,6 +48,7 @@ generateTimeEntriesTemplate 'Создать шаблон для трудозат
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_HOURS'; description(e) <- 'Сумма к оплате'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_MAX'; description(e) <- 'Максимальная стоимость внеабонентских услуг, всего'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_PAY'; description(e) <- 'Сумма к оплате (всего)'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- '\{DETAILS\}'; }
             DIALOG template OBJECTS t = t DO {
                 SEEK templates.t = t;
             }
@@ -58,21 +59,14 @@ generateTimeEntriesTemplate 'Создать шаблон для трудозат
 timeEntriesTemplateWord = DATA Template();
 nameTimeEntriesTemplateWord 'Шаблон для трудозатрат' () = name(timeEntriesTemplateWord());
 
-EXTEND FORM options PROPERTIES nameTimeEntriesTemplateWord();
-DESIGN options {
-    commons {
-        MOVE PROPERTY (nameTimeEntriesTemplateWord());
-    }
-}
-
 formatPrice = FORMULA 'ltrim(to_char($1, \'999 999 999.99\'))';
 
-rowTimeEntry (TimeEntry t) = CONCAT 'lsFusionCSep', toDateDDMMYY(dateStart(t)), '-', '-', (OVERRIDE comment(t) + '\r', ''), (OVERRIDE hours(t), 0), '-', '-';
+rowTimeEntry (TimeEntry t) = CONCAT 'lsFusionCSep', Time.toDateDDMMYY(dateStart(t)), '-', '-', (OVERRIDE comment(t) + '\r', ''), (OVERRIDE hours(t), 0), '-', '-';
 
 bold (TEXT t) =  '<b>' + t + '</b>';
 
 rowTask (Invoice i, Task t) = CONCAT 'lsFusionCSep',
-    bold(toDateDDMMYY(dateTimeStart(t))),
+    bold(Time.toDateDDMMYY(dateTimeStart(t))),
     bold(OVERRIDE nameEmployee(t), ''),
     bold(OVERRIDE name(t), ''),
     (OVERRIDE description(t) + '\r', ''),
@@ -102,31 +96,42 @@ rowCategoryPay 'Часов вне абонплаты' (Invoice i, Category c) = 
 tableCategoryMonthly (Invoice i) = GROUP CONCAT rowCategoryMonthly(i, Category c) IF hoursMonthly(i, c), 'lsFusionRSep' ORDER name(c), c;
 tableCategoryPay (Invoice i) = GROUP CONCAT rowCategoryPay(i, Category c) IF hoursPay(i, c) OR sumPay(i, c), 'lsFusionRSep' ORDER name(c), c;
 
-generateTimeEntriesWord 'Трудозатраты (Word)' (Invoice i)  { 
-    IF timeEntriesTemplateWord() THEN {
-        value(TemplateEntry detail) <- NULL;
-        FOR template (TemplateEntry detail) == timeEntriesTemplateWord() DO {
-            value(detail) <- TEXT(toDateDDMMYY(date(i))) WHERE key(detail) == 'INVOICE_DATE';
-            value(detail) <- TEXT(series(i)) WHERE key(detail) == 'SERIES';
-            value(detail) <- TEXT(number(i)) WHERE key(detail) == 'NUMBER';
-            value(detail) <- TEXT(nameCustomer(i)) WHERE key(detail) == 'CUSTOMER_NAME';
-            value(detail) <- TEXT(nameProject(i)) WHERE key(detail) == 'PROJECT_NAME';
-            value(detail) <- TEXT(toDateDDMMYY(fromDate(i))) WHERE key(detail) == 'FROM_DATE';
-            value(detail) <- TEXT(toDateDDMMYY(toDate(i))) WHERE key(detail) == 'TO_DATE';
-            value(detail) <- tableTaskText(i) WHERE key(detail) == 'TABLE_TIME_ENTRY';
-            value(detail) <- (OVERRIDE categoryList(i), '') WHERE key(detail) == 'CATEGORY_LIST';
-            value(detail) <- (OVERRIDE tableCategoryMonthly(i), '') WHERE key(detail) == 'TABLE_CATEGORY_MONTHLY';
-            value(detail) <- (OVERRIDE tableCategoryPay(i), '') WHERE key(detail) == 'TABLE_CATEGORY_PAY';
-            value(detail) <- (OVERRIDE TEXT(formatPrice(sum(i))), '0.00') WHERE key(detail) == 'SUM_INIT';
-            value(detail) <- (OVERRIDE TEXT(formatPrice(sumMonthly(i))), '0.00') WHERE key(detail) == 'SUM_MONTHLY';
-            value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i))), '0.00') WHERE key(detail) == 'SUM_HOURS';
-            value(detail) <- (OVERRIDE TEXT(formatPrice(maxAmountMonthly(project(i)))), '0.00') WHERE key(detail) == 'SUM_MAX';
-            value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))), '0.00') WHERE key(detail) == 'SUM_PAY';
-        }
-        process(timeEntriesTemplateWord());
-        open(resultTemplate(), replace(replace((CONCAT '_', nameCustomer(i), seriesNumber(i), toDateDDMMYYYY(fromDate(i)) + '-' + toDateDDMMYYYY(toDate(i))), ',' ,''), '\\', ''));
-    } ELSE
-        MESSAGE 'Не выбран шаблон для трудозатрат';
+generateTimeEntriesWord 'Сгенерировать (Word)' (Invoice i) { 
+    DIALOG dialogInvoiceDetailsTypes OBJECTS t INPUT DO {
+        LOCAL templ = Template ();
+        
+        IF t == InvoiceDetailsType.ASB THEN templ() <- invoiceTemplateWord(); 
+        ELSE templ() <- invoiceTemplateWordAccounting();
+        
+        IF templ() THEN {
+            value(TemplateEntry detail) <- NULL;
+            FOR template (TemplateEntry detail) == templ() DO {
+                value(detail) <- TEXT(Time.toDateDDMMYY(date(i))) WHERE key(detail) == 'INVOICE_DATE';
+                value(detail) <- TEXT(series(i)) WHERE key(detail) == 'SERIES';
+                value(detail) <- TEXT(number(i)) WHERE key(detail) == 'NUMBER';
+                value(detail) <- TEXT(nameCustomer(i)) WHERE key(detail) == 'CUSTOMER_NAME';
+                value(detail) <- TEXT(nameProject(i)) WHERE key(detail) == 'PROJECT_NAME';
+                value(detail) <- TEXT(Time.toDateDDMMYY(fromDate(i))) WHERE key(detail) == 'FROM_DATE';
+                value(detail) <- TEXT(Time.toDateDDMMYY(toDate(i))) WHERE key(detail) == 'TO_DATE';
+                value(detail) <- tableTaskText(i) WHERE key(detail) == 'TABLE_TIME_ENTRY';
+                value(detail) <- (OVERRIDE categoryList(i), '') WHERE key(detail) == 'CATEGORY_LIST';
+                value(detail) <- (OVERRIDE tableCategoryMonthly(i), '') WHERE key(detail) == 'TABLE_CATEGORY_MONTHLY';
+                value(detail) <- (OVERRIDE tableCategoryPay(i), '') WHERE key(detail) == 'TABLE_CATEGORY_PAY';
+                value(detail) <- (OVERRIDE TEXT(formatPrice(sum(i))), '0.00') WHERE key(detail) == 'SUM_INIT';
+                value(detail) <- (OVERRIDE TEXT(formatPrice(sumMonthly(i))), '0.00') WHERE key(detail) == 'SUM_MONTHLY';
+                value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i))), '0.00') WHERE key(detail) == 'SUM_HOURS';
+                value(detail) <- (OVERRIDE TEXT(formatPrice(maxAmountMonthly(project(i)))), '0.00') WHERE key(detail) == 'SUM_MAX';
+                value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))), '0.00') WHERE key(detail) == 'SUM_PAY';
+                value(detail) <- TEXT(IF t == InvoiceDetailsType.ASB THEN 
+                    'ИНН/КПП: 7725718426/770501001 ОГРН: 1117746197447\n' + 'р/с: 40702810173000028366 ФИЛИАЛ ЦЕНТРАЛЬНЫЙ ПАО БАНКА /"ФК ОТКРЫТИЕ/" Г. МОСКВА\nк/с: 30101810945250000297 БИК: 044525297' ELSE 
+                    'ИНН/КПП: 9705145234/770501001 ОГРН: 1207700222223\nр/с: 40702810901460008635 ФИЛИАЛ ЦЕНТРАЛЬНЫЙ ПАО БАНКА /"ФК ОТКРЫТИЕ/" Г. МОСКВА\nк/с: 30101810945250000297 БИК: 044525297') 
+                    WHERE key(detail) == '\{DETAILS\}';
+            }
+            process(templ());
+            open(resultTemplate(), replace(replace((CONCAT '_', nameCustomer(i), seriesNumber(i), toDateDDMMYYYY(fromDate(i)) + '-' + toDateDDMMYYYY(toDate(i))), ',' ,''), '\\', ''));
+        } ELSE
+            MESSAGE 'Не выбран шаблон для трудозатрат';
+    }
 }
 
 EXTEND FORM options

@@ -42,7 +42,7 @@ FORM invoiceDashboard 'Выставление счетов'
     
     OBJECTS i = Invoice
     PROPERTIES(i) READONLY date, series, number, nameCustomer, nameProject, fromDate, toDate, hours, nameAuthor, sumDiscount, sumVAT
-    PROPERTIES(i) TOOLBAR generateTimeEntriesWord, generateWord
+    PROPERTIES(i) TOOLBAR generateTimeEntriesWord
     PROPERTIES(i) NEWSESSION EDIT, DELETE
     ORDERS date(i) DESC
     FILTERS assigned(project(i), currentEmployee())

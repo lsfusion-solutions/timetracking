@@ -86,12 +86,11 @@ DESIGN customer {
     }
 }
 
-EXTEND FORM options PROPERTIES nameInvoiceTemplateWord(), nameInvoiceTemplateWordAccounting(), generateInvoiceTemplate();
+EXTEND FORM options PROPERTIES nameInvoiceTemplateWord(), nameInvoiceTemplateWordAccounting();
 DESIGN options {
     commons {
         MOVE PROPERTY (nameInvoiceTemplateWord());
         MOVE PROPERTY (nameInvoiceTemplateWordAccounting());
-        MOVE PROPERTY (generateInvoiceTemplate());
     }
 }
 
