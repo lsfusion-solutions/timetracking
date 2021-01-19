@@ -779,6 +779,8 @@ totalSumInvoiced 'Сумма по выставленным счетам' (Custom
 sumCategoryCustomer (Customer c, Category cat, DATE df, DATE dt) = 
     GROUP SUM hours(TimeEntry t) * rate(project(t), category(task(t))) IF df <= dateStart(t) AND dt >= dateStart(t)
     BY customer(task(t)), category(task(t));
+sumCustomer 'Сумма затрат по категориям' (Customer c, DATE df, DATE dt) =
+    GROUP SUM sumCategoryCustomer(c, Category cat, df, dt);
 sumCategory (Category cat, DATE df, DATE dt) = 
     GROUP SUM hours(TimeEntry t) * rate(project(t), category(task(t))) IF df <= dateStart(t) AND dt >= dateStart(t)
     BY category(task(t));
@@ -807,12 +809,17 @@ FORM partnersExtended 'Расширенный отчёт по клиентам'
     
     OBJECTS cat = Category
     PROPERTIES sumCategoryCustomer(c, cat, dFrom, dTo) DRAW c GRID COLUMNS(cat) HEADER name(cat) + ' (сумма)'
-    PROPERTIES totalSumInvoiced(c, dFrom, dTo)
+    PROPERTIES sumCustomer(c, dFrom, dTo), totalSumInvoiced(c, dFrom, dTo)
     FILTERS sumCategory(cat, dFrom, dTo)
     
     OBJECTS e = Employee
     PROPERTIES firstName(e), lastName(e), namePractice(e), totalHours(e, c, dFrom, dTo), sumInvoiced(e, c, dFrom, dTo)
     FILTERS totalHours(e, c, dFrom, dTo)
+    
+    OBJECTS i = Invoice
+    PROPERTIES number(i) ON CHANGE { SHOW invoice OBJECTS i = i DOCKED; }, sum(i) ON CHANGE { SHOW invoice OBJECTS i = i DOCKED; }
+    FILTERS dFrom <= date(i) AND dTo >= date(i),
+            customer(i) == c
 ;
 
 DESIGN partnersExtended {
@@ -823,7 +830,8 @@ DESIGN partnersExtended {
             MOVE PROPERTY(nameFilterPractice()) { alignment = CENTER; }
         }
         MOVE BOX(c);
-        MOVE BOX(e);       
+        MOVE BOX(e);   
+        MOVE BOX(i);   
     }
 }
 
