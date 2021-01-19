@@ -9,8 +9,8 @@ CLASS EntryDetail 'Импортированные проводки';
 dateTime 'Дата и время' = DATA DATETIME (EntryDetail);
 representation 'Представление' = DATA STRING (EntryDetail);
 number 'Номер' = DATA STRING (EntryDetail);
-partner 'Контргент' = DATA Partner.Partner (EntryDetail);
-namePartner 'Контрагент' (EntryDetail e) = name(partner(e)); 
+customer 'Клиент' = DATA Customer (EntryDetail);
+namePartner 'Организаця' (EntryDetail e) = name(customer(e)); 
 accountman 'Бухгалтер' = DATA STRING (EntryDetail);
 quantityEntries 'Количество проводок' = DATA INTEGER (EntryDetail);
 
@@ -24,34 +24,40 @@ number = DATA LOCAL STRING(INTEGER);
 dateStop = DATA LOCAL DATE();
 dateStart = DATA LOCAL DATE();
 representation = DATA LOCAL STRING(INTEGER);
+inn = DATA LOCAL STRING[10] ();
+uid = DATA LOCAL ISTRING[36] ();
 
 FORM importedEntries FORMEXTID 'Данные'
-PROPERTIES() dateStop EXTID 'КонецПериода' ATTR, dateStart EXTID 'НачалоПериода' ATTR
+PROPERTIES() dateStop EXTID 'КонецПериода' ATTR, dateStart EXTID 'НачалоПериода' ATTR, inn EXTID 'ОрганизацияИНН' ATTR, uid EXTID 'ОрганизацияGUID' ATTR
 
 OBJECTS d = INTEGER EXTID 'Документ'
 PROPERTIES(d) partner EXTID 'Контрагент', accountman EXTID 'Ответственный', quantityEntries EXTID 'КоличествоПроводок', dateTime EXTID 'Дата' ATTR, number EXTID 'Номер' ATTR, representation EXTID 'Представление' ATTR;
-
-receivePath () = path() + '7725718426.xml';
 
 receiveEntries 'Получить проводки' () {
     NEWSESSION {
         LOCAL f = XMLFILE();
         TRY {
-            READ receivePath() TO f;
-            IMPORT importedEntries XML FROM f();
-            // Не можем быть уверены в уникальности нумерации, поэтому просто сносим все
-            IF f() THEN 
-                DELETE EntryDetail e WHERE DATE(dateTime(e)) <= dateStop() AND DATE(dateTime(e)) >= dateStart();
-            FOR DATE(dateTime(INTEGER i)) <= dateStop() AND DATE(dateTime(i)) >= dateStart() NEW e = EntryDetail DO {
-                dateTime(e) <- dateTime(i);
-                number(e) <- number(i);
-                partner(e) <- partner(partner(i));
-                accountman(e) <- accountman(i);
-                quantityEntries(e) <- quantityEntries(i);
-                representation(e) <- representation(i);
+            listFiles(path());
+            FOR STRING fn = fileName(INTEGER j) AND [FORMULA NULL BOOLEAN PG 'CASE WHEN $1 ~ \'[0-9]{10}\\.xml\' THEN 1 ELSE NULL END'](fn) DO {
+                READ path() + fn TO f;      
+                IF f() THEN {
+                    IMPORT importedEntries XML FROM f();
+                    IF left(fn, 10) = inn() THEN {
+                        // Не можем быть уверены в уникальности нумерации, поэтому просто сносим все
+                        DELETE EntryDetail e WHERE DATE(dateTime(e)) <= dateStop() AND DATE(dateTime(e)) >= dateStart() AND inn(customer(e)) = inn();
+                        FOR DATE(dateTime(INTEGER i)) <= dateStop() AND DATE(dateTime(i)) >= dateStart() NEW e = EntryDetail DO {
+                            dateTime(e) <- dateTime(i);
+                            number(e) <- number(i);
+                            customer(e) <- customer(inn());
+                            accountman(e) <- accountman(i);
+                            quantityEntries(e) <- quantityEntries(i);
+                            representation(e) <- representation(i);
+                        }
+                        APPLY;
+                        delete(path() + fn);
+                    }
+                } 
             }
-            APPLY;
-            delete(receivePath());
         } CATCH {
             CANCEL;
         }

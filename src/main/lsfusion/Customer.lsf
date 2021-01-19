@@ -28,6 +28,8 @@ DESIGN options {
 customer 'Клиент' (Partner p) = GROUP LAST Customer c ORDER c BY partner(c);
 
 inn 'ИНН' = DATA ISTRING (Customer) CHARWIDTH 20;
+customer (ISTRING inn) = GROUP LAST Customer c ORDER c BY inn(c);
+
 ogrn 'ОГРН' = DATA ISTRING (Customer) CHARWIDTH 20;
 
 FORM customer 'Клиент'

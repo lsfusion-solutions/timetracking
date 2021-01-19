@@ -602,16 +602,16 @@ FORM data FORMEXTID 'Данные'
 //    }
 //}
 
-quantityOperation 'Кол-во проводок' (Partner.Partner l, DATE df, DATE dt) = 
-    GROUP SUM quantityEntries(EntryDetail i) IF partner(i) == l AND dateTime(i) >= dateTimeToDateTime(df, 00:00) AND 
+quantityOperation 'Кол-во проводок' (Customer l, DATE df, DATE dt) = 
+    GROUP SUM quantityEntries(EntryDetail i) IF customer(i) == l AND dateTime(i) >= dateTimeToDateTime(df, 00:00) AND 
     dateTime(i) < dateTimeToDateTime(sum(dt, 1), 00:00);
 
 FORM operationsReport 'Отчёт по операциям'
     OBJECTS df = DATE PANEL, dt = DATE PANEL 
     PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'по' = VALUE(dt)
 
-    OBJECTS p = Partner.Partner
-    PROPERTIES namePartner(p), quantityOperation(p, df, dt) 
+    OBJECTS p = Customer
+    PROPERTIES name(p), quantityOperation(p, df, dt) 
     FILTERS quantityOperation(p, df, dt)
 ;
 
