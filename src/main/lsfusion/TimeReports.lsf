@@ -1,6 +1,6 @@
 MODULE TimeReports;
 
-REQUIRE TimeEntry, Project, Reports, TimeDashboard, Extend1CImport;
+REQUIRE TimeEntry, Project, Reports, TimeDashboard, Extend1CImport, Time;
 
 NAMESPACE Time;
 
@@ -705,7 +705,8 @@ hoursTotal 'Часов всего' (HoursType t, Employee e, DATE df, DATE dt) =
     WHEN t == HoursType.other THEN hoursOther(e, df, dt);
 
 backgroundHours (HoursType t, Employee e, DATE d) = 
-    IF t == HoursType.total AND (hours(e, d) < 6 OR hours(e, d) > 24) THEN RGB(255, 172, 172);
+    IF t == HoursType.total AND (hours(e, d) < 6 OR hours(e, d) > 24 OR NOT hours(e, d)) AND 
+        NOT (extractDOW(d) == DOW.saturday OR extractDOW(d) == DOW.sunday) THEN RGB(255, 172, 172);
     
 index (HoursType t, Employee e) = CONCAT '', firstName(e), lastName(e), staticCaption(t);
 
@@ -724,18 +725,21 @@ selectEmployees () {
     SHOW listEmployeesReport;
 }
 
-totalHours 'Часов (всего)' (Practice p, DATE df, DATE dt) = 
+totalHours 'Часов (по практике задач)' (Practice p, DATE df, DATE dt) = 
     GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) AND 
     (inReport(employee(te)) OR NOT filterEmployees()) BY practice(task(te));
+totalHoursEmpl 'Часов (по практике сотрудников)' (Practice p, DATE df, DATE dt) = 
+    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) AND 
+    (inReport(employee(te)) OR NOT filterEmployees()) BY practice(employee(te));
 totalHoursDate(DATE d) = 
     GROUP SUM hours(Employee e, d) IF (inReport(e) OR NOT filterEmployees()) AND e IS Employee;
 
-FORM employeesExtended 'По сотрудникам (расширенный)'
+FORM employeesExtended 'Расширенный отчет по сотрудникам'
     OBJECTS dates = (dFrom = DATE, dTo = DATE) PANEL
     PROPERTIES dFrom 'Дата с' = VALUE(dFrom), dTo 'Дата по' = VALUE(dTo), filterEmployees() ON CHANGE selectEmployees()
     
     OBJECTS p = Practice
-    PROPERTIES READONLY name(p), totalHours(p, dFrom, dTo)
+    PROPERTIES READONLY name(p), totalHours(p, dFrom, dTo), totalHoursEmpl(p, dFrom, dTo)
     FILTERS totalHours(p, dFrom, dTo)
     
     OBJECTS d = DATE 
