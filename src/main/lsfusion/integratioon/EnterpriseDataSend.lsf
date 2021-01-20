@@ -103,7 +103,7 @@ dateTimeString 'Дата' (Document d) = dateTimeToString(dateTime(d));
 @defPropObject(customer, 'Контрагент', Partner, saleOrder);
 @defProp(note, 'Комментарий', STRING, SaleOrder);
 
-settlements (SaleOrder s) = '' IF s IS SaleOrder; //todo
+//settlements (SaleOrder s) = '<Контрагент xmlns="http://v8.1c.ru/edi/edi_stnd/EnterpriseData/1.5" />' IF s IS SaleOrder; //todo
 
 @defPropDetail(item, 'Номенклатура', Item, SaleOrder);
 @defPropDetail(quantity, 'Количество', NUMERIC[15,3], SaleOrder);
@@ -114,8 +114,15 @@ CLASS ABSTRACT SaleOrderServiceDetail 'Услуги.Строка' : SaleOrderDet
 
 GROUP services EXTID 'Услуги';
 
+GROUP settlements EXTID 'ДанныеВзаиморасчетов';
+
 EXTEND FORM sendMessage  
-    PROPERTIES(saleOrder) settlements EXTID 'ДанныеВзаиморасчетов', note EXTID 'Комментарий'
+    
+    OBJECTS saleOrderSettlementsPartner = Partner EXTID 'Контрагент' IN settlements
+    PROPERTIES(saleOrderSettlementsPartner) uid EXTID 'Ссылка', name EXTID 'Наименование', idType EXTID 'ЮридическоеФизическоеЛицо'
+    FILTERS saleOrderSettlementsPartner = customer(saleOrder)
+    
+    PROPERTIES(saleOrder) note EXTID 'Комментарий'
         
     OBJECTS saleOrderServiceDetail = SaleOrderServiceDetail EXTID 'Строка' IN services
     

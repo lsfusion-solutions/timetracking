@@ -59,6 +59,10 @@ sum (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i,tt)), 0.0;
 
 price (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i, tt) / quantity(i, tt)) IF quantity(i, tt) != 0.0, NUMERIC[15,2](sum(i, tt)), 0.0;
 
+EXTEND FORM sendMessage 
+    FILTERS customer(saleOrder)
+;
+
 // receive
 afterReceive () + {
     FOR uidPartner(INTEGER i) AND NOT object(uidPartner(i)) AND typePartner(i) = 'ЮридическоеЛицо' DO NEW le = LegalEntity {
