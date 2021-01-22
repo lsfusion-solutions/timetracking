@@ -204,13 +204,14 @@ META extDocument(doctype, caption)
     
     EXTEND FORM sendMessage
         OBJECTS doctype = ###doctype EXTID caption IN body
+        PROPERTIES(doctype) IN keyProperties###doctype uid EXTID 'Ссылка'
         PROPERTIES(doctype) IN keyProperties###doctype dateTimeString EXTID 'Дата', id EXTID 'Номер'
         FILTERS dateTimeString(doctype), id(doctype), NOT EnterpriseData.isDeleted(doctype)
        
         OBJECTS company###doctype = Company EXTID 'Организация' IN keyProperties###doctype
         PROPERTIES(company###doctype) name EXTID 'Наименование', idType EXTID 'ЮридическоеФизическоеЛицо'
        
-        PROPERTIES(doctype) IN keyProperties###doctype uid EXTID 'Ссылка' 
+         
         FILTERS company###doctype = company(doctype)
 
         FILTERS NOT DATE(dateTime(doctype)) < dateStartExchange(), NOT packet(doctype) <= idTicket()
