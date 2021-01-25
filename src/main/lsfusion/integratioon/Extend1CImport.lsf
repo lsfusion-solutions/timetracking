@@ -65,9 +65,14 @@ receiveEntries 'Получить проводки' () {
 } TOOLBAR;
 
 FORM entryDashboard 'Импортированные проводки'
+    OBJECTS dates = (df = DATE, dt = DATE) PANEL
+    PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'Дата по' = VALUE(dt) 
+
     OBJECTS e = EntryDetail
     PROPERTIES (e) dateTime, number, namePartner READONLY, quantityEntries,representation,accountman
     PROPERTIES () receiveEntries
+    
+    FILTERS DATE(dateTime(e)) >= df AND DATE(dateTime(e)) <= dt
 ;
 
 NAVIGATOR {
