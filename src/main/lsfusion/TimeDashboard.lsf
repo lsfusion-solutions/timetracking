@@ -96,8 +96,8 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
 //    PROPERTIES(d) NEWSESSION EDIT, DELETE
 //    FILTERS customer(d) == customer(p)
     
-    OBJECTS dates = (df = DATE, dt = DATE) PANEL
-    PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'Дата по' = VALUE(dt)
+//    OBJECTS dates = (df = DATE, dt = DATE) PANEL
+//    PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'Дата по' = VALUE(dt)
     
     OBJECTS fe = Task
     PROPERTIES(fe) READONLY nameEmployee, nameStatus BACKGROUND background(fe)
@@ -108,8 +108,8 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, ed = EDIT, deleteTask READONLYIF isReadonlyTask(fe) SHOWIF NOT markDelete(fe),
         cancelDelete  READONLYIF isReadonlyTask(fe) SHOWIF markDelete(fe)
     FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND NOT invisible(fe)),
-            markDeleteDateTime(fe) >= dateTimeToDateTime(sum(currentDate(), -1), currentTime()) OR NOT markDelete(fe),
-            DATE(dateTimeStart(fe)) >= df AND DATE(dateTimeStart(fe)) <= dt
+            markDeleteDateTime(fe) >= dateTimeToDateTime(sum(currentDate(), -1), currentTime()) OR NOT markDelete(fe)
+            //DATE(dateTimeStart(fe)) >= df AND DATE(dateTimeStart(fe)) <= dt
     ORDERS nameCustomerProject(fe)
     FILTERGROUP  myTasks
         FILTER 'Мои задачи' employee(fe) == currentEmployee() DEFAULT
@@ -210,7 +210,7 @@ DESIGN timeDashboard {
                 fill = 2;
                 type = SPLITV;
                 MOVE BOX(fe) {
-                    MOVE BOX(dates) FIRST;
+                    //MOVE BOX(dates) FIRST;
                     fill = 2;
                     caption = 'Задачи';
                     TOOLBARRIGHT(fe) {
