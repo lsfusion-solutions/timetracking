@@ -66,7 +66,7 @@ receiveEntries 'Получить проводки' () {
 
 FORM entryDashboard 'Импортированные проводки'
     OBJECTS e = EntryDetail
-    PROPERTIES (e) dateTime, number, namePartner, quantityEntries,representation,accountman
+    PROPERTIES (e) dateTime, number, namePartner READONLY, quantityEntries,representation,accountman
     PROPERTIES () receiveEntries
 ;
 
