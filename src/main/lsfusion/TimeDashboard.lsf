@@ -113,6 +113,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
 //        FILTER 'По проекту' project(fe) == p 'F9'
     FILTERGROUP active
         FILTER 'Активные' notCompleted(fe) OR dateFinish(fe) >= subtract(currentDate(), 1) DEFAULT 
+        FILTER 'Активные (7 дней)' notCompleted(fe) OR dateFinish(fe) >= subtract(currentDate(), 7)
     
     OBJECTS ce = Task PANEL
     PROPERTIES(ce) READONLYIF isReadonlyTask(ce) nameCustomerAndProject ON CHANGE { changeCustomerProject(ce); }
