@@ -32,6 +32,9 @@ customer (ISTRING inn) = GROUP LAST Customer c ORDER c BY inn(c);
 
 ogrn 'ОГРН' = DATA ISTRING (Customer) CHARWIDTH 20;
 
+CONSTRAINT SET(Customer c IS Customer) AND NOT (inn(c) OR ogrn(c)) 
+    MESSAGE 'Необходимо указать ИНН или ОГРН';
+
 FORM customer 'Клиент'
     OBJECTS c = Customer PANEL
     PROPERTIES(c) name, namePartner, inactive, inn, ogrn
@@ -54,6 +57,7 @@ DESIGN customer {
                 }
                 NEW lane2 {
                     type = CONTAINERH;
+                    caption = 'Для иностранных компаний укажите "0"';
                     MOVE PROPERTY(inn(c));
                     MOVE PROPERTY(ogrn(c));
                 }
