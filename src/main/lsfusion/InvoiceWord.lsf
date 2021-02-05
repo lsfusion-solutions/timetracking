@@ -7,7 +7,7 @@ NAMESPACE Invoice;
 shortNameCurrency (Invoice i) = reportName(currency(i));
 
 // Генерация шаблона
-generateInvoiceTemplate 'Создать шаблон для счета' ()  { 
+generateInvoiceTemplate 'Создать шаблон для счета (Бухгалтерский)' ()  { 
     NEWSESSION {
         NEW t = Template {
             NEW e = TemplateEntry {
@@ -34,9 +34,7 @@ generateInvoiceTemplate 'Создать шаблон для счета' ()  {
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_PAY'; description(e) <- 'Сумма к оплате (всего)'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'NAME_CUR'; description(e) <- 'Валюта'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- '\{DETAILS\}'; }
-            DIALOG template OBJECTS t = t DO {
-                SEEK templates.t = t;
-            }
+            SHOW template OBJECTS t = t;
         }
     }
 }
@@ -65,11 +63,17 @@ generateInvoiceTemplate 'Создать шаблон для счета' ()  {
 customerTemplateWord 'Шаблон для счета по проекту (Word)' = DATA Template (Project);
 nameCustomerTemplateWord 'Шаблон для счета по проекту (Word)' (Project p) = name(customerTemplateWord(p));
 
-invoiceTemplateWord 'Шаблон для счета по проекту (ASB)'  = DATA Template ();
-nameInvoiceTemplateWord 'Шаблон для счета по проекту (ASB)' () = name(invoiceTemplateWord());
+invoiceTemplateWord 'Шаблон для счета по проекту (Юридический ASB)'  = DATA Template ();
+nameInvoiceTemplateWord 'Шаблон для счета по проекту (Юридический ASB)' () = name(invoiceTemplateWord());
 
-invoiceTemplateWordAccounting 'Шаблон для счета по проекту (A-Accounting)'  = DATA Template ();
-nameInvoiceTemplateWordAccounting 'Шаблон для счета по проекту (A-Accounting)' () = name(invoiceTemplateWordAccounting());
+invoiceTemplateWordAccounting 'Шаблон для счета по проекту (Юридический A-Accounting)'  = DATA Template ();
+nameInvoiceTemplateWordAccounting 'Шаблон для счета по проекту (Юридический A-Accounting)' () = name(invoiceTemplateWordAccounting());
+
+invoiceTemplateWordBuch 'Шаблон для счета по проекту (Бухгалтерский ASB)'  = DATA Template ();
+nameInvoiceTemplateWordBuch 'Шаблон для счета по проекту (Бухгалтерский ASB)' () = name(invoiceTemplateWordBuch());
+
+invoiceTemplateWordAccountingBuch 'Шаблон для счета по проекту (Бухгалтерский A-Accounting)'  = DATA Template ();
+nameInvoiceTemplateWordAccountingBuch 'Шаблон для счета по проекту (Бухгалтерский A-Accounting)' () = name(invoiceTemplateWordAccountingBuch());
 
 templateWord 'Шаблон для счета' (Invoice i) = OVERRIDE customerTemplateWord(project(i)), invoiceTemplateWord(),
     templateId('invoiceMonthly') IF (hoursMonthly(i) OR hoursMonthlyCategory(i)), templateId('invoiceGeneral');
@@ -86,11 +90,13 @@ DESIGN customer {
     }
 }
 
-EXTEND FORM options PROPERTIES nameInvoiceTemplateWord(), nameInvoiceTemplateWordAccounting();
+EXTEND FORM options PROPERTIES() nameInvoiceTemplateWord, nameInvoiceTemplateWordAccounting, nameInvoiceTemplateWordBuch, nameInvoiceTemplateWordAccountingBuch;
 DESIGN options {
     commons {
         MOVE PROPERTY (nameInvoiceTemplateWord());
         MOVE PROPERTY (nameInvoiceTemplateWordAccounting());
+        MOVE PROPERTY (nameInvoiceTemplateWordBuch());
+        MOVE PROPERTY (nameInvoiceTemplateWordAccountingBuch());
     }
 }
 
@@ -126,12 +132,12 @@ FORM dialogInvoiceDetailsTypes 'Выбор реквизитов'
     PROPERTIES 'Реквизиты' = staticCaption(t)
 ;
 
-generateWord 'Сгенерировать (Word)' (Invoice i) { 
+generateWord 'Сгенерировать (Word)' (Invoice i) {
     DIALOG dialogInvoiceDetailsTypes OBJECTS t INPUT DO {
         LOCAL templ = Template ();
         
-        IF t == InvoiceDetailsType.ASB THEN templ() <- invoiceTemplateWord(); 
-        ELSE templ() <- invoiceTemplateWordAccounting();
+        IF t == InvoiceDetailsType.ASB THEN templ() <- invoiceTemplateWordBuch(); 
+        ELSE templ() <- invoiceTemplateWordAccountingBuch();
         
         IF templ() THEN {
             value(TemplateEntry detail) <- NULL;

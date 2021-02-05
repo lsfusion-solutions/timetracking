@@ -5,7 +5,7 @@ REQUIRE TimeEntry, Word, InvoiceWord;
 NAMESPACE TimeEntry;
 
 // Генерация шаблона
-generateTimeEntriesTemplate 'Создать шаблон для счета' ()  { 
+generateTimeEntriesTemplate 'Создать шаблон для счета (Юридический)' () {
     NEWSESSION {
         NEW t = Template {
             name(t) <- 'Трудозатраты';
@@ -49,9 +49,7 @@ generateTimeEntriesTemplate 'Создать шаблон для счета' ()  
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_MAX'; description(e) <- 'Максимальная стоимость внеабонентских услуг, всего'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_PAY'; description(e) <- 'Сумма к оплате (всего)'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- '\{DETAILS\}'; }
-            DIALOG template OBJECTS t = t DO {
-                SEEK templates.t = t;
-            }
+            SHOW template OBJECTS t = t;
         }
     }
 }
@@ -134,12 +132,30 @@ generateTimeEntriesWord 'Сгенерировать (Word)' (Invoice i) {
     }
 }
 
+CLASS InvoiceDetailsKind 'Вид отчета' {
+    buch 'Бухгалтерский',
+    law 'Юридический'
+}
+
+FORM dialogInvoiceDetailsKinds 'Выбор вида отчета'
+    OBJECTS t = InvoiceDetailsKind
+    PROPERTIES 'Вид отчета' = staticCaption(t)
+;
+
+generateWordTypes 'Сгенерировать (Word)' (Invoice i) {
+    DIALOG dialogInvoiceDetailsKinds OBJECTS t INPUT DO {
+        IF t == InvoiceDetailsKind.law THEN generateTimeEntriesWord(i);
+        ELSE generateWord(i);
+    }
+}
+
 EXTEND FORM options
-    PROPERTIES generateTimeEntriesTemplate()
+    PROPERTIES generateTimeEntriesTemplate(),  generateInvoiceTemplate()
 ;
 
 DESIGN options {
     commons {
         MOVE PROPERTY (generateTimeEntriesTemplate());
+        MOVE PROPERTY (generateInvoiceTemplate());
     }
 }
