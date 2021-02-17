@@ -80,6 +80,7 @@ afterReceive () + {
         uid(p) <- uidPartner(i);    
     }
     FOR uidPartner(INTEGER i) = uid(Person p) AND typePartner(i) = 'ФизическоеЛицо' DO {
+        inn(p) <- innPartner(i);
         lastName(p) <- getWord(namePartner(i), ' ', 1);
         firstName(p) <- getWord(namePartner(i), ' ', 2);
         middleName(p) <- getWord(namePartner(i), ' ', 3);
