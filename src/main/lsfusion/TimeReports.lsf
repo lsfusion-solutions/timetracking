@@ -267,7 +267,7 @@ EXTEND FORM options
 sendNotifications 'Отправить уведомление' () {
     IF NOT isDayoff(currentDate()) THEN {
         
-        FOR sendNotification(Employee e) AND (hours(e, prevWorkDate(currentDate())) < overHoursSet(e) OR NOT hours(e, prevWorkDate(currentDate()))) AND email(e) DO {
+        FOR sendNotification(Employee e) AND (hours(e, prevWorkDate(currentDate())) < overHoursSet(e) OR NOT hours(e, prevWorkDate(currentDate()))) AND email(e) AND NOT fired(e) DO {
             EMAIL
                 SUBJECT 'Напоминание о дополнительном внесении времени'
                 TO email(e)
@@ -318,7 +318,7 @@ messageManager = DATA LOCAL STRING (Employee);
 sendNotificationsManager 'Уведомления для руководителей' () {
     IF NOT isDayoff(currentDate()) THEN {
         
-        FOR sendNotificationManager(Employee e) AND isManager(e) AND email(e) AND isTimeShortageEmployees(e) DO {
+        FOR sendNotificationManager(Employee e) AND isManager(e) AND email(e) AND isTimeShortageEmployees(e) AND NOT fired(e) DO {
             FOR level(Employee employee, e) AND isTimeShortage(employee) AND NOT fired(employee) AND NOT employee == e DO {
                 messageManager(employee) <- NULL;
                 messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
