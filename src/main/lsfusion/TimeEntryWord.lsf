@@ -48,6 +48,7 @@ generateTimeEntriesTemplate 'Создать шаблон для счета (Юр
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_HOURS'; description(e) <- 'Сумма к оплате'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_MAX'; description(e) <- 'Максимальная стоимость внеабонентских услуг, всего'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- 'SUM_PAY'; description(e) <- 'Сумма к оплате (всего)'; }
+            NEW e = TemplateEntry { template(e) <- t; key(e) <- '\{HOURS_MONTHLY\}'; description(e) <- 'Кол-во часов в абонентской плате'; }
             NEW e = TemplateEntry { template(e) <- t; key(e) <- '\{DETAILS\}'; }
             SHOW template OBJECTS t = t;
         }
@@ -120,6 +121,7 @@ generateTimeEntriesWord 'Сгенерировать (Word)' (Invoice i) {
                 value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i))), '0.00') WHERE key(detail) == 'SUM_HOURS';
                 value(detail) <- (OVERRIDE TEXT(formatPrice(maxAmountMonthly(project(i)))), '0.00') WHERE key(detail) == 'SUM_MAX';
                 value(detail) <- (OVERRIDE TEXT(formatPrice(sumPay(i) (+) sumMonthly(i))), '0.00') WHERE key(detail) == 'SUM_PAY';
+                value(detail) <- TEXT(hoursMonthlyWord(i)) WHERE key(detail) == '\{HOURS_MONTHLY\}';
                 value(detail) <- TEXT(IF t == InvoiceDetailsType.ASB THEN 
                     'ИНН/КПП: 7725718426/770501001 ОГРН: 1117746197447\n' + 'р/с: 40702810173000028366 ФИЛИАЛ ЦЕНТРАЛЬНЫЙ ПАО БАНКА /"ФК ОТКРЫТИЕ/" Г. МОСКВА\nк/с: 30101810945250000297 БИК: 044525297' ELSE 
                     'ИНН/КПП: 9705145234/770501001 ОГРН: 1207700222223\nр/с: 40702810901460008635 ФИЛИАЛ ЦЕНТРАЛЬНЫЙ ПАО БАНКА /"ФК ОТКРЫТИЕ/" Г. МОСКВА\nк/с: 30101810945250000297 БИК: 044525297') 
