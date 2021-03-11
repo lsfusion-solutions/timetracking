@@ -364,7 +364,7 @@ nextNotificationDateTime (TaskNotification n) =
     dateTimeToDateTime(nextNotificationDate(n), OVERRIDE notificationTime(n), 00:00);
 
 sendTaskNotifications 'Отправить уведомления о задачах' () {
-    FOR nextNotificationDateTime(taskNotification(Task t)) <= currentDateTime() AND email(employee(t)) DO {
+    FOR nextNotificationDateTime(taskNotification(Task t)) <= currentDateTime() AND email(employee(t)) AND NOT fired(employee(t)) DO {
         LOCAL body = STRING ();
         body() <- CONCAT '', firstName(employee(t)), ', у Вас есть задача ', 
             (OVERRIDE '"' + name(t) + '"', 'клиента ' + nameCustomerProject(t)), 
