@@ -73,6 +73,11 @@ nameManagers 'Руководители' (Employee e) =
 nameEmployees 'Подчиненные' (Employee e) = 
     GROUP CONCAT (CONCAT ' ',firstName(Employee employee), lastName(employee)), ', ' IF managers(employee, e) CHARWIDTH 40;
     
+WHEN SET(fired(Employee e)) DO {
+    managers(e, Employee managr) <- NULL;
+    managers(Employee employee, e) <- NULL;
+}
+    
 include 'Вкл' = DATA LOCAL BOOLEAN (Employee);
 
 EXTEND FORM dialogEmployee
