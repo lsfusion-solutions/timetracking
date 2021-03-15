@@ -60,7 +60,7 @@ sum (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i,tt)), 0.0;
 price (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i, tt) / quantity(i, tt)) IF quantity(i, tt) != 0.0, NUMERIC[15,2](sum(i, tt)), 0.0;
 
 EXTEND FORM sendMessage 
-    FILTERS customer(saleOrder)
+    FILTERS customer(saleOrder), sum(saleOrder, saleOrderServiceDetail) != 0
 ;
 
 // receive
