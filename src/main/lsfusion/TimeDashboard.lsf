@@ -337,7 +337,8 @@ FORM timeEntriesEmployee 'Просмотр трудозатрат'
     PROPERTIES seriesNumberInvoice(t) ON CHANGE { SHOW invoice OBJECTS i = invoice(t) DOCKED; }
     PROPERTIES editTask(t) TOOLBAR            
     FILTERS employee(t) == filterEmployee() OR NOT filterEmployee(),
-            dateFinish(t) >= df AND dateStart(t) <= dt
+            dateFinish(t) >= df AND dateStart(t) <= dt,
+            NOT markDelete(task(t))
     
     EVENTS ON INIT {
         filterEmployee() <- currentUser();
