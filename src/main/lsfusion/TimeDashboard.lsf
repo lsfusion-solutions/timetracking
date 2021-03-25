@@ -76,6 +76,12 @@ cancelDelete 'Отменить удаление' (Task t) {
 
 validUser () = sid(mainRole(currentUser())) == 'admin' OR sid(mainRole(currentUser())) == 'partner';
 
+order (Task t) = CASE 
+    WHEN status(t) == StatusTask.paused THEN 1 
+    WHEN status(t) == StatusTask.inProcess THEN 2 
+    WHEN status(t) == StatusTask.completed THEN 3
+    WHEN status(t) == StatusTask.markDelete THEN 4;
+
 FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES currentDateTime()
 
@@ -100,7 +106,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'Дата по' = VALUE(dt)
     
     OBJECTS fe = Task
-    PROPERTIES(fe) READONLY nameEmployee, nameStatus BACKGROUND background(fe)
+    PROPERTIES(fe) READONLY nameEmployee, nameStatus BACKGROUND background(fe), order SHOWIF NULL
     PROPERTIES(fe) nameCustomerProject ON CHANGE { DIALOG contactsDocuments OBJECTS p = project(fe); }
     PROPERTIES(fe) READONLY nameProject, nameTaskType, namePractice, nameParent, name, dateTimeStart, dateTimeFinish
     //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
@@ -110,7 +116,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND NOT invisible(fe)),
             markDeleteDateTime(fe) >= dateTimeToDateTime(sum(currentDate(), -1), currentTime()) OR NOT markDelete(fe),
             (DATE(dateTimeStart(fe)) >= df AND DATE(dateTimeStart(fe)) <= dt) OR status(fe) == StatusTask.paused
-    ORDERS nameCustomerProject(fe)
+    ORDERS order(fe), nameCustomerProject(fe)
     FILTERGROUP  myTasks
         FILTER 'Мои задачи' employee(fe) == currentEmployee() DEFAULT
 //    FILTERGROUP project
