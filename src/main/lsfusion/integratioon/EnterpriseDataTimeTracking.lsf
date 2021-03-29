@@ -3,11 +3,10 @@ MODULE EnterpriseDataTimeTracking;
 REQUIRE EnterpriseDataSend, EnterpriseDataReceive, Task, Invoice, EGRUL;
 
 // item
-EXTEND CLASS TaskType : Item;
+CLASS ItemTimeTracking : Item;
+EXTEND CLASS ItemTimeTracking { overheads 'Накладные расходы' }
 
-id (TaskType tt) += CONCAT '-', prefix(), STRING(tt);
-
-name (TaskType tt) += Task.name(tt);
+name (ItemTimeTracking d) += 'Накладные расходы' IF d = ItemTimeTracking.overheads;;
 
 // partner
 EXTEND CLASS Partner.Partner : EnterpriseData.Partner;
@@ -45,22 +44,15 @@ dateTime (Invoice i) += DATETIME(date(i));
 id (Invoice i) += CONCAT '-', '00' + prefix(), seriesNumber(i);
 
 // lines of Invoice
-EXTEND CLASS TaskType : SaleOrderServiceDetail;
-
-in (Invoice i, TaskType tt) += GROUP LAST taskType(Task t) == tt IF hours(i, t) ORDER t;
-
-item(Invoice i, TaskType tt) += tt AS TaskType IF in(i, tt);
-
-quantity (Invoice i, TaskType tt) = GROUP SUM hoursPay(i, Task t) BY taskType(t);
-quantity (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,3](quantity(i, tt)), 0.0;
-
-sum (Invoice i, TaskType tt) = GROUP SUM sumPay(i, Task t) BY taskType(t);
-sum (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i,tt)), 0.0;
-
-price (Invoice i, TaskType tt) += OVERRIDE NUMERIC[15,2](sum(i, tt) / quantity(i, tt)) IF quantity(i, tt) != 0.0, NUMERIC[15,2](sum(i, tt)), 0.0;
+EXTEND CLASS Invoice : SaleOrderServiceDetail;
+in (Invoice i, Invoice d) += i = d;
+item(Invoice i, Invoice d) += ItemTimeTracking.overheads IF d IS Invoice AND i IS Invoice;
+quantity (Invoice i, Invoice d) += OVERRIDE NUMERIC[15,3](hoursPay(d) IF i IS Invoice), 0.0;
+sum (Invoice i, Invoice d) += OVERRIDE NUMERIC[15,2](sumPay(d) IF i IS Invoice), 0.0;
+price (Invoice i, Invoice d) += OVERRIDE NUMERIC[15,2](sum(i, d) / quantity(i, d)) IF quantity(i, d) != 0.0, NUMERIC[15,2](sum(i, d)), 0.0;
 
 EXTEND FORM sendMessage 
-    FILTERS customer(saleOrder), sum(saleOrder, saleOrderServiceDetail) != 0
+    FILTERS customer(saleOrder), sumPay(saleOrder), sum(saleOrder, saleOrderServiceDetail) != 0
 ;
 
 // receive

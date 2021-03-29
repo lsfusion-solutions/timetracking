@@ -127,7 +127,7 @@ EXTEND FORM sendMessage
     OBJECTS saleOrderServiceDetail = SaleOrderServiceDetail EXTID 'Строка' IN services
     
     OBJECTS saleOrderServiceDetailItem = Item EXTID 'Номенклатура'
-    PROPERTIES(saleOrderServiceDetailItem) uid EXTID 'Ссылка', name EXTID 'Наименование'
+    PROPERTIES(saleOrderServiceDetailItem) name EXTID 'Наименование'
     FILTERS saleOrderServiceDetailItem = item(saleOrder, saleOrderServiceDetail) 
     
     PROPERTIES(saleOrder, saleOrderServiceDetail) quantity EXTID 'Количество', sum EXTID 'Сумма', price EXTID 'Цена'
