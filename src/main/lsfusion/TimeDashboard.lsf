@@ -115,7 +115,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
         cancelDelete  READONLYIF isReadonlyTask(fe) SHOWIF markDelete(fe)
     FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND NOT invisible(fe)),
             markDeleteDateTime(fe) >= dateTimeToDateTime(sum(currentDate(), -1), currentTime()) OR NOT markDelete(fe),
-            (DATE(dateTimeStart(fe)) >= df AND DATE(dateTimeStart(fe)) <= dt) OR status(fe) == StatusTask.paused
+            (DATE(dateTimeStart(fe)) >= df AND DATE(dateTimeStart(fe)) <= dt) OR (status(fe) == StatusTask.paused OR status(fe) == StatusTask.inProcess)
     ORDERS order(fe), nameCustomerProject(fe)
     FILTERGROUP  myTasks
         FILTER 'Мои задачи' employee(fe) == currentEmployee() DEFAULT

@@ -80,3 +80,22 @@ NAVIGATOR {
         NEW entryDashboard;
     }
 }
+
+FORM entryDashboardPrint 'Импортированные проводки'
+    OBJECTS dates = (df = DATE, dt = DATE) PANEL
+    PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'Дата по' = VALUE(dt) 
+
+    OBJECTS e = EntryDetail
+    PROPERTIES(e) namePartner, dateTime, number, representation, accountman, quantityEntries
+    ORDERS namePartner(e)
+    
+    FILTERS DATE(dateTime(e)) >= df AND DATE(dateTime(e)) <= dt
+;
+
+printEntryDashboard 'Печать (XLS)' (DATE df, DATE dt) {
+    PRINT entryDashboardPrint OBJECTS df = df, dt = dt XLSX;
+}
+
+EXTEND FORM entryDashboard
+    PROPERTIES printEntryDashboard(df, dt) DRAW e TOOLBAR 
+;
