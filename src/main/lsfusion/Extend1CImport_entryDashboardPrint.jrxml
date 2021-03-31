@@ -41,16 +41,26 @@
 	<variable name="quantity" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{quantityEntries(e)}]]></variableExpression>
 	</variable>
+	<variable name="quantityLE" class="java.math.BigDecimal" resetType="Group" resetGroup="designGroup17585" calculation="Sum">
+		<variableExpression><![CDATA[$F{quantityEntries(e)}]]></variableExpression>
+	</variable>
 	<group name="designGroup17585">
 		<groupExpression><![CDATA[$F{namePartner(e)}]]></groupExpression>
 		<groupHeader>
-			<band height="18" splitType="Prevent">
+			<band height="18">
+				<textField isStretchWithOverflow="true" evaluationTime="Group" evaluationGroup="designGroup17585" isBlankWhenNull="true">
+					<reportElement style="GroupCellStyle0" stretchType="RelativeToBandHeight" mode="Opaque" x="740" y="0" width="62" height="18" backcolor="#DFDFDF" uuid="493ea6d9-0c87-4775-8340-5e114492fc3b"/>
+					<textElement textAlignment="Right">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{quantityLE}]]></textFieldExpression>
+				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement style="GroupCellStyle1" stretchType="RelativeToBandHeight" x="0" y="0" width="802" height="18" uuid="7d451380-31d2-4540-93af-5304865d048a"/>
+					<reportElement style="GroupCellStyle1" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="0" width="740" height="18" backcolor="#DFDFDF" uuid="06d8aade-49a7-4dad-b756-31cd7e3e500e"/>
 					<textElement textAlignment="Left">
 						<font isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{namePartner(e)}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[($F{namePartner(e)}!=null?$F{namePartner(e)}:"без названия")]]></textFieldExpression>
 				</textField>
 			</band>
 		</groupHeader>
