@@ -39,6 +39,7 @@ EXTEND CLASS Invoice : SaleOrder;
 
 company (Invoice i) += Company.this;
 currency (Invoice i) += Currency.this;
+sum (Invoice i) += NUMERIC[15,2](sumPay(i));
 customer (Invoice i) += partner(Invoice.customer(i));
 dateTime (Invoice i) += DATETIME(date(i));
 id (Invoice i) += CONCAT '-', '00' + prefix(), seriesNumber(i);

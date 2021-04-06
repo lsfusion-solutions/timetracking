@@ -100,6 +100,7 @@ dateTimeString 'Дата' (Document d) = dateTimeToString(dateTime(d));
 @extDocument(saleOrder, 'Документ.ЗаказКлиента', 'ЗаказКлиентаСсылка');
 
 @defPropObject(currency, 'Валюта', Currency, saleOrder);
+@defPropSimple(sum, 'Сумма', NUMERIC[15,2], saleOrder);
 @defPropObject(customer, 'Контрагент', Partner, saleOrder);
 @defProp(note, 'Комментарий', STRING, SaleOrder);
 
