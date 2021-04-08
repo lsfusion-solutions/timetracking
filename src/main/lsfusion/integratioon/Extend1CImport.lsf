@@ -64,16 +64,43 @@ receiveEntries 'Получить проводки' () {
     }
 } TOOLBAR;
 
+inEntry 'Вкл.' = DATA LOCAL BOOLEAN (Customer);
+inEntryCustomers 'Организации' () = GROUP CONCAT name(Customer c) IF inEntry(c), ', ' CHARWIDTH 100;
+
+FORM dialogCustomers 'Клиенты'
+    OBJECTS c = Customer
+    PROPERTIES inEntry(c), name(c) READONLY, namePartner(c) READONLY
+    ORDERS name(c)
+        
+    FILTERGROUP active FILTER 'Активный' active(c) 'F5' DEFAULT
+;
+
+DESIGN dialogCustomers {
+    width = 450;
+}
+
 FORM entryDashboard 'Импортированные проводки'
     OBJECTS dates = (df = DATE, dt = DATE) PANEL
-    PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'Дата по' = VALUE(dt) 
+    PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'Дата по' = VALUE(dt), inEntryCustomers() ON CHANGE { DIALOG dialogCustomers;  }
 
     OBJECTS e = EntryDetail
     PROPERTIES (e) dateTime, number, namePartner READONLY, quantityEntries,representation,accountman
     PROPERTIES () receiveEntries
     
-    FILTERS DATE(dateTime(e)) >= df AND DATE(dateTime(e)) <= dt
+    FILTERS DATE(dateTime(e)) >= df AND DATE(dateTime(e)) <= dt,
+            inEntry(customer(e)) OR NOT inEntryCustomers()
 ;
+
+DESIGN entryDashboard {
+    OBJECTS {
+        NEW header {
+            type = CONTAINERH;
+            MOVE BOX(dates) { caption = ''; }
+            MOVE PROPERTY(inEntryCustomers()) { align = CENTER; }
+        }
+        MOVE BOX(e);
+    }
+}
 
 NAVIGATOR {
     dashboard {
@@ -89,7 +116,8 @@ FORM entryDashboardPrint 'Импортированные проводки'
     PROPERTIES(e) namePartner, dateTime, number, representation, accountman, quantityEntries
     ORDERS namePartner(e)
     
-    FILTERS DATE(dateTime(e)) >= df AND DATE(dateTime(e)) <= dt
+    FILTERS DATE(dateTime(e)) >= df AND DATE(dateTime(e)) <= dt,
+            inEntry(customer(e)) OR NOT inEntryCustomers()
 ;
 
 printEntryDashboard 'Печать (XLS)' (DATE df, DATE dt) {
