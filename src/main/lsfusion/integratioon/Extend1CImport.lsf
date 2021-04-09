@@ -71,6 +71,7 @@ FORM dialogCustomers 'Клиенты'
     OBJECTS c = Customer
     PROPERTIES inEntry(c), name(c) READONLY, namePartner(c) READONLY
     ORDERS name(c)
+    FILTERS (GROUP SUM 1 IF c == customer(EntryDetail d))
         
     FILTERGROUP active FILTER 'Активный' active(c) 'F5' DEFAULT
 ;
