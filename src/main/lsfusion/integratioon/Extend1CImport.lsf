@@ -10,7 +10,7 @@ dateTime 'Дата и время' = DATA DATETIME (EntryDetail);
 representation 'Представление' = DATA STRING (EntryDetail);
 number 'Номер' = DATA STRING (EntryDetail);
 customer 'Клиент' = DATA Customer (EntryDetail);
-namePartner 'Организаця' (EntryDetail e) = name(customer(e)); 
+namePartner 'Организация' (EntryDetail e) = name(customer(e)); 
 accountman 'Бухгалтер' = DATA STRING (EntryDetail);
 quantityEntries 'Количество проводок' = DATA INTEGER (EntryDetail);
 
