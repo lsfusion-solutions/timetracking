@@ -13,12 +13,14 @@ customer 'Клиент' = DATA Customer (EntryDetail);
 namePartner 'Организация' (EntryDetail e) = name(customer(e)); 
 accountman 'Бухгалтер' = DATA STRING (EntryDetail);
 quantityEntries 'Количество проводок' = DATA INTEGER (EntryDetail);
+quantityPersons 'Количество физлиц' = DATA INTEGER (EntryDetail);
 
 partner (ISTRING[36] s) = OVERRIDE object(s) AS LegalEntity, object(s) AS Person; 
 
 partner = DATA LOCAL ISTRING[36](INTEGER);
 accountman = DATA LOCAL STRING(INTEGER);
 quantityEntries = DATA LOCAL INTEGER(INTEGER);
+quantityPersons = DATA LOCAL INTEGER(INTEGER);
 dateTime = DATA LOCAL DATETIME (INTEGER);
 number = DATA LOCAL STRING(INTEGER);
 dateStop = DATA LOCAL DATE();
@@ -31,7 +33,7 @@ FORM importedEntries FORMEXTID 'Данные'
 PROPERTIES() dateStop EXTID 'КонецПериода' ATTR, dateStart EXTID 'НачалоПериода' ATTR, inn EXTID 'ОрганизацияИНН' ATTR, uid EXTID 'ОрганизацияGUID' ATTR
 
 OBJECTS d = INTEGER EXTID 'Документ'
-PROPERTIES(d) partner EXTID 'Контрагент', accountman EXTID 'Ответственный', quantityEntries EXTID 'КоличествоПроводок', dateTime EXTID 'Дата' ATTR, number EXTID 'Номер' ATTR, representation EXTID 'Представление' ATTR;
+PROPERTIES(d) partner EXTID 'Контрагент', accountman EXTID 'Ответственный', quantityEntries EXTID 'КоличествоПроводок', quantityPersons EXTID 'КоличествоФизлиц', dateTime EXTID 'Дата' ATTR, number EXTID 'Номер' ATTR, representation EXTID 'Представление' ATTR;
 
 receiveEntries 'Получить проводки' () {
     NEWSESSION {
@@ -51,6 +53,7 @@ receiveEntries 'Получить проводки' () {
                             customer(e) <- customer(inn());
                             accountman(e) <- accountman(i);
                             quantityEntries(e) <- quantityEntries(i);
+                            quantityPersons(e) <- quantityPersons(i);
                             representation(e) <- representation(i);
                         }
                         APPLY;
@@ -85,7 +88,7 @@ FORM entryDashboard 'Импортированные проводки'
     PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'Дата по' = VALUE(dt), inEntryCustomers() ON CHANGE { DIALOG dialogCustomers;  }
 
     OBJECTS e = EntryDetail
-    PROPERTIES (e) dateTime, number, namePartner READONLY, quantityEntries,representation,accountman
+    PROPERTIES (e)  READONLY dateTime, number, namePartner, quantityEntries, quantityPersons, representation, accountman
     PROPERTIES () receiveEntries
     
     FILTERS DATE(dateTime(e)) >= df AND DATE(dateTime(e)) <= dt,
