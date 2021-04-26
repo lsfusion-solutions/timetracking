@@ -331,9 +331,16 @@ editTask 'Редактировать задачу' (TimeEntry te) {
 
 seriesNumberInvoice 'Cчет' (TimeEntry te) = seriesNumber(invoice(te));
 
+changeFilterEmployee() {
+    IF nameCategory(currentUser()) == 'Бухгалтер' OR nameCategory(currentUser()) == 'Ведущий бухгалтер' THEN RETURN;
+    ELSE DIALOG dialogEmployee OBJECTS e INPUT DO {
+        filterEmployee() <- e;
+    }
+}
+
 FORM timeEntriesEmployee 'Просмотр трудозатрат'
     OBJECTS dates = (df = DATE, dt = DATE) PANEL 
-    PROPERTIES 'Дата с' = VALUE (df), 'Дата по' = VALUE (dt), nameFilterEmployee() DRAW dates
+    PROPERTIES 'Дата с' = VALUE (df), 'Дата по' = VALUE (dt), nameFilterEmployee() DRAW dates ON CHANGE { changeFilterEmployee(); }
     
     OBJECTS t = TimeEntry
     PROPERTIES (t) READONLY dateTimeCreated SHOWIF validUser(), nameEmployee SHOWIF NOT filterEmployee(), nameCustomerProject, 
