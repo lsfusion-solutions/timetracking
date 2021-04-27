@@ -332,7 +332,7 @@ editTask 'Редактировать задачу' (TimeEntry te) {
 seriesNumberInvoice 'Cчет' (TimeEntry te) = seriesNumber(invoice(te));
 
 changeFilterEmployee() {
-    IF nameCategory(currentUser()) == 'Бухгалтер' OR nameCategory(currentUser()) == 'Ведущий бухгалтер' THEN RETURN;
+    IF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик') THEN RETURN;
     ELSE DIALOG dialogEmployee OBJECTS e INPUT DO {
         filterEmployee() <- e;
     }

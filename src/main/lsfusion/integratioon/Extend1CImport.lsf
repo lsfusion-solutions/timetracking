@@ -117,8 +117,8 @@ FORM entryDashboardPrint 'Импортированные проводки'
     PROPERTIES dFrom 'Дата с' = VALUE(df), dTo 'Дата по' = VALUE(dt) 
 
     OBJECTS e = EntryDetail
-    PROPERTIES(e) namePartner, dateTime, number, representation, accountman, quantityEntries
-    ORDERS namePartner(e)
+    PROPERTIES(e) namePartner, dateTime, number, representation, accountman, quantityEntries, quantityPersons
+    ORDERS namePartner(e), dateTime(e)
     
     FILTERS DATE(dateTime(e)) >= df AND DATE(dateTime(e)) <= dt,
             inEntry(customer(e)) OR NOT inEntryCustomers()

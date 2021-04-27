@@ -108,8 +108,8 @@ in 'Вкл' = DATA LOCAL BOOLEAN (Employee);
 countEmployees () = GROUP SUM 1 IF in(Employee p);
 inEmployees (TimeEntry t) = in(employee(t)) OR NOT countEmployees();
 
-accessFilter(Employee e) = IF (nameCategory(currentUser()) == 'Бухгалтер' OR 
-    nameCategory(currentUser()) == 'Ведущий бухгалтер') AND NOT e == currentUser() THEN NULL ELSE TRUE;
+accessFilter(Employee e) = IF (nameCategory(currentUser()) == 'Партнер' OR 
+    nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик' OR e == currentUser()) THEN TRUE ELSE NULL;
 
 FORM employees 'По сотрудникам'
     OBJECTS dates = (dFrom = DATE, dTo = DATE) PANEL
@@ -119,7 +119,7 @@ FORM employees 'По сотрудникам'
     FILTERS hours(d), d >= dFrom, d <= dTo
 
     OBJECTS e = Employee
-    PROPERTIES in(e) READONLYIF nameCategory(currentUser()) == 'Бухгалтер' OR nameCategory(currentUser()) == 'Ведущий бухгалтер'
+    PROPERTIES in(e) READONLYIF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик')
     PROPERTIES(e) READONLY namePractice, firstName, lastName, login
     PROPERTIES(e, dFrom, dTo) READONLY hours
     FILTERS NOT fired(e),
@@ -149,7 +149,7 @@ FORM employees 'По сотрудникам'
     
     EVENTS 
         ON INIT {
-            IF nameCategory(currentUser()) == 'Бухгалтер' OR nameCategory(currentUser()) == 'Ведущий бухгалтер' THEN {
+            IF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик') THEN {
                 in(currentUser()) <- TRUE;
             }
         }
