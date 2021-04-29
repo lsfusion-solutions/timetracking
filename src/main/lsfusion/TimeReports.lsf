@@ -19,6 +19,8 @@ countProjects () = GROUP SUM 1 IF in(Project p);
 inProjects (TimeEntry t) = in(project(t)) OR NOT countProjects();
 
 showMarkDelete 'Учитывать помеченные на удаление' = DATA LOCAL BOOLEAN ();
+hoursEmployees 'Часов' (DATE d) = GROUP SUM hours(TimeEntry e) IF
+    (NOT markDelete(task(e)) OR showMarkDelete()) BY dateStart(e);
 
 FORM projects 'По проектам'
     OBJECTS dates = (dFrom = DATE, dTo = DATE) PANEL
@@ -81,10 +83,16 @@ DESIGN projects {
 
 
 hours 'Часов' (Employee e, DATE d) = GROUP SUM hours(TimeEntry te) BY employee(te), dateStart(te);
-backgroundHours (Employee e, DATE d) = IF hours(e, d) < 6 OR hours(e, d) > 24 THEN RGB(255, 172, 172);
+
+hoursEmployees 'Часов' (Employee e, DATE d) = GROUP SUM hours(TimeEntry te) IF 
+    (NOT markDelete(task(te)) OR showMarkDelete()) BY employee(te), dateStart(te);
+backgroundHours (Employee e, DATE d) = IF hoursEmployees(e, d) < 6 OR hoursEmployees(e, d) > 24 THEN RGB(255, 172, 172);
 
 hours 'Часов (всего)' (Employee e, DATE dFrom, DATE dTo) = 
     GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) BY employee(te); 
+hoursEmployees 'Часов (всего)' (Employee e, DATE dFrom, DATE dTo) = 
+    GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) AND
+    (NOT markDelete(task(te)) OR showMarkDelete()) BY employee(te);
     
 hoursASBwork 'АСБ (всего)' (Employee e, DATE dFrom, DATE dTo) = 
     GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) 
@@ -116,16 +124,16 @@ FORM employees 'По сотрудникам'
     PROPERTIES dFrom 'Дата с' = VALUE(dFrom), dTo 'Дата по' = VALUE(dTo)
 
     OBJECTS d = DATE
-    FILTERS hours(d), d >= dFrom, d <= dTo
+    FILTERS hoursEmployees(d), d >= dFrom, d <= dTo
 
     OBJECTS e = Employee
     PROPERTIES in(e) READONLYIF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик')
     PROPERTIES(e) READONLY namePractice, firstName, lastName, login
-    PROPERTIES(e, dFrom, dTo) READONLY hours
+    PROPERTIES(e, dFrom, dTo) READONLY hoursEmployees
     FILTERS NOT fired(e),
             accessFilter(e)
     
-    PROPERTIES READONLY hours(e, d) COLUMNS (d) HEADER header(d) BACKGROUND backgroundHours(e, d)
+    PROPERTIES READONLY hoursEmployees(e, d) COLUMNS (d) HEADER header(d) BACKGROUND backgroundHours(e, d)
     
     OBJECTS t = TimeEntry
     PROPERTIES(t) READONLY dateTimeCreated SHOWIF validUser(), dateTimeStart BACKGROUND dateTimeStartChanged(t) AND validUser(), 
