@@ -91,12 +91,12 @@ createInvoice 'Выставить счет' (Project p)  {
     }
 }
 
-createInvoiceDates 'Выставить счет за период' (Project p)  { 
+createInvoiceDates 'Выставить счет за период' (Project p) { 
     NEWSESSION NESTED (dateFrom[], dateTo[]) {
         NEW i = Invoice {
             project(i) <- p;
             author(i) <- currentEmployee();
-            invoice(TimeEntry e) <- i WHERE NOT DATE(OVERRIDE dateTimeFinish(e), dateTimeStart(e)) < dateFrom() AND NOT DATE(OVERRIDE dateTimeFinish(e), dateTimeStart(e)) > dateTo() AND project(e) = p AND NOT skip(e);
+            invoice(TimeEntry e) <- i WHERE NOT DATE(OVERRIDE dateTimeFinish(e), dateTimeStart(e)) < dateFrom() AND NOT DATE(OVERRIDE dateTimeFinish(e), dateTimeStart(e)) > dateTo() AND project(e) = p AND NOT skip(e) AND NOT invoice(e);
             DIALOG invoice OBJECTS i = i DO {
                 SEEK invoiceDashboard.i = i;
             }
