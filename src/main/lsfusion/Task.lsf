@@ -117,11 +117,14 @@ NAVIGATOR {
     }
 }
 
-taskType 'Тип задачи' = DATA TaskType (Task) NONULL;
-nameTaskType 'Тип задачи' (Task t) = name(taskType(t));
+taskType 'Тип задачи 2' = DATA TaskType (Task);
+nameTaskType 'Тип задачи  3' (Task t) = name(taskType(t));
 practice 'Практика' = DATA Practice(Task) NONULL;
 namePractice 'Практика' (Task t) = name(practice(t));
 nameParent 'Услуги' (Task t) = name(parent(practice(t)));
+
+CONSTRAINT SET(Task t IS Task) AND NOT taskType(t) AND (namePractice(t) == 'Бухгалтерская практика' OR namePractice(t) == 'Отсутствие на работе' OR 
+    namePractice(t) == 'Аудиторские услуги') MESSAGE 'Необходимо заполнить тип задачи';
 
 nameTypePactice 'Тип задачи' (Task t) = CONCAT '', nameTaskType(t), ', ' + namePractice(t) CHARWIDTH 55;
 nameCustomerAndProject 'Клиент/проект' (Task t) = CONCAT '', nameCustomerProject(t), ', ' + nameProject(t) CHARWIDTH 55;
