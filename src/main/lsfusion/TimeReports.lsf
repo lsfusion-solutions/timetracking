@@ -4,11 +4,13 @@ REQUIRE TimeEntry, Project, Reports, TimeDashboard, Extend1CImport, Time;
 
 NAMESPACE Time;
 
-hours 'Часов' (DATE d) = GROUP SUM hours(TimeEntry e) BY dateStart(e);
+showMarkDelete 'Учитывать помеченные на удаление' = DATA LOCAL BOOLEAN ();
 
-hours 'Часов' (Project p, DATE d) = GROUP SUM hours(TimeEntry e) BY project(e), dateStart(e);
+hours 'Часов' (DATE d) = GROUP SUM hours(TimeEntry e) IF (NOT markDelete(task(e)) OR showMarkDelete()) BY dateStart(e);
+
+hours 'Часов' (Project p, DATE d) = GROUP SUM hours(TimeEntry e) IF (NOT markDelete(task(e)) OR showMarkDelete()) BY project(e), dateStart(e);
 hours 'Часов (всего)' (Project p, DATE dFrom, DATE dTo) = 
-    GROUP SUM hours(TimeEntry e) IF dFrom <= dateStart(e) AND dTo >= dateStart(e) BY project(e); 
+    GROUP SUM hours(TimeEntry e) IF dFrom <= dateStart(e) AND dTo >= dateStart(e) AND (NOT markDelete(task(e)) OR showMarkDelete()) BY project(e); 
 
 header (DATE d) = STRING[20] (d AS DATE);
 
@@ -18,7 +20,6 @@ in 'Вкл' = DATA LOCAL BOOLEAN (Project);
 countProjects () = GROUP SUM 1 IF in(Project p);
 inProjects (TimeEntry t) = in(project(t)) OR NOT countProjects();
 
-showMarkDelete 'Учитывать помеченные на удаление' = DATA LOCAL BOOLEAN ();
 hoursEmployees 'Часов' (DATE d) = GROUP SUM hours(TimeEntry e) IF
     (NOT markDelete(task(e)) OR showMarkDelete()) BY dateStart(e);
 
@@ -95,18 +96,18 @@ hoursEmployees 'Часов (всего)' (Employee e, DATE dFrom, DATE dTo) =
     (NOT markDelete(task(te)) OR showMarkDelete()) BY employee(te);
     
 hoursASBwork 'АСБ (всего)' (Employee e, DATE dFrom, DATE dTo) = 
-    GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) 
+    GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) AND (NOT markDelete(task(te)) OR showMarkDelete())
     AND nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО' 
     AND NOT namePractice(te) == 'Отсутствие на работе'
     BY employee(te);
     
 hoursASBnoWork 'Отсутствие на работе (всего)' (Employee e, DATE dFrom, DATE dTo) = 
-    GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) 
+    GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) AND (NOT markDelete(task(te)) OR showMarkDelete()) 
     AND nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО' 
     AND namePractice(te) == 'Отсутствие на работе'
     BY employee(te);
     
-hoursOther 'Клиенты (всего)' (Employee e, DATE dFrom, DATE dTo) = hours(e, dFrom, dTo) (-)
+hoursOther 'Клиенты (всего)' (Employee e, DATE dFrom, DATE dTo) = hoursEmployees(e, dFrom, dTo) (-)
     hoursASBwork(e, dFrom, dTo) (-) hoursASBnoWork(e, dFrom, dTo);
 
 firstNameEmployee 'Имя сотрудника' (TimeEntry t) = firstName(employee(t));
@@ -709,16 +710,16 @@ name 'Сотрудник' (HoursType t, Employee e) = CASE
 backgroundName (HoursType t) = IF t == HoursType.total THEN RGB(212,212,212);
 
 hours 'Часов' (HoursType t, Employee e, DATE d) = CASE 
-    WHEN t == HoursType.total THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d
-    WHEN t == HoursType.ASB THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d 
+    WHEN t == HoursType.total THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d AND (NOT markDelete(task(te)) OR showMarkDelete())
+    WHEN t == HoursType.ASB THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d AND (NOT markDelete(task(te)) OR showMarkDelete())
         AND nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО' AND NOT namePractice(te) == 'Отсутствие на работе'
-    WHEN t == HoursType.noWork THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d 
+    WHEN t == HoursType.noWork THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d AND (NOT markDelete(task(te)) OR showMarkDelete())
         AND nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО' AND namePractice(te) == 'Отсутствие на работе'
-    WHEN t == HoursType.other THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d
+    WHEN t == HoursType.other THEN GROUP SUM hours(TimeEntry te) IF employee(te) == e AND dateStart(te) == d AND (NOT markDelete(task(te)) OR showMarkDelete())
         AND NOT nameCustomerProject(te) == 'АСБ Консалтинг Групп,ООО';
         
 hoursTotal 'Часов всего' (HoursType t, Employee e, DATE df, DATE dt) = CASE
-    WHEN t == HoursType.total THEN hours(e, df, dt)
+    WHEN t == HoursType.total THEN hoursEmployees(e, df, dt)
     WHEN t == HoursType.ASB THEN hoursASBwork(e, df, dt)
     WHEN t == HoursType.noWork THEN hoursASBnoWork(e, df, dt)
     WHEN t == HoursType.other THEN hoursOther(e, df, dt);
@@ -745,13 +746,13 @@ selectEmployees () {
 }
 
 totalHours 'Часов (по практике задач)' (Practice p, DATE df, DATE dt) = 
-    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) AND 
-    (inReport(employee(te)) OR NOT filterEmployees()) BY practice(task(te));
+    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) AND (NOT markDelete(task(te)) OR showMarkDelete())
+    AND (inReport(employee(te)) OR NOT filterEmployees()) BY practice(task(te));
 totalHoursEmpl 'Часов (по практике сотрудников)' (Practice p, DATE df, DATE dt) = 
-    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) AND 
-    (inReport(employee(te)) OR NOT filterEmployees()) BY practice(employee(te));
+    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) AND (NOT markDelete(task(te)) OR showMarkDelete())
+    AND (inReport(employee(te)) OR NOT filterEmployees()) BY practice(employee(te));
 totalHoursDate(DATE d) = 
-    GROUP SUM hours(Employee e, d) IF (inReport(e) OR NOT filterEmployees()) AND e IS Employee;
+    GROUP SUM hoursEmployees(Employee e, d) IF (inReport(e) OR NOT filterEmployees()) AND e IS Employee;
 
 FORM employeesExtended 'Расширенный отчет по сотрудникам'
     OBJECTS dates = (dFrom = DATE, dTo = DATE) PANEL
@@ -775,6 +776,7 @@ FORM employeesExtended 'Расширенный отчет по сотрудни�
                 inReport(e) OR NOT filterEmployees()
     
     PROPERTIES(t, e, d) READONLY hours COLUMNS (d) HEADER header(d) BACKGROUND backgroundHours(t, e, d)
+    PROPERTIES showMarkDelete() DRAW et TOOLBAR 
 ;
 
 DESIGN employeesExtended {
@@ -796,29 +798,29 @@ NAVIGATOR {
 }
 
 totalHours 'Часов (всего)' (Customer c, DATE df, DATE dt) = 
-    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) BY customer(task(te));
+    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) AND (NOT markDelete(task(te)) OR showMarkDelete()) BY customer(task(te));
 totalSumInvoiced 'Сумма по выставленным счетам' (Customer c, DATE df, DATE dt) =
     GROUP SUM sum(Invoice i) IF df <= date(i) AND dt >= date(i) BY customer(i);
 sumCategoryCustomer (Customer c, Category cat, DATE df, DATE dt) = 
     GROUP SUM hours(TimeEntry t) * rate(project(t), category(task(t))) IF df <= dateStart(t) AND dt >= dateStart(t)
-    BY customer(task(t)), category(task(t));
+    AND (NOT markDelete(task(t)) OR showMarkDelete()) BY customer(task(t)), category(task(t));
 sumCustomer 'Сумма затрат по категориям' (Customer c, DATE df, DATE dt) =
     GROUP SUM sumCategoryCustomer(c, Category cat, df, dt);
 sumCategory (Category cat, DATE df, DATE dt) = 
     GROUP SUM hours(TimeEntry t) * rate(project(t), category(task(t))) IF df <= dateStart(t) AND dt >= dateStart(t)
-    BY category(task(t));
+    AND (NOT markDelete(task(t)) OR showMarkDelete()) BY category(task(t));
 
 totalHours 'Часов (всего)' (Employee e, Customer c, DATE df, DATE dt) = 
-    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) BY employee(te), customer(task(te));
+    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) AND (NOT markDelete(task(te)) OR showMarkDelete()) BY employee(te), customer(task(te));
 sumInvoiced 'Сумма по выставленным счетам' (Employee e, Customer c, DATE df, DATE dt) = 
     GROUP SUM sum(Invoice i, Task t) IF df <= date(i) AND dt >= date(i) AND customer(t) == c AND customer(i) == c
-    BY employee(t);
+    AND (NOT markDelete(t) OR showMarkDelete()) BY employee(t);
 
 filterPractice 'Практика' = DATA LOCAL Practice ();
 nameFilterPractice 'Практика' () = name(filterPractice());
 
 customerPracticeHours (Customer c, DATE df, DATE dt) = 
-    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) AND 
+    GROUP SUM hours(TimeEntry te) IF df <= dateStart(te) AND dt >= dateStart(te) AND (NOT markDelete(task(te)) OR showMarkDelete()) AND 
     (practice(task(te)) == filterPractice() OR NOT filterPractice()) AND customer(task(te)) == c;
 
 FORM partnersExtended 'Расширенный отчёт по клиентам'
@@ -843,6 +845,8 @@ FORM partnersExtended 'Расширенный отчёт по клиентам'
     PROPERTIES number(i) ON CHANGE { SHOW invoice OBJECTS i = i DOCKED; }, sum(i) ON CHANGE { SHOW invoice OBJECTS i = i DOCKED; }
     FILTERS dFrom <= date(i) AND dTo >= date(i),
             customer(i) == c
+            
+    PROPERTIES showMarkDelete() DRAW c TOOLBAR 
 ;
 
 DESIGN partnersExtended {
