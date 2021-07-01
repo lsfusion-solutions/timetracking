@@ -118,7 +118,8 @@ countEmployees () = GROUP SUM 1 IF in(Employee p);
 inEmployees (TimeEntry t) = in(employee(t)) OR NOT countEmployees();
 
 accessFilter(Employee e) = IF (nameCategory(currentUser()) == 'Партнер' OR 
-    nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик' OR e == currentUser()) THEN TRUE ELSE NULL;
+    nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик' 
+    OR nameCategory(currentUser()) == 'Административный менеджер' OR e == currentUser()) THEN TRUE ELSE NULL;
 
 FORM employees 'По сотрудникам'
     OBJECTS dates = (dFrom = DATE, dTo = DATE) PANEL
