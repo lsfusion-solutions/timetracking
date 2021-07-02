@@ -159,7 +159,7 @@ FORM employees 'По сотрудникам'
     
     EVENTS 
         ON INIT {
-            IF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик') THEN {
+            IF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик' OR nameCategory(currentUser()) == 'Административный менеджер') THEN {
                 in(currentUser()) <- TRUE;
             }
         }
