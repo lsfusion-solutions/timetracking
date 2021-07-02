@@ -129,7 +129,7 @@ FORM employees 'По сотрудникам'
     FILTERS hoursEmployees(d), d >= dFrom, d <= dTo
 
     OBJECTS e = Employee
-    PROPERTIES in(e) READONLYIF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик')
+    PROPERTIES in(e) READONLYIF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик' OR nameCategory(currentUser()) == 'Административный менеджер')
     PROPERTIES(e) READONLY namePractice, firstName, lastName, login
     PROPERTIES(e, dFrom, dTo) READONLY hoursEmployees
     FILTERS NOT fired(e),
