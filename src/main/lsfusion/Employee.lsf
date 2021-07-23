@@ -97,7 +97,10 @@ selectEmployees (Employee e) {
         managers(Employee emloyee, e) <- include(emloyee);
     }
 }
+
+dateAdded 'Дата добавления' = DATA DATE (Employee);
+dateAdded (Employee e) <- currentDate() WHEN SET (e IS Employee);
     
 EXTEND FORM employee
-    PROPERTIES nameManagers(e) ON CHANGE selectManagers(e), nameEmployees(e) ON CHANGE selectEmployees(e)
+    PROPERTIES nameManagers(e) ON CHANGE selectManagers(e), nameEmployees(e) ON CHANGE selectEmployees(e), dateAdded(e) READONLY
 ;

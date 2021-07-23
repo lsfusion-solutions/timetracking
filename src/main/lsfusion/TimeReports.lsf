@@ -325,8 +325,10 @@ DESIGN options {
     }
 }
 
+max (DATE d1, DATE d2) = IF d1 AND (d1 >= d2 OR NOT d2) THEN d1 ELSE d2 IF d2;
+
 isTimeShortage (Employee e) = 
-    GROUP SUM 1 IF (hours(e, DATE d) < overHoursSet(e) OR NOT hours(e, d) OR hours(e, d) > 24) AND NOT isDayoff(d) AND iterate(d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1));
+    GROUP SUM 1 IF (hours(e, DATE d) < overHoursSet(e) OR NOT hours(e, d) OR hours(e, d) > 24) AND NOT isDayoff(d) AND iterate(d, max(dateAdded(e), sum(currentDate(), -1 * notificationPeriod())), sum(currentDate(), -1));
 isTimeShortageEmployees (Employee manager) = GROUP SUM 1 IF managers(Employee e, manager) AND isTimeShortage(e);
 timeShortageNumeric (Employee e, DATE d) = overHoursSet(e) (-) hours(e, d);
 timeShortageString (Employee e, DATE d) = 
@@ -343,7 +345,7 @@ sendNotificationsManager 'Уведомления для руководителе
             FOR level(Employee employee, e) AND isTimeShortage(employee) AND NOT fired(employee) AND NOT employee == e DO {
                 messageManager(employee) <- NULL;
                 messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
-                FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
+                FOR iterate(DATE d, max(dateAdded(employee), sum(currentDate(), -1 * notificationPeriod())), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
                     (hours(employee, d) < overHoursSet(employee) OR NOT hours(employee, d) OR hours(employee, d) > 24) DO {
                     messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
                 }
@@ -669,7 +671,7 @@ sendNotificationsAdmin 'Уведомления для администратор
         FOR Employee employee IS Employee AND isTimeShortage(employee) AND NOT fired(employee) AND NOT excludeNotificationsAdmin(employee) DO {
             messageManager(employee) <- NULL;
             messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
-            FOR iterate(DATE d, sum(currentDate(), -1 * notificationPeriod()), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
+            FOR iterate(DATE d, max(dateAdded(employee), sum(currentDate(), -1 * notificationPeriod())), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
                 (hours(employee, d) < overHoursSet(employee) OR NOT hours(employee, d) OR hours(employee, d) > 24) DO {
                 messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
             }
