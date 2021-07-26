@@ -735,13 +735,12 @@ index (HoursType t, Employee e) = CONCAT '', firstName(e), lastName(e), staticCa
 
 inReport 'Вкл.' = DATA LOCAL BOOLEAN (Employee);
 filterEmployees 'Фильтр по сотрудникам'() = 
-    GROUP CONCAT (CONCAT ' ', firstName(Employee e), lastName(e)) IF NOT fired(e) AND inReport(e), ', ' CHARWIDTH 100;
+    GROUP CONCAT (CONCAT ' ', firstName(Employee e), lastName(e)) IF inReport(e), ', ' CHARWIDTH 100;
 
 FORM listEmployeesReport 'Сотрудники'
     OBJECTS e = Employee
     PROPERTIES inReport(e)
     PROPERTIES(e) READONLY firstName, lastName, namePractice, login, email
-    FILTERS NOT fired(e)
 ;
 
 selectEmployees () {
@@ -774,9 +773,8 @@ FORM employeesExtended 'Расширенный отчет по сотрудни�
     PROPERTIES READONLY name(t, e) BACKGROUND backgroundName(t), index(t, e) SHOWIF NULL, namePractice(e)
     PROPERTIES(t, e, dFrom, dTo) READONLY hoursTotal
     ORDERS index(t, e)
-    FILTERS NOT fired(e),
-                hoursTotal(HoursType.total, e, dFrom, dTo),
-                inReport(e) OR NOT filterEmployees()
+    FILTERS hoursTotal(HoursType.total, e, dFrom, dTo),
+            inReport(e) OR NOT filterEmployees()
     
     PROPERTIES(t, e, d) READONLY hours COLUMNS (d) HEADER header(d) BACKGROUND backgroundHours(t, e, d)
     PROPERTIES showMarkDelete() DRAW et TOOLBAR 
