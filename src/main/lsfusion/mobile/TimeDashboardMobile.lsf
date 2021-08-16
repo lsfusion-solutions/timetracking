@@ -35,7 +35,7 @@ FORM timeDashboardMobile 'Мобильная отметка'
             employee(t) = currentEmployee()
     
     OBJECTS te = TimeEntry
-    PROPERTIES(te) READONLY dateTimeStart, dateTimeFinish
+    PROPERTIES(te) dateTimeStart, dateTimeFinish
     PROPERTIES(te) NEWSESSION DELETE GRID
     ORDERS dateTimeStart(te) DESC
     FILTERS task(te) = t
@@ -52,14 +52,22 @@ DESIGN timeDashboardMobile {
         MOVE PROPERTY(changeStatus(t)) { alignment = STRETCH; }
         MOVE GRID(t) { 
             headerHeight = 20;
-            fill = 10;
+            fill = 3;
         }
         REMOVE BOX(t);
-        
+        NEW taskActions {
+            type = CONTAINERH;
+            alignment = STRETCH;
+        }
         NEW tabbedPane {
             fill = 1;
             type = TABBED;
             
+            NEW timeEntry {
+                caption = 'Трудозатраты';
+                MOVE GRID(te);
+                REMOVE BOX(te);
+            }
             NEW description {
                 caption = 'Параметры';
                 MOVE PROPERTY(pCustomer) { alignment = STRETCH; }
@@ -68,11 +76,6 @@ DESIGN timeDashboardMobile {
                 MOVE PROPERTY(description(t)) {
                     fill = 1;
                 }
-            }
-            NEW timeEntry {
-                caption = 'Трудозатраты';
-                MOVE GRID(te);
-                REMOVE BOX(te);
             }
         }
     }
@@ -90,5 +93,74 @@ onWebClientStarted() + {
     IF isMobile() THEN {
         showMobileForms();
         maximizeForm();
+    }
+}
+
+createNewTaskMobile 'Добавить' () { 
+    NEWSESSION {       
+        NEW t = Task {
+            employee(t) <- currentEmployee();
+            DIALOG dialogTaskTypeMobile OBJECTS g INPUT, a INPUT DO {
+                taskType(t) <- a;
+                practice(t) <- g;
+            } ELSE
+                RETURN;
+            DIALOG selectProject OBJECTS p INPUT DO {
+                project(t) <- p;
+            } ELSE
+                RETURN;
+            NEW e = TimeEntry {
+                task(e) <- t;
+                dateTimeStart(e) <- currentDateTime();
+            }
+            APPLY;
+            SEEK timeDashboardMobile.t = t;
+        }
+    }
+}
+
+FORM taskMobile 'Задача'
+    OBJECTS t = Task PANEL
+    PROPERTIES(t) nameCustomerProject, 
+                  nameProject, 
+                  nameTaskType ON CHANGE { DIALOG dialogTaskTypeMobile OBJECTS g = practice(t) CHANGE, a = taskType(t) CHANGE; }, 
+                  description
+;
+DESIGN taskMobile {
+    OBJECTS {
+        NEW pane {
+            fill = 1;
+            childrenAlignment = STRETCH;
+            MOVE PROPERTY(nameCustomerProject(t));
+            MOVE PROPERTY(nameProject(t));
+            MOVE PROPERTY(nameTaskType(t));
+            MOVE PROPERTY(description(t)) { panelCaptionVertical = TRUE; fill = 1; };
+        }
+    }
+    BOX {
+        NEW formActions {
+            type = CONTAINERH;
+            alignment = STRETCH;
+            MOVE PROPERTY(formOk()) { fill = 1; }
+            MOVE PROPERTY(formClose()) { fill = 1; }
+        }
+    }
+}
+
+editMobile 'Редактировать' (Task t) {
+    DIALOG taskMobile OBJECTS t = t NEWSESSION;
+}
+
+EXTEND FORM timeDashboardMobile
+    PROPERTIES createNewTaskMobile(), editMobile(t), 
+               deleteTask(t) SHOWIF NOT markDelete(t), cancelDelete(t) SHOWIF markDelete(t) 
+;
+
+DESIGN timeDashboardMobile {
+    taskActions {
+        MOVE PROPERTY(createNewTaskMobile()) { fill = 1; };
+        MOVE PROPERTY(editMobile(t)) { fill = 1;}
+        MOVE PROPERTY(deleteTask(t)) { fill = 1;}
+        MOVE PROPERTY(cancelDelete(t)) { fill = 1;}
     }
 }

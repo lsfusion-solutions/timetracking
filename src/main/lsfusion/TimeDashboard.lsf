@@ -65,11 +65,11 @@ deleteTask 'Удалить' (Task t) {
     }
 } IMAGE 'delete.png';
 
-cancelDelete 'Отменить удаление' (Task t) {
+cancelDelete 'Восстановить' (Task t) {
     NEWSESSION {
         markDelete(t) <- NULL;
         markDeleteDateTime(t) <- NULL;
-        completed(t) <- TRUE;
+//        completed(t) <- TRUE;
         APPLY;
     }
 }
@@ -148,10 +148,12 @@ startTimeEntry 'Начать новую задачу' () {
                 DIALOG dialogTaskType OBJECTS g INPUT, a INPUT DO {
                     taskType(t) <- a;
                     practice(t) <- g;
-                }
+                } ELSE
+                    RETURN;
                 DIALOG selectProject OBJECTS p INPUT DO {
                     project(t) <- p;
-                }
+                } ELSE
+                    RETURN;
                 NEW e = TimeEntry {
                     task(e) <- t;
                     dateTimeStart(e) <- currentDateTime();

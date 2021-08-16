@@ -43,6 +43,7 @@ status (Task t) += WHEN markDelete(t) THEN StatusTask.markDelete;
 
 background (Task t) = ABSTRACT CASE COLOR (Task);
 background (Task t) += WHEN completed(t) THEN RGB(255,255,255);
+background (Task t) += WHEN markDelete(t) THEN RGB(255,212,212);
 
 CONSTRAINT (CHANGED(employee(Task e)) OR CHANGED(project(e))) AND employee(e) AND project(e) AND NOT assigned(project(e), employee(e))
     CHECKED BY employee, project[Task]
@@ -97,7 +98,7 @@ FORM dialogTaskType 'Выбор типа задачи'
     OBJECTS a = TaskType
     PROPERTIES(a) READONLY name
     FILTERGROUP inPractice
-        FILTER 'В практике'  in(a, g) DEFAULT
+        FILTER 'В практике' in(a, g) DEFAULT
     
     LIST TaskType OBJECT a;
 ;
@@ -108,7 +109,26 @@ DESIGN dialogTaskType {
         MOVE BOX (g);
         MOVE BOX (a);
     }
+}
+
+FORM dialogTaskTypeMobile 'Выбор типа задачи'  
+    OBJECTS g = Practice 
+    PROPERTIES(g) READONLY name
+    FILTERS parent(g)
     
+    OBJECTS a = TaskType
+    PROPERTIES(a) READONLY name
+    FILTERS in(a, g)
+;
+
+DESIGN dialogTaskTypeMobile {
+    BOX(g) {
+        REMOVE TOOLBARBOX(g);
+    }
+    BOX(a) {
+        fill = 3;
+        REMOVE TOOLBARBOX(a);
+    }
 }
 
 NAVIGATOR {
@@ -117,8 +137,8 @@ NAVIGATOR {
     }
 }
 
-taskType 'Тип задачи 2' = DATA TaskType (Task);
-nameTaskType 'Тип задачи  3' (Task t) = name(taskType(t));
+taskType 'Тип задачи' = DATA TaskType (Task);
+nameTaskType 'Тип задачи' (Task t) = name(taskType(t));
 practice 'Практика' = DATA Practice(Task) NONULL;
 namePractice 'Практика' (Task t) = name(practice(t));
 nameParent 'Услуги' (Task t) = name(parent(practice(t)));
