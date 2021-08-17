@@ -122,11 +122,10 @@ DESIGN taskMobile {
     OBJECTS {
         NEW pane {
             fill = 1;
-            childrenAlignment = STRETCH;
-            MOVE PROPERTY(nameCustomerProject(t));
-            MOVE PROPERTY(nameProject(t));
-            MOVE PROPERTY(nameTaskType(t));
-            MOVE PROPERTY(description(t)) { panelCaptionVertical = TRUE; fill = 1; };
+            MOVE PROPERTY(nameCustomerProject(t)) { alignment = STRETCH; }
+            MOVE PROPERTY(nameProject(t)) { alignment = STRETCH; }
+            MOVE PROPERTY(nameTaskType(t)) { alignment = STRETCH; }
+            MOVE PROPERTY(description(t)) { alignment = STRETCH; panelCaptionVertical = TRUE; fill = 1; }
         }
     }
     REMOVE PROPERTY(formApply());
