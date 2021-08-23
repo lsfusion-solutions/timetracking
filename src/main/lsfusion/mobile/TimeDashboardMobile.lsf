@@ -190,10 +190,17 @@ DESIGN timeDashboardMobile {
 FORM timeEntryMobile 'Отметка времени'
     OBJECTS te = TimeEntry PANEL
 
-    PROPERTIES(te) dateStart ON CHANGE { INPUT d = dateStart(te) DO { dateTimeStart(te) <- dateTimeToDateTime(d, timeStart(te)); dateTimeFinish(te) <- dateTimeToDateTime(d, timeFinish(te)); }}, 
-                   timeStart ON CHANGE { INPUT t = timeStart(te) DO { dateTimeStart(te) <- dateTimeToDateTime(dateStart(te), t); }}
-    PROPERTIES(te) dateFinish ON CHANGE { INPUT d = dateFinish(te) DO { dateTimeFinish(te) <- dateTimeToDateTime(d, timeFinish(te)); }}, 
-                   timeFinish ON CHANGE { INPUT t = timeFinish(te) DO { dateTimeFinish(te) <- dateTimeToDateTime(dateFinish(te), t); }}
+//    PROPERTIES(te) dateTimeStart CUSTOM RENDER 'customInputDateTime', 
+//                   dateTimeFinish CUSTOM RENDER 'customInputDateTime'
+
+    PROPERTIES(te) dateStart CUSTOM RENDER 'customInputDate' 
+        ON CHANGE { INPUT d = DATE DO { dateTimeStart(te) <- dateTimeToDateTime(d, timeStart(te)); }}, 
+                   timeStart CUSTOM RENDER 'customInputTime'
+        ON CHANGE { INPUT t = TIME DO { dateTimeStart(te) <- dateTimeToDateTime(dateStart(te), t); }}
+    PROPERTIES(te) dateFinish CUSTOM RENDER 'customInputDate' 
+        ON CHANGE { INPUT d = DATE DO { dateTimeFinish(te) <- dateTimeToDateTime(d, timeFinish(te)); }}, 
+                   timeFinish CUSTOM RENDER 'customInputTime'
+        ON CHANGE { INPUT t = TIME DO { dateTimeFinish(te) <- dateTimeToDateTime(dateFinish(te), t); }}
                    
     PROPERTIES(te) currentHours ON CHANGE { INPUT h = currentHours(te) DO { dateTimeFinish(te) <- sumMinutes(dateTimeStart(te), h * 60); }}
     
@@ -207,6 +214,12 @@ DESIGN timeEntryMobile {
             NEW interval {
                 alignment = STRETCH;
                 type = CONTAINERH;
+//                NEW timeInterval {
+//                    fill = 1;
+//                    MOVE PROPERTY(dateTimeStart(te)) { fontSize = 24; fill = 1; panelCaptionVertical = TRUE; }
+//                    MOVE PROPERTY(dateTimeFinish(te)) { fontSize = 24; fill = 1; panelCaptionVertical = TRUE; }
+//                }
+
                 NEW timeStart {
                     alignment = STRETCH;
                     MOVE PROPERTY(dateStart(te)) { fontSize = 24; fill = 1; panelCaptionVertical = TRUE; }
@@ -228,6 +241,9 @@ DESIGN timeEntryMobile {
     PROPERTY(formOk()) { fill = 1; }
     PROPERTY(formClose()) { fill = 1; }
 } 
+
+WHEN LOCAL FORMS timeEntryMobile SETCHANGED(dateTimeStart(TimeEntry te)) DO
+    dateTimeFinish(te) <- dateTimeToDateTime(dateTimeStart(te), timeFinish(te));
 
 addTimeEntry 'Отметить' (Task t) {
     NEWSESSION {
