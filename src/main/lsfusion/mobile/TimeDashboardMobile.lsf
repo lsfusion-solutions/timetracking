@@ -242,7 +242,7 @@ DESIGN timeEntryMobile {
     PROPERTY(formClose()) { fill = 1; }
 } 
 
-WHEN LOCAL FORMS timeEntryMobile SETCHANGED(dateTimeStart(TimeEntry te)) DO
+WHEN LOCAL FORMS timeEntryMobile SETCHANGED(dateStart(TimeEntry te)) DO
     dateTimeFinish(te) <- dateTimeToDateTime(dateTimeStart(te), timeFinish(te));
 
 addTimeEntry 'Отметить' (Task t) {
