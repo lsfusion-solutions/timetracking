@@ -42,7 +42,7 @@ dateFinish 'Дата окончания' (TimeEntry e) = DATE(dateTimeFinish(e))
 timeStart 'Время начала' (TimeEntry e) = TIME(dateTimeStart(e));
 timeFinish 'Время окончания' (TimeEntry e) = TIME(dateTimeFinish(e));
 
-CONSTRAINT dateTimeFinish(TimeEntry e) < dateTimeFinish(e)
+CONSTRAINT dateTimeFinish(TimeEntry e) < dateTimeStart(e)
     MESSAGE 'Время окончания трудозатрат не может быть меньше времени начала';
 dateTimeStart 'Дата начала' (Task t) = GROUP LAST dateTimeStart(TimeEntry e) ORDER DESC dateTimeStart(e), e WHERE dateTimeStart(e) BY task(e); 
 dateTimeFinish 'Дата завершения' (Task t) = GROUP LAST dateTimeFinish(TimeEntry e) ORDER dateTimeStart(e), e WHERE dateTimeStart(e) BY task(e);
