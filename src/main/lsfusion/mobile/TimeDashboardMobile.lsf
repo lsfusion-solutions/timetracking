@@ -198,7 +198,7 @@ FORM timeEntryMobile 'Отметка времени'
                    timeStart CUSTOM RENDER 'customInputTime'
         ON CHANGE { INPUT t = TIME DO { dateTimeStart(te) <- dateTimeToDateTime(dateStart(te), t); }}
     PROPERTIES(te) dateFinish CUSTOM RENDER 'customInputDate' 
-        ON CHANGE { INPUT d = DATE DO { dateTimeFinish(te) <- dateTimeToDateTime(d, timeFinish(te)); }}, 
+        ON CHANGE { INPUT d = DATE DO { dateTimeFinish(te) <- dateTimeToDateTime(d, OVERRIDE timeFinish(te), timeStart(te)); }}, 
                    timeFinish CUSTOM RENDER 'customInputTime'
         ON CHANGE { INPUT t = TIME DO { dateTimeFinish(te) <- dateTimeToDateTime(dateFinish(te), t); }}
                    
