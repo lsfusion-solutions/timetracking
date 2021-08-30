@@ -12,7 +12,7 @@ lastEntry (Task t) = GROUP LAST TimeEntry e ORDER dateTimeStart(e), e WHERE date
 FORM timeDashboardMobile 'Мобильная отметка'
     
     OBJECTS t = Task
-    PROPERTIES(t) READONLY BACKGROUND background(t) nameCustomerProject, nameProject, nameTaskType
+    PROPERTIES(t) READONLY BACKGROUND background(t) nameCustomerProject, nameProject, nameTaskType, name
 //    PROPERTIES(t) PANEL dateTimeStartLastEntry ON CHANGE { INPUT dt = dateTimeStartLastEntry(t) DO dateTimeStart(lastEntry(t)) <- dt; APPLY; }, 
 //                        currentHoursLastEntry
 //    PROPERTIES(t) PANEL READONLY pCustomer = nameCustomerProject, pProject = nameProject, name, '' = description
@@ -21,7 +21,7 @@ FORM timeDashboardMobile 'Мобильная отметка'
             employee(t) = currentEmployee()
     
     OBJECTS te = TimeEntry
-    PROPERTIES(te) READONLY dateTimeStart, dateTimeFinish
+    PROPERTIES(te) READONLY dateTimeStart, dateTimeFinish, hours
     PROPERTIES(te) NEWSESSION DELETE GRID
     ORDERS dateTimeStart(te) DESC
     FILTERS task(te) = t
@@ -114,7 +114,8 @@ FORM taskMobile 'Задача'
     OBJECTS t = Task PANEL
     PROPERTIES(t) nameCustomerProject, 
                   nameProject, 
-                  nameTaskType ON CHANGE { DIALOG dialogTaskTypeMobile OBJECTS g = practice(t) CHANGE, a = taskType(t) CHANGE; }, 
+                  nameTaskType ON CHANGE { DIALOG dialogTaskTypeMobile OBJECTS g = practice(t) CHANGE, a = taskType(t) CHANGE; },
+                  name, 
                   description
 ;
 DESIGN taskMobile {
@@ -125,6 +126,7 @@ DESIGN taskMobile {
             MOVE PROPERTY(nameCustomerProject(t)) { alignment = STRETCH; }
             MOVE PROPERTY(nameProject(t)) { alignment = STRETCH; }
             MOVE PROPERTY(nameTaskType(t)) { alignment = STRETCH; }
+            MOVE PROPERTY(name(t)) { alignment = STRETCH; }
             MOVE PROPERTY(description(t)) { alignment = STRETCH; panelCaptionVertical = TRUE; fill = 1; }
         }
     }
