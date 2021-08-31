@@ -12,7 +12,7 @@ lastEntry (Task t) = GROUP LAST TimeEntry e ORDER dateTimeStart(e), e WHERE date
 FORM timeDashboardMobile 'Мобильная отметка'
     
     OBJECTS t = Task
-    PROPERTIES(t) READONLY BACKGROUND background(t) nameCustomerProject, nameProject, nameTaskType, name
+    PROPERTIES(t) READONLY BACKGROUND background(t) nameStatus, nameCustomerProject, nameProject, nameTaskType, name
 //    PROPERTIES(t) PANEL dateTimeStartLastEntry ON CHANGE { INPUT dt = dateTimeStartLastEntry(t) DO dateTimeStart(lastEntry(t)) <- dt; APPLY; }, 
 //                        currentHoursLastEntry
 //    PROPERTIES(t) PANEL READONLY pCustomer = nameCustomerProject, pProject = nameProject, name, '' = description
@@ -25,6 +25,11 @@ FORM timeDashboardMobile 'Мобильная отметка'
     PROPERTIES(te) NEWSESSION DELETE GRID
     ORDERS dateTimeStart(te) DESC
     FILTERS task(te) = t
+    
+    EVENTS
+        ON QUERYCLOSE {
+        
+        }
 ;
 
 DESIGN timeDashboardMobile {
@@ -36,7 +41,6 @@ DESIGN timeDashboardMobile {
 //            MOVE PROPERTY(currentHoursLastEntry(t));
 //        }
         NEW taskActions {
-            type = CONTAINERH;
             alignment = STRETCH;
         }
         MOVE GRID(t) { 
@@ -151,15 +155,25 @@ editMobile 'Редактировать' (Task t) {
 
 EXTEND FORM timeDashboardMobile
     PROPERTIES createNewTaskMobile(), editMobile(t), 
-               deleteTask(t) SHOWIF NOT markDelete(t), cancelDelete(t) SHOWIF markDelete(t) 
+               deleteTask(t) SHOWIF NOT markDelete(t), cancelDelete(t) SHOWIF markDelete(t),
+               finishNoDialog(t) SHOWIF NOT completed(t)
 ;
 
 DESIGN timeDashboardMobile {
     taskActions {
-        MOVE PROPERTY(createNewTaskMobile()) { fill = 1; };
-        MOVE PROPERTY(editMobile(t)) { fill = 1;}
-        MOVE PROPERTY(deleteTask(t)) { fill = 1;}
-        MOVE PROPERTY(cancelDelete(t)) { fill = 1;}
+        NEW taskActions1 {
+            alignment = STRETCH;
+            type = CONTAINERH;
+            MOVE PROPERTY(createNewTaskMobile()) { fill = 1; fontSize = 20; };
+            MOVE PROPERTY(editMobile(t)) { fill = 1; fontSize = 20; }
+        }
+        NEW taskActions2 {
+            alignment = STRETCH;
+            type = CONTAINERH;
+            MOVE PROPERTY(deleteTask(t)) { fill = 1; fontSize = 20;}
+            MOVE PROPERTY(cancelDelete(t)) { fill = 1; fontSize = 20;}
+            MOVE PROPERTY(finishNoDialog(t)) { fill = 1; fontSize = 20; };
+        }
     }
 }
 
@@ -184,7 +198,7 @@ EXTEND FORM timeDashboardMobile
 
 DESIGN timeDashboardMobile {
     timeEntryActions {
-        MOVE PROPERTY(changeStatus(t)) { fill = 1; }
+        MOVE PROPERTY(changeStatus(t)) { fill = 1; fontSize = 20; }
     }
 }
 
@@ -240,8 +254,8 @@ DESIGN timeEntryMobile {
     REMOVE PROPERTY(formApply());
     REMOVE PROPERTY(formCancel());
     REMOVE PROPERTY(formRefresh());
-    PROPERTY(formOk()) { fill = 1; }
-    PROPERTY(formClose()) { fill = 1; }
+    PROPERTY(formOk()) { fill = 1; fontSize = 20; }
+    PROPERTY(formClose()) { fill = 1; fontSize = 20; }
 } 
 
 WHEN LOCAL FORMS timeEntryMobile SETCHANGED(dateStart(TimeEntry te)) DO
@@ -270,6 +284,6 @@ EXTEND FORM timeDashboardMobile
 
 DESIGN timeDashboardMobile {
     timeEntryActions {
-        MOVE PROPERTY(addTimeEntry(t)) { fill = 1; };
+        MOVE PROPERTY(addTimeEntry(t)) { fill = 1; fontSize = 20; }; 
     }
 }

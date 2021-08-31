@@ -265,6 +265,15 @@ finish 'Завершить' (Task t)  {
     }
 }
 
+finishNoDialog 'Завершить' (Task t) {
+    NEWSESSION { 
+        dateTimeFinish(TimeEntry e) <- currentDateTime() WHERE task(e) == t AND NOT dateTimeFinish(e);
+        completed(t) <- TRUE;
+        initPaused(t) <- NULL;
+        APPLY;
+    }
+} CONFIRM;
+
 pause 'Приостановить' (Task t)  { 
     IF employee(t) == currentEmployee()  THEN {
         NEWSESSION {

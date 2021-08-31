@@ -75,7 +75,7 @@ EXTEND CLASS StatusTask {
 status (Task t) += WHEN paused(t) THEN StatusTask.paused;
 status (Task t) += WHEN inProcess(t) THEN StatusTask.inProcess;
 
-background (Task t) += WHEN (dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t))) AND NOT markDelete(t) THEN RGB(212,212,255);
+background (Task t) += WHEN (dateTimeFinish(t) OR (initPaused(t) AND NOT dateTimeStart(t))) AND NOT completed(t) AND NOT markDelete(t) THEN RGB(212,212,255);
 background (Task t) += WHEN inProcess(t) AND NOT markDelete(t) THEN RGB(212,255,212);
 
 createEmailTasks () {

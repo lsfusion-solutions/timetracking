@@ -36,7 +36,7 @@ EXTEND CLASS StatusTask {
 }
 
 status 'Статус' = ABSTRACT CASE StatusTask (Task);
-nameStatus 'Статус' (Task t) = staticCaption(status(t)) CHARWIDTH 18;
+nameStatus 'Статус' (Task t) = staticCaption(status(t)) CHARWIDTH 12;
 
 status (Task t) += WHEN completed(t) THEN StatusTask.completed;
 status (Task t) += WHEN markDelete(t) THEN StatusTask.markDelete;
