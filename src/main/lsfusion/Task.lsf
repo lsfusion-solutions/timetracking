@@ -124,11 +124,20 @@ FORM dialogTaskTypeMobile 'Выбор типа задачи'
 DESIGN dialogTaskTypeMobile {
     BOX(g) {
         REMOVE TOOLBARBOX(g);
+        GRID(g) {
+            fontSize = 20;
+        }
     }
     BOX(a) {
         fill = 3;
         REMOVE TOOLBARBOX(a);
+        GRID(a) {
+            fontSize = 20;
+        }
     }
+    REMOVE PROPERTY(formRefresh());
+    PROPERTY(formOk()) { fontSize = 20; }
+    PROPERTY(formClose()) { fontSize = 20; }
 }
 
 NAVIGATOR {
