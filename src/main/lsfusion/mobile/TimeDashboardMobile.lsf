@@ -103,7 +103,7 @@ createNewTaskMobile 'Добавить' () {
                 practice(t) <- g;
             } ELSE
                 RETURN;
-            DIALOG selectProject OBJECTS p INPUT DO {
+            DIALOG selectProjectMobile OBJECTS p INPUT DO {
                 project(t) <- p;
             } ELSE
                 RETURN;

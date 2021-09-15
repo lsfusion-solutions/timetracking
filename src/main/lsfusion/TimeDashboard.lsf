@@ -12,10 +12,19 @@ FORM selectProject 'Выбор проекта'
     FILTERGROUP activep FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
 ;
 
-DESIGN selectProject {
+FORM selectProjectMobile 'Выбор проекта'
+    OBJECTS p = Project
+    PROPERTIES(p) READONLY nameCustomer, name 
+    FILTERS assigned(p, currentEmployee())
+    ORDERS nameCustomer(p)
+    FILTERGROUP activep FILTER 'Активный' active(customer(p)) 'F5' DEFAULT
+;
+
+DESIGN selectProjectMobile {
     GRID(p) {
         fontSize = 20;    
     }
+    REMOVE TOOLBARLEFT(p);
     REMOVE PROPERTY(formRefresh());
     PROPERTY(formOk()) { fontSize = 20; }
     PROPERTY(formClose()) { fontSize = 20; }
