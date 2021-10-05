@@ -219,7 +219,7 @@ importCBRFExchangeRate 'Импортировать курсы ЦБРФ'()  {
         IMPORT valCurs XML FROM xml();
         
         LOCAL type = TypeExchange();
-        type() <- GROUP LAST TypeExchange t IF currency(t) == currencyShortName('RUR');
+        type() <- GROUP LAST TypeExchange t IF currency(t) == currencyShortName('RUR') ORDER t;
         
         IF NOT type() THEN {
             MESSAGE 'Необходимо создать тип обмена';

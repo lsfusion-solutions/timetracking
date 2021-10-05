@@ -58,7 +58,7 @@ name 'Название' = DATA STRING[50] (TaskType) CHARWIDTH 15;
 in 'Вкл.' = DATA BOOLEAN (TaskType, Practice) CHARWIDTH 3;
 inPracticGroup (TaskType t, Practice pc) = GROUP MAX level(pc, Practice pp) IF in(t, pp);
 
-practics 'Практики' (TaskType t) = GROUP CONCAT name(Practice p) IF in(t,p), ', ' CHARWIDTH 30;
+practics 'Практики' (TaskType t) = GROUP CONCAT name(Practice p) IF in(t,p), ', ' ORDER p CHARWIDTH 30;
 active 'Активный' = DATA BOOLEAN (TaskType);
 
 WHEN LOCAL SET(in(TaskType t, Practice p)) DO {

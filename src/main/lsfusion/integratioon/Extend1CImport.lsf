@@ -68,7 +68,7 @@ receiveEntries 'Получить проводки' () {
 } TOOLBAR;
 
 inEntry 'Вкл.' = DATA LOCAL BOOLEAN (Customer);
-inEntryCustomers 'Организации' () = GROUP CONCAT name(Customer c) IF inEntry(c), ', ' CHARWIDTH 100;
+inEntryCustomers 'Организации' () = GROUP CONCAT name(Customer c) IF inEntry(c), ', ' ORDER c CHARWIDTH 100;
 
 FORM dialogCustomers 'Клиенты'
     OBJECTS c = Customer

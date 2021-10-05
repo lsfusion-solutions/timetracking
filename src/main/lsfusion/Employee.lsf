@@ -69,9 +69,9 @@ EXTEND FORM employee
 managers 'Руководители' = DATA BOOLEAN (Employee, Employee);
 
 nameManagers 'Руководители' (Employee e) = 
-    GROUP CONCAT (CONCAT ' ',firstName(Employee manager), lastName(manager)), ', ' IF managers(e, manager) CHARWIDTH 40;
+    GROUP CONCAT (CONCAT ' ',firstName(Employee manager), lastName(manager)), ', ' IF managers(e, manager) ORDER manager CHARWIDTH 40;
 nameEmployees 'Подчиненные' (Employee e) = 
-    GROUP CONCAT (CONCAT ' ',firstName(Employee employee), lastName(employee)), ', ' IF managers(employee, e) CHARWIDTH 40;
+    GROUP CONCAT (CONCAT ' ',firstName(Employee employee), lastName(employee)), ', ' IF managers(employee, e) ORDER employee CHARWIDTH 40;
     
 WHEN SET(fired(Employee e)) DO {
     managers(e, Employee managr) <- NULL;

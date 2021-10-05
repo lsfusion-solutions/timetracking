@@ -354,7 +354,7 @@ sendNotificationsManager 'Уведомления для руководителе
             
             LOCAL body = STRING ();
             body() <- 'Здравствуйте!<br /><br />Пожалуйста, проверьте со следующими сотрудниками заполняемость трудозатрат.<br /><br />В предыдущий период следующие сотрудники внесли недостаточно трудозатрат:<br /><br />';
-            body() <- CONCAT '', body(), (GROUP CONCAT messageManager(Employee employee), '' IF level(employee, e) AND NOT employee == e);
+            body() <- CONCAT '', body(), (GROUP CONCAT messageManager(Employee employee), '' IF level(employee, e) AND NOT employee == e ORDER employee);
             body() <- CONCAT '', body(), 'Спасибо,<br /> Ваша CRM система';
             
             EMAIL
@@ -681,7 +681,7 @@ sendNotificationsAdmin 'Уведомления для администратор
         FOR sendNotificationsAdmin(Employee e) AND email(e) DO {    
             LOCAL body = STRING ();
             body() <- 'Здравствуйте!<br /><br />Пожалуйста, проверьте со следующими сотрудниками заполняемость трудозатрат.<br /><br />В предыдущий период следующие сотрудники внесли недостаточно трудозатрат:<br /><br />';
-            body() <- CONCAT '', body(), (GROUP CONCAT messageManager(Employee employee), '' IF employee IS Employee);
+            body() <- CONCAT '', body(), (GROUP CONCAT messageManager(Employee employee), '' IF employee IS Employee ORDER employee);
             body() <- CONCAT '', body(), 'Спасибо,<br /> Ваша CRM система';
             
             EMAIL
@@ -735,7 +735,7 @@ index (HoursType t, Employee e) = CONCAT '', firstName(e), lastName(e), staticCa
 
 inReport 'Вкл.' = DATA LOCAL BOOLEAN (Employee);
 filterEmployees 'Фильтр по сотрудникам'() = 
-    GROUP CONCAT (CONCAT ' ', firstName(Employee e), lastName(e)) IF inReport(e), ', ' CHARWIDTH 100;
+    GROUP CONCAT (CONCAT ' ', firstName(Employee e), lastName(e)) IF inReport(e), ', ' ORDER e CHARWIDTH 100;
 
 FORM listEmployeesReport 'Сотрудники'
     OBJECTS e = Employee

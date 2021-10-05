@@ -62,8 +62,8 @@ sendEmailLimitHoursProjects 'Разослать письма о приближе
                           (NOT sent100(p, extractMonth(currentDate()), currentYear()) AND round2(hours(p, extractMonth(currentDate()), currentYear())/hoursMonthly(p)) >= 1.0);
     
     FOR toSend(Project p) DO {
-        email() <- CONCAT ';', (GROUP CONCAT email(Employee e) IF assigned(p, e) AND sendLimitEmails(e, p), ';'), 
-                               (GROUP CONCAT email(Person r) IF sendLimitEmails(r, p), ';');
+        email() <- CONCAT ';', (GROUP CONCAT email(Employee e) IF assigned(p, e) AND sendLimitEmails(e, p), ';' ORDER e), 
+                               (GROUP CONCAT email(Person r) IF sendLimitEmails(r, p), ';' ORDER r);
         IF email() THEN EMAIL 
             SUBJECT CONCAT ' ', nameCustomer(p) + ':', 'израсходовано ' + 
                 round0(hours(p,  extractMonth(currentDate()), currentYear())/hoursMonthly(p) * 100) + '% времени, включённого в оплату'
@@ -96,8 +96,8 @@ sendEmailLimitHoursCategories 'Разослать письма о приближ
         LOCAL bodyFile = FILE ();
         PRINT messageTableCategory OBJECTS p = p, c = c, d = currentDate() HTML TO bodyFile;
         
-        email() <- CONCAT ';', (GROUP CONCAT email(Employee e) IF assigned(p, e) AND sendLimitEmails(e, p), ';'), 
-                               (GROUP CONCAT email(Person r) IF sendLimitEmails(r, p), ';');
+        email() <- CONCAT ';', (GROUP CONCAT email(Employee e) IF assigned(p, e) AND sendLimitEmails(e, p), ';' ORDER e), 
+                               (GROUP CONCAT email(Person r) IF sendLimitEmails(r, p), ';' ORDER r);
         IF email() THEN EMAIL 
             SUBJECT CONCAT ' ', nameCustomer(p) + ':', name(c) + ':', 'израсходовано ' + 
                 round0(hours(p,  c, extractMonth(currentDate()), currentYear())/hoursMonthly(p, c) * 100) + '% времени, включённого в оплату'

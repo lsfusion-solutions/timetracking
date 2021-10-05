@@ -386,8 +386,8 @@ EXTEND FORM person
 //    }
 //}
 //
-//nameConterparties 'Контрагенты' (Customer c) = CONCAT ', ', (GROUP CONCAT shortName(LegalEntity l) IF in(c, l), ', '),
-//    GROUP CONCAT (CONCAT ' ', lastName(Person p), firstName(p), middleName(p)) IF in(c, p), ', ' CHARWIDTH 50;
+//nameConterparties 'Контрагенты' (Customer c) = CONCAT ', ', (GROUP CONCAT shortName(LegalEntity l) IF in(c, l), ', ' ORDER l),
+//    GROUP CONCAT (CONCAT ' ', lastName(Person p), firstName(p), middleName(p)) IF in(c, p), ', ' ORDER l CHARWIDTH 50;
 //
 //EXTEND FORM customer
 //    PROPERTIES nameConterparties(c) ON CHANGE { DIALOG conterparties OBJECTS c = c; }

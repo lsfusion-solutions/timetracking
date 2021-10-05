@@ -244,8 +244,7 @@ timeEntry 'Time Entry' = DATA TimeEntry(TimeEntryPause);
 
 
 isPause 'Пауза включена' (TimeEntryPause p) = dateTimePause(p) AND NOT dateTimeRestart(p); 
-onPause 'На паузе' (e) = GROUP LAST isPause (TimeEntryPause p) IF timeEntry(p) == e;
-
+onPause 'На паузе' (e) = GROUP LAST isPause (TimeEntryPause p) IF timeEntry(p) == e ORDER p;
 calcPause 'Пауза, ч' (TimeEntryPause p) = hoursDiffDateTime(dateTimeRestart(p), dateTimePause(p));
 totalPause (e) = GROUP SUM calcPause(TimeEntryPause p) IF timeEntry(p) == e;
 
