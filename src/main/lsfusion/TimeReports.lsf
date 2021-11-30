@@ -196,24 +196,6 @@ NAVIGATOR {
 dataHoursSet 'Кол-во установленных рабочих часов' = DATA NUMERIC[10,2] () CHARWIDTH 5;
 sendNotification 'Отправлять уведомление' = DATA BOOLEAN (Employee);
 
-EXTEND FORM options
-    PROPERTIES dataHoursSet()
-    
-    OBJECTS e = Employee
-    PROPERTIES(e) READONLY firstName, lastName, login, nameMainRole, email
-    PROPERTIES sendNotification(e)
-;
-
-DESIGN options {
-    pane {
-        NEW employeeMailing {
-            caption = 'Рассылка для сотрудников';
-            MOVE PROPERTY(dataHoursSet()) { flex = 0; align = START; }
-            MOVE BOX(e);
-        }
-    }
-}
-
 isDayoff 'Выходной' = DATA BOOLEAN (DATE);
 
 nowork2020 = DATA LOCAL STRING(INTEGER);
@@ -281,10 +263,6 @@ hoursSetEmployee 'Кол-во установленных рабочих часо
 overHoursSet (Employee e) = OVERRIDE hoursSetEmployee(e), hoursSet();
 prevWorkDate (DATE d) = GROUP LAST DATE dd IF NOT isDayoff(dd) AND iterate(dd, 2020_01_01, sum(d, -1)) ORDER dd;
 
-EXTEND FORM options
-    PROPERTIES(e) hoursSetEmployee AFTER email(e)
-;
-
 sendNotifications 'Отправить уведомление' () {
     IF NOT isDayoff(currentDate()) THEN {
         
@@ -303,10 +281,6 @@ sendNotifications 'Отправить уведомление' () {
     }
 }
 
-EXTEND FORM options
-    PROPERTIES sendNotifications() DRAW e TOOLBAR
-;
-
 sendNotificationManager 'Уведомления для руководителя' = DATA BOOLEAN (Employee);
 dataNotificationPeriod 'Период уведомлений для руководителя, дни' = DATA INTEGER ();
 notificationPeriod () = OVERRIDE dataNotificationPeriod(), 7;
@@ -315,15 +289,6 @@ isManager (Employee manager) = GROUP SUM 1 IF managers(Employee employee, manage
 
 level (Employee employee, Employee manager) = RECURSION 1l IF employee IS Employee AND manager == employee
                                                                   STEP 2l IF managers($manager, manager);
-EXTEND FORM options
-    PROPERTIES sendNotificationManager(e) READONLYIF NOT isManager(e), dataNotificationPeriod()
-;
-
-DESIGN options {
-    employeeMailing {
-        MOVE PROPERTY(dataNotificationPeriod()) AFTER PROPERTY(dataHoursSet()) { flex = 0; align = START; }
-    }
-}
 
 max (DATE d1, DATE d2) = IF d1 AND (d1 >= d2 OR NOT d2) THEN d1 ELSE d2 IF d2;
 
@@ -366,9 +331,6 @@ sendNotificationsManager 'Уведомления для руководителе
     }
 }
 
-EXTEND FORM options
-    PROPERTIES sendNotificationsManager() DRAW e TOOLBAR
-;
 
 filterProject 'Проект' = DATA LOCAL Project ();
 nameFilterProject 'Проект' = CONCAT ', ', name(filterProject()), nameCustomer(filterProject()) CHARWIDTH 40;
@@ -499,9 +461,6 @@ DESIGN notify {
     }
 }
 
-EXTEND FORM options
-    PROPERTIES strictNotification(e)
-;
 
 notify () {
     IF NOT isDayoff(currentDate()) AND needNotify(currentUser(), currentDate()) THEN DIALOG notify;
@@ -693,9 +652,6 @@ sendNotificationsAdmin 'Уведомления для администратор
     }
 }
 
-EXTEND FORM options
-    PROPERTIES sendNotificationsAdmin(e), excludeNotificationsAdmin(e), sendNotificationsAdmin() DRAW e TOOLBAR 
-;
 
 CLASS HoursType {
     total '1',
@@ -866,5 +822,58 @@ DESIGN partnersExtended {
 NAVIGATOR {
     reports {
         NEW partnersExtended;
+    }
+}
+
+weeklyNotificationDay = DATA DOW ();
+nameWeeklyNotificationDay 'День уведомлений за неделю' () = staticCaption(weeklyNotificationDay());
+
+hoursSetEmployeeWeekly 'Кол-во рабочих часов за неделю' = DATA NUMERIC[15,2] (Employee);
+sendNotificationWeekly 'Отправлять уведомление за неделю' = DATA BOOLEAN (Employee);
+
+hoursWeekly (Employee e, DATE d) = 
+    GROUP SUM hours(TimeEntry te) IF employee(te) == e AND extractWeek(dateStart(te)) == extractWeek(d);
+
+sendNotificationsWeekly 'Уведомления за неделю' () {
+    IF extractDOW(currentDate()) == weeklyNotificationDay() THEN
+        FOR sendNotificationWeekly(Employee e) AND email(e) AND NOT fired(e) AND hoursSetEmployeeWeekly(e) AND
+            (hoursWeekly(e, currentDate()) < hoursSetEmployeeWeekly(e) OR NOT hoursWeekly(e, currentDate())) DO {
+                EMAIL
+                    SUBJECT 'Напоминание о дополнительном внесении времени'
+                    TO email(e)
+                    BODY firstName(e) + ', привет!<br /><br />Пожалуйста, проверьте, и, если нужно, откорректируйте количество учтённого времени за ' 
+                        + 'эту неделю' + '<br /><br />Я тут заметила, что ' + 'на этой неделе' + 
+                        ' учтёно времени меньше обычного. Мне очень-очень важно знать распределение вашего времени. Это поможет мне автоматизировать процессы и тем самым убрать скучную рутину из вашей работы.<br />' +
+                        'А для этого мне нужно понимать как распределено ваше время. Воможно вы закрутились и забыли учесть часть времени?<br /><br />' +
+                        'Поэтому, буду очень благодарна, если вы сможете проверить, и, если нужно, откорректировать количество учтённого времени за ' +
+                        'эту неделю' + '<br /><br />' + 'Катерина,<br /> Ваша CRM система'
+                ;
+        }
+}
+
+FORM notificationSettings 'Рассылка для сотрудников'
+    PROPERTIES dataHoursSet(), dataNotificationPeriod(), nameWeeklyNotificationDay()
+    
+    OBJECTS e = Employee
+    PROPERTIES(e) READONLY firstName, lastName, login, nameMainRole, email
+    PROPERTIES(e) hoursSetEmployee, sendNotification, sendNotificationManager, strictNotification, 
+        sendNotificationsAdmin, excludeNotificationsAdmin, sendNotificationWeekly, hoursSetEmployeeWeekly
+    PROPERTIES() DRAW e TOOLBAR sendNotifications, sendNotificationsManager, sendNotificationsAdmin, sendNotificationsWeekly
+;
+
+DESIGN notificationSettings {
+    OBJECTS { 
+        NEW header FIRST {
+             type = CONTAINERV;
+             MOVE PROPERTY(dataHoursSet());
+             MOVE PROPERTY(dataNotificationPeriod());
+             MOVE PROPERTY(nameWeeklyNotificationDay());
+        }
+    }
+}
+
+NAVIGATOR {
+    administration {
+        NEW notificationSettings FIRST;
     }
 }

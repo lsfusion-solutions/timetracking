@@ -384,7 +384,7 @@ sendTaskNotifications 'Отправить уведомления о задача
     }
 }
 
-EXTEND FORM options
+EXTEND FORM notificationSettings
     PROPERTIES sendTaskNotifications() DRAW e TOOLBAR
 ;
 

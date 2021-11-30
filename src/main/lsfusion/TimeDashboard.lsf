@@ -158,6 +158,10 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     FILTERS task(pa) == fe
 ;
 
+DESIGN timeDashboard {
+    PROPERTY(comment(pa)) { caption = 'Описание проекта'; }
+}
+
 startTimeEntry 'Начать новую задачу' () { 
     IF currentEmployee() THEN {
         NEWSESSION {       
