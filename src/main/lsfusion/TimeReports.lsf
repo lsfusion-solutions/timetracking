@@ -87,7 +87,7 @@ hours 'Часов' (Employee e, DATE d) = GROUP SUM hours(TimeEntry te) BY emplo
 
 hoursEmployees 'Часов' (Employee e, DATE d) = GROUP SUM hours(TimeEntry te) IF 
     (NOT markDelete(task(te)) OR showMarkDelete()) BY employee(te), dateStart(te);
-backgroundHours (Employee e, DATE d) = IF hoursEmployees(e, d) < 6 OR hoursEmployees(e, d) > 24 THEN RGB(255, 172, 172);
+backgroundHours (Employee e, DATE d) = ABSTRACT COLOR;
 
 hours 'Часов (всего)' (Employee e, DATE dFrom, DATE dTo) = 
     GROUP SUM hours(TimeEntry te) IF dFrom <= dateStart(te) AND dTo >= dateStart(te) BY employee(te); 
@@ -121,6 +121,8 @@ accessFilter(Employee e) = IF (nameCategory(currentUser()) == 'Партнер' O
     nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик' 
     OR nameCategory(currentUser()) == 'Административный менеджер' OR e == currentUser()) THEN TRUE ELSE NULL;
 
+backgroundHours (Employee e, DATE df, DATE dt) = ABSTRACT COLOR;
+
 FORM employees 'По сотрудникам'
     OBJECTS dates = (dFrom = DATE, dTo = DATE) PANEL
     PROPERTIES dFrom 'Дата с' = VALUE(dFrom), dTo 'Дата по' = VALUE(dTo)
@@ -131,7 +133,7 @@ FORM employees 'По сотрудникам'
     OBJECTS e = Employee
     PROPERTIES in(e) READONLYIF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик' OR nameCategory(currentUser()) == 'Административный менеджер')
     PROPERTIES(e) READONLY namePractice, firstName, lastName, login
-    PROPERTIES(e, dFrom, dTo) READONLY hoursEmployees
+    PROPERTIES(e, dFrom, dTo) READONLY hoursEmployees BACKGROUND backgroundHours(e, dFrom, dTo)
     FILTERS NOT fired(e),
             accessFilter(e)
     
@@ -281,6 +283,32 @@ sendNotifications 'Отправить уведомление' () {
     }
 }
 
+weeklyNotificationDay = DATA DOW ();
+nameWeeklyNotificationDay 'День уведомлений за неделю' () = staticCaption(weeklyNotificationDay());
+
+hoursSetEmployeeWeekly 'Кол-во рабочих часов за неделю' = DATA NUMERIC[15,2] (Employee);
+sendNotificationWeekly 'Отправлять уведомление за неделю' = DATA BOOLEAN (Employee);
+
+hoursWeekly (Employee e, DATE d) = 
+    GROUP SUM hours(TimeEntry te) IF employee(te) == e AND extractWeek(dateStart(te)) == extractWeek(d) AND extractYear(dateStart(te)) == extractYear(d);
+
+sendNotificationsWeekly 'Уведомления за неделю' () {
+    IF extractDOW(currentDate()) == weeklyNotificationDay() THEN
+        FOR sendNotificationWeekly(Employee e) AND email(e) AND NOT fired(e) AND hoursSetEmployeeWeekly(e) AND
+            (hoursWeekly(e, currentDate()) < hoursSetEmployeeWeekly(e) OR NOT hoursWeekly(e, currentDate())) DO {
+                EMAIL
+                    SUBJECT 'Напоминание о дополнительном внесении времени'
+                    TO email(e)
+                    BODY firstName(e) + ', привет!<br /><br />Пожалуйста, проверьте, и, если нужно, откорректируйте количество учтённого времени за ' 
+                        + 'эту неделю' + '<br /><br />Я тут заметила, что ' + 'на этой неделе' + 
+                        ' учтёно времени меньше обычного. Мне очень-очень важно знать распределение вашего времени. Это поможет мне автоматизировать процессы и тем самым убрать скучную рутину из вашей работы.<br />' +
+                        'А для этого мне нужно понимать как распределено ваше время. Воможно вы закрутились и забыли учесть часть времени?<br /><br />' +
+                        'Поэтому, буду очень благодарна, если вы сможете проверить, и, если нужно, откорректировать количество учтённого времени за ' +
+                        'эту неделю' + '<br /><br />' + 'Катерина,<br /> Ваша CRM система'
+                ;
+        }
+}
+
 sendNotificationManager 'Уведомления для руководителя' = DATA BOOLEAN (Employee);
 dataNotificationPeriod 'Период уведомлений для руководителя, дни' = DATA INTEGER ();
 notificationPeriod () = OVERRIDE dataNotificationPeriod(), 7;
@@ -292,14 +320,23 @@ level (Employee employee, Employee manager) = RECURSION 1l IF employee IS Employ
 
 max (DATE d1, DATE d2) = IF d1 AND (d1 >= d2 OR NOT d2) THEN d1 ELSE d2 IF d2;
 
+isTimeShortageWeekly (Employee e) = GROUP SUM 1 IF 
+    hoursWeekly(e, sum(currentDate(), -1 * notificationPeriod())) < hoursSetEmployeeWeekly(e) OR NOT hoursWeekly(e, sum(currentDate(), -1 * notificationPeriod()));
+
 isTimeShortage (Employee e) = 
     GROUP SUM 1 IF (hours(e, DATE d) < overHoursSet(e) OR NOT hours(e, d) OR hours(e, d) > 24) AND NOT isDayoff(d) AND iterate(d, max(dateAdded(e), sum(currentDate(), -1 * notificationPeriod())), sum(currentDate(), -1));
-isTimeShortageEmployees (Employee manager) = GROUP SUM 1 IF managers(Employee e, manager) AND isTimeShortage(e);
+isTimeShortageEmployees (Employee manager) = GROUP SUM 1 IF managers(Employee e, manager) AND 
+    ((isTimeShortage(e) AND NOT hoursSetEmployeeWeekly(e)) OR (isTimeShortageWeekly(e) AND hoursSetEmployeeWeekly(e)));
 timeShortageNumeric (Employee e, DATE d) = overHoursSet(e) (-) hours(e, d);
 timeShortageString (Employee e, DATE d) = 
     IF hours(e, d) > 24 THEN 'Заполнено более 24 часов: ' + hours(e, d) 
     ELSE CONCAT '', INTEGER(trunc(timeShortageNumeric(e, d), 0)), ' час(-ов) ', 
     round0(60 * (timeShortageNumeric(e, d) - INTEGER(trunc(timeShortageNumeric(e, d), 0)))), ' минут(а)';
+
+timeShortageWeeklyNumeric (Employee e, DATE d) = hoursSetEmployeeWeekly(e) (-) hoursWeekly(e, d);
+timeShortageWeeklyString (Employee e, DATE d) = CONCAT '', 
+    INTEGER(trunc(timeShortageWeeklyNumeric(e, d), 0)), ' час(-ов) ',
+    round0(60 * (timeShortageWeeklyNumeric(e, d) - INTEGER(trunc(timeShortageWeeklyNumeric(e, d), 0)))), ' минут(а)';
     
 messageManager = DATA LOCAL STRING (Employee);
 
@@ -307,14 +344,21 @@ sendNotificationsManager 'Уведомления для руководителе
     IF NOT isDayoff(currentDate()) THEN {
         
         FOR sendNotificationManager(Employee e) AND isManager(e) AND email(e) AND isTimeShortageEmployees(e) AND NOT fired(e) DO {
-            FOR level(Employee employee, e) AND isTimeShortage(employee) AND NOT fired(employee) AND NOT employee == e DO {
+            FOR level(Employee employee, e) AND isTimeShortage(employee) AND NOT fired(employee) AND NOT employee == e AND NOT hoursSetEmployeeWeekly(employee) DO {
                 messageManager(employee) <- NULL;
                 messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
                 FOR iterate(DATE d, max(dateAdded(employee), sum(currentDate(), -1 * notificationPeriod())), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
-                    (hours(employee, d) < overHoursSet(employee) OR NOT hours(employee, d) OR hours(employee, d) > 24) DO {
+                    (hours(employee, d) < overHoursSet(employee) OR NOT hours(employee, d) OR hours(employee, d) > 24) AND NOT hoursSetEmployeeWeekly(employee) DO {
                     messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
                 }
                 messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
+            }
+            
+            FOR level(Employee employee, e) AND isTimeShortageWeekly(employee) AND NOT fired(employee) AND NOT employee == e AND hoursSetEmployeeWeekly(employee) DO {
+                 messageManager(employee) <- NULL;
+                 messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
+                 messageManager(employee) <- CONCAT '', messageManager(employee), 'За прошлую неделю ', timeShortageWeeklyString(employee, sum(currentDate(), -1 * notificationPeriod())), '<br />';
+                 messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
             }
             
             LOCAL body = STRING ();
@@ -622,19 +666,27 @@ sendNotificationsAdmin 'Уведомления для администратор
 excludeNotificationsAdmin 'Исключить из уведомлений для администраторов' = DATA BOOLEAN (Employee);
 
 isTimeShortageEmployeesAdmin () = 
-    GROUP SUM 1 IF Employee e IS Employee AND isTimeShortage(e) AND NOT excludeNotificationsAdmin(e) AND NOT fired(e);
+    GROUP SUM 1 IF Employee e IS Employee AND 
+    ((isTimeShortage(e) AND NOT hoursSetEmployeeWeekly(e)) OR (isTimeShortageWeekly(e) AND hoursSetEmployeeWeekly(e))) 
+    AND NOT excludeNotificationsAdmin(e) AND NOT fired(e);
 
 sendNotificationsAdmin 'Уведомления для администраторов' () {
     IF NOT isDayoff(currentDate()) AND isTimeShortageEmployeesAdmin() THEN {
            
-        FOR Employee employee IS Employee AND isTimeShortage(employee) AND NOT fired(employee) AND NOT excludeNotificationsAdmin(employee) DO {
+        FOR Employee employee IS Employee AND ((isTimeShortage(employee) AND NOT hoursSetEmployeeWeekly(employee)) OR (isTimeShortageWeekly(employee) AND hoursSetEmployeeWeekly(employee))) 
+            AND NOT fired(employee) AND NOT excludeNotificationsAdmin(employee) DO {
             messageManager(employee) <- NULL;
             messageManager(employee) <- CONCAT '', lastName(employee), ' ', firstName(employee), '<br />';
-            FOR iterate(DATE d, max(dateAdded(employee), sum(currentDate(), -1 * notificationPeriod())), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
-                (hours(employee, d) < overHoursSet(employee) OR NOT hours(employee, d) OR hours(employee, d) > 24) DO {
-                messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
+            IF NOT hoursSetEmployeeWeekly(employee) THEN {
+                FOR iterate(DATE d, max(dateAdded(employee), sum(currentDate(), -1 * notificationPeriod())), sum(currentDate(), -1)) AND NOT isDayoff(d) AND 
+                    (hours(employee, d) < overHoursSet(employee) OR NOT hours(employee, d) OR hours(employee, d) > 24) DO {
+                    messageManager(employee) <- CONCAT '', messageManager(employee), toDateDDMMYY(d), ', ', timeShortageString(employee, d), '<br />';
+                }
+                messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
+            } ELSE {
+                messageManager(employee) <- CONCAT '', messageManager(employee), 'За прошлую неделю ', timeShortageWeeklyString(employee, sum(currentDate(), -1 * notificationPeriod())), '<br />';
+                messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
             }
-            messageManager(employee) <- CONCAT '', messageManager(employee), '<br />';
         }
             
         FOR sendNotificationsAdmin(Employee e) AND email(e) DO {    
@@ -825,32 +877,6 @@ NAVIGATOR {
     }
 }
 
-weeklyNotificationDay = DATA DOW ();
-nameWeeklyNotificationDay 'День уведомлений за неделю' () = staticCaption(weeklyNotificationDay());
-
-hoursSetEmployeeWeekly 'Кол-во рабочих часов за неделю' = DATA NUMERIC[15,2] (Employee);
-sendNotificationWeekly 'Отправлять уведомление за неделю' = DATA BOOLEAN (Employee);
-
-hoursWeekly (Employee e, DATE d) = 
-    GROUP SUM hours(TimeEntry te) IF employee(te) == e AND extractWeek(dateStart(te)) == extractWeek(d);
-
-sendNotificationsWeekly 'Уведомления за неделю' () {
-    IF extractDOW(currentDate()) == weeklyNotificationDay() THEN
-        FOR sendNotificationWeekly(Employee e) AND email(e) AND NOT fired(e) AND hoursSetEmployeeWeekly(e) AND
-            (hoursWeekly(e, currentDate()) < hoursSetEmployeeWeekly(e) OR NOT hoursWeekly(e, currentDate())) DO {
-                EMAIL
-                    SUBJECT 'Напоминание о дополнительном внесении времени'
-                    TO email(e)
-                    BODY firstName(e) + ', привет!<br /><br />Пожалуйста, проверьте, и, если нужно, откорректируйте количество учтённого времени за ' 
-                        + 'эту неделю' + '<br /><br />Я тут заметила, что ' + 'на этой неделе' + 
-                        ' учтёно времени меньше обычного. Мне очень-очень важно знать распределение вашего времени. Это поможет мне автоматизировать процессы и тем самым убрать скучную рутину из вашей работы.<br />' +
-                        'А для этого мне нужно понимать как распределено ваше время. Воможно вы закрутились и забыли учесть часть времени?<br /><br />' +
-                        'Поэтому, буду очень благодарна, если вы сможете проверить, и, если нужно, откорректировать количество учтённого времени за ' +
-                        'эту неделю' + '<br /><br />' + 'Катерина,<br /> Ваша CRM система'
-                ;
-        }
-}
-
 FORM notificationSettings 'Рассылка для сотрудников'
     PROPERTIES dataHoursSet(), dataNotificationPeriod(), nameWeeklyNotificationDay()
     
@@ -877,3 +903,8 @@ NAVIGATOR {
         NEW notificationSettings FIRST;
     }
 }
+
+backgroundHours (Employee e, DATE df, DATE dt) += IF hoursSetEmployeeWeekly(e) AND 
+    hoursEmployees(e, df, dt) < hoursSetEmployeeWeekly(e) THEN RGB(255, 172, 172);
+backgroundHours (Employee e, DATE d) += IF NOT hoursSetEmployeeWeekly(e) AND 
+    (hoursEmployees(e, d) < 6 OR hoursEmployees(e, d) > 24) THEN RGB(255, 172, 172);
