@@ -212,13 +212,13 @@ FORM timeEntryMobile 'Отметка времени'
 //    PROPERTIES(te) dateTimeStart CUSTOM RENDER 'customInputDateTime', 
 //                   dateTimeFinish CUSTOM RENDER 'customInputDateTime'
 
-    PROPERTIES(te) dateStart CUSTOM 'customInputDate' 
+    PROPERTIES(te) dateStart CUSTOM RENDER 'customInputDate' 
         ON CHANGE { INPUT d = DATE DO { dateTimeStart(te) <- dateTimeToDateTime(d, timeStart(te)); }}, 
-                   timeStart CUSTOM 'customInputTime'
+                   timeStart CUSTOM RENDER 'customInputTime'
         ON CHANGE { INPUT t = TIME DO { dateTimeStart(te) <- dateTimeToDateTime(dateStart(te), t); }}
-    PROPERTIES(te) dateFinish CUSTOM 'customInputDate' 
+    PROPERTIES(te) dateFinish CUSTOM RENDER 'customInputDate' 
         ON CHANGE { INPUT d = DATE DO { dateTimeFinish(te) <- dateTimeToDateTime(d, OVERRIDE timeFinish(te), timeStart(te)); }}, 
-                   timeFinish CUSTOM 'customInputTime'
+                   timeFinish CUSTOM RENDER 'customInputTime'
         ON CHANGE { INPUT t = TIME DO { dateTimeFinish(te) <- dateTimeToDateTime(dateFinish(te), t); }}
                    
     PROPERTIES(te) currentHours ON CHANGE { INPUT h = currentHours(te) DO { dateTimeFinish(te) <- sumMinutes(dateTimeStart(te), h * 60); }}
