@@ -272,3 +272,6 @@ prevCalcHours (TimeEntry e) = hoursDiffDateTime(dateTimeFinish(e), dateTimeStart
 //    }
 //
 //}
+
+CONSTRAINT SET(hours(TimeEntry e) > 8 AND nameTaskType(e) == 'Отпуск')
+    MESSAGE 'Отпуск не может быть больше 8 часов в день';
