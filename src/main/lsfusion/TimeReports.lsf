@@ -737,7 +737,7 @@ hoursTotal 'Часов всего' (HoursType t, Employee e, DATE df, DATE dt) =
 
 backgroundHours (HoursType t, Employee e, DATE d) = 
     IF t == HoursType.total AND (hours(e, d) < 6 OR hours(e, d) > 24 OR NOT hours(e, d)) AND 
-        NOT (extractDOW(d) == DOW.saturday OR extractDOW(d) == DOW.sunday) THEN RGB(255, 172, 172);
+        NOT (extractDOW(d) == DOW.saturday OR extractDOW(d) == DOW.sunday OR isDayoff(d)) THEN RGB(255, 172, 172);
     
 index (HoursType t, Employee e) = CONCAT '', firstName(e), lastName(e), staticCaption(t);
 
