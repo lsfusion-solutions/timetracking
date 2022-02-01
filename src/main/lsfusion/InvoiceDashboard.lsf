@@ -37,6 +37,7 @@ FORM invoiceDashboard 'Выставление счетов'
             NOT skip(t),
             NOT inProcess(t),
             NOT invoice(t),
+            NOT markDelete(task(t)),
             assigned(project(t), currentEmployee()),
             (DATE (dateTimeFinish(t)) >= dateFrom() OR NOT dateFrom()) AND (DATE (dateTimeFinish(t)) <= dateTo() OR NOT dateTo())
     
@@ -83,7 +84,7 @@ createInvoice 'Выставить счет' (Project p)  {
         NEW i = Invoice {
             project(i) <- p;
             author(i) <- currentEmployee();
-            invoice(TimeEntry e) <- i WHERE in(e) AND project(e) = p AND NOT skip(e);
+            invoice(TimeEntry e) <- i WHERE in(e) AND project(e) = p AND NOT skip(e) AND NOT markDelete(task(e));
             DIALOG invoice OBJECTS i = i DO {
                 SEEK invoiceDashboard.i = i;
             }
@@ -96,7 +97,7 @@ createInvoiceDates 'Выставить счет за период' (Project p) {
         NEW i = Invoice {
             project(i) <- p;
             author(i) <- currentEmployee();
-            invoice(TimeEntry e) <- i WHERE NOT DATE(OVERRIDE dateTimeFinish(e), dateTimeStart(e)) < dateFrom() AND NOT DATE(OVERRIDE dateTimeFinish(e), dateTimeStart(e)) > dateTo() AND project(e) = p AND NOT skip(e) AND NOT invoice(e);
+            invoice(TimeEntry e) <- i WHERE NOT DATE(OVERRIDE dateTimeFinish(e), dateTimeStart(e)) < dateFrom() AND NOT DATE(OVERRIDE dateTimeFinish(e), dateTimeStart(e)) > dateTo() AND project(e) = p AND NOT skip(e) AND NOT invoice(e) AND NOT markDelete(task(e));
             DIALOG invoice OBJECTS i = i DO {
                 SEEK invoiceDashboard.i = i;
             }
