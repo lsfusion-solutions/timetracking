@@ -117,9 +117,10 @@ in 'Вкл' = DATA LOCAL BOOLEAN (Employee);
 countEmployees () = GROUP SUM 1 IF in(Employee p);
 inEmployees (TimeEntry t) = in(employee(t)) OR NOT countEmployees();
 
-accessFilter(Employee e) = IF (nameCategory(currentUser()) == 'Партнер' OR 
-    nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик' 
-    OR nameCategory(currentUser()) == 'Административный менеджер' OR e == currentUser()) THEN TRUE ELSE NULL;
+showAllEmployees 'Показывать часы всех сотрудников' = DATA BOOLEAN (Category);
+EXTEND FORM category PROPERTIES(c) showAllEmployees;
+
+accessFilter(Employee e) = showAllEmployees(category(currentUser())) OR e == currentUser();
 
 backgroundHours (Employee e, DATE df, DATE dt) = ABSTRACT COLOR;
 
@@ -131,7 +132,7 @@ FORM employees 'По сотрудникам'
     FILTERS hoursEmployees(d), d >= dFrom, d <= dTo
 
     OBJECTS e = Employee
-    PROPERTIES in(e) READONLYIF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик' OR nameCategory(currentUser()) == 'Административный менеджер')
+    PROPERTIES in(e) READONLYIF NOT showAllEmployees(category(currentUser()))
     PROPERTIES(e) READONLY namePractice, firstName, lastName, login
     PROPERTIES(e, dFrom, dTo) READONLY hoursEmployees BACKGROUND backgroundHours(e, dFrom, dTo)
     FILTERS NOT fired(e),
@@ -161,7 +162,7 @@ FORM employees 'По сотрудникам'
     
     EVENTS 
         ON INIT {
-            IF NOT (nameCategory(currentUser()) == 'Партнер' OR nameCategory(currentUser()) == 'Тестовая' OR nameCategory(currentUser()) == 'Аналитик' OR nameCategory(currentUser()) == 'Административный менеджер') THEN {
+            IF NOT showAllEmployees(category(currentUser())) THEN {
                 in(currentUser()) <- TRUE;
             }
         }
