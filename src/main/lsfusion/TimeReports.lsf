@@ -120,7 +120,10 @@ inEmployees (TimeEntry t) = in(employee(t)) OR NOT countEmployees();
 showAllEmployees 'Показывать часы всех сотрудников' = DATA BOOLEAN (Category);
 EXTEND FORM category PROPERTIES(c) showAllEmployees;
 
-accessFilter(Employee e) = showAllEmployees(category(currentUser())) OR e == currentUser();
+showAllEmployees 'Показывать часы всех сотрудников' = DATA BOOLEAN (Employee);
+EXTEND FORM employee PROPERTIES(e) showAllEmployees;
+
+accessFilter(Employee e) = showAllEmployees(category(currentUser())) OR showAllEmployees(currentUser()) OR e == currentUser();
 
 backgroundHours (Employee e, DATE df, DATE dt) = ABSTRACT COLOR;
 
@@ -132,7 +135,7 @@ FORM employees 'По сотрудникам'
     FILTERS hoursEmployees(d), d >= dFrom, d <= dTo
 
     OBJECTS e = Employee
-    PROPERTIES in(e) READONLYIF NOT showAllEmployees(category(currentUser()))
+    PROPERTIES in(e) READONLYIF NOT showAllEmployees(category(currentUser())) AND NOT showAllEmployees(currentUser()) 
     PROPERTIES(e) READONLY namePractice, firstName, lastName, login
     PROPERTIES(e, dFrom, dTo) READONLY hoursEmployees BACKGROUND backgroundHours(e, dFrom, dTo)
     FILTERS NOT fired(e),
@@ -162,7 +165,7 @@ FORM employees 'По сотрудникам'
     
     EVENTS 
         ON INIT {
-            IF NOT showAllEmployees(category(currentUser())) THEN {
+            IF NOT showAllEmployees(category(currentUser())) AND NOT showAllEmployees(currentUser()) THEN {
                 in(currentUser()) <- TRUE;
             }
         }
