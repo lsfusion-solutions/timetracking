@@ -19,9 +19,13 @@ level 'Уровень' (Practice c, Practice p) =
 canonicalName 'Каноническое имя' (Practice pr) =
    GROUP CONCAT name(Practice p), ' / ' ORDER DESC level(pr, p) CHARWIDTH 50;
 
+multipleBilling 'Множественный биллинг' = DATA BOOLEAN (Practice);
+overMultipleBilling 'Множественный биллинг' (Practice p) = TRUE IF
+    GROUP SUM 1 IF multipleBilling(Practice parent) AND level(p, parent);
+
 FORM practice 'Практика'
     OBJECTS p = Practice PANEL
-    PROPERTIES(p) name, nameParent
+    PROPERTIES(p) name, nameParent, multipleBilling
     
     EDIT Practice OBJECT p
 ;
@@ -42,12 +46,12 @@ deleteParent 'Удалить' (Practice p) {
 
 FORM practices 'Практики'
     OBJECTS p 'Родитель' = Practice 
-    PROPERTIES(p) READONLY name
+    PROPERTIES(p) READONLY name, overMultipleBilling
     PROPERTIES(p) NEWSESSION NEW, EDIT, deleteParent
     FILTERS NOT parent(p)
 
     OBJECTS g 'Практики' = Practice
-    PROPERTIES(g) READONLY name, nameParent, canonicalName 
+    PROPERTIES(g) READONLY name, nameParent, canonicalName, overMultipleBilling
     PROPERTIES NEWSESSION newPractice(p) DRAW g, EDIT(g), DELETE(g)
     FILTERS parent(g) == p
     //EVENTS ON CHANGE g { SEEK practices.p = g; } 

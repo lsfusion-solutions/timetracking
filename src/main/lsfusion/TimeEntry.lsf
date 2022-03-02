@@ -15,8 +15,20 @@ task 'Задача' = DATA Task (TimeEntry) NONULL DELETE INDEXED;
 project 'Проект' (TimeEntry e) = project(task(e));
 nameProject 'Проект' (TimeEntry e) = nameProject(task(e));
 
-employee 'Сотрудник' (TimeEntry e) = employee(task(e));
+employee 'Сотрудник' = DATA Employee (TimeEntry);
 nameEmployee 'Сотрудник' (TimeEntry e) = name(employee(e)) CHARWIDTH 20;
+
+WHEN LOCAL SET(TimeEntry te IS TimeEntry) DO {
+    employee(te) <- currentUser();
+}
+
+fillTimeEntryEmployee = DATA BOOLEAN ();
+onStarted() +{
+    IF NOT fillTimeEntryEmployee() THEN {
+        employee(TimeEntry te) <- employee(task(te));
+        fillTimeEntryEmployee() <- TRUE;
+    }
+}
 
 namePractice 'Практика' (TimeEntry e) = namePractice(task(e));
 nameParent 'Услуги' (TimeEntry e) = nameParent(task(e));
@@ -275,3 +287,25 @@ prevCalcHours (TimeEntry e) = hoursDiffDateTime(dateTimeFinish(e), dateTimeStart
 
 CONSTRAINT SET(hours(TimeEntry e) > 8 AND nameTaskType(e) == 'Отпуск')
     MESSAGE 'Отпуск не может быть больше 8 часов в день';
+
+WHEN LOCAL SETCHANGED(name(Task t)) DO {
+    name(t) <- upper(substr(name(t), 1, 1)) + substr(name(t), 2, length(name(t)));
+}
+
+WHEN LOCAL SETCHANGED(description(Task t)) DO {
+    description(t) <- upper(substr(description(t), 1, 1)) + substr(description(t), 2, length(description(t)));
+}
+
+WHEN LOCAL SETCHANGED(comment(TimeEntry t)) DO {
+    comment(t) <- upper(substr(comment(t), 1, 1)) + substr(comment(t), 2, length(comment(t)));
+}
+
+upperFirstLetter = DATA BOOLEAN ();
+onStarted() +{
+    IF NOT upperFirstLetter() THEN {
+        name(Task t) <- upper(substr(name(t), 1, 1)) + substr(name(t), 2, length(name(t)));
+        description(Task t) <- upper(substr(description(t), 1, 1)) + substr(description(t), 2, length(description(t)));
+        comment(TimeEntry t) <- upper(substr(comment(t), 1, 1)) + substr(comment(t), 2, length(comment(t)));
+        upperFirstLetter() <- TRUE;
+    }
+}
