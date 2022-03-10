@@ -34,9 +34,17 @@ visible 'Видимая' = DATA BOOLEAN (Task); // на всякий случа�
 
 invisible 'Невидимая' = DATA BOOLEAN (Task);
 
+multipleBilling (Task t) = overMultipleBilling(practice(employee(t)));
+hasTimeEntry (Employee e, Task t) = 
+    GROUP SUM 1 IF employee(TimeEntry te) == e AND task(te) == t AND NOT employee(task(te)) == e;
+
 isReadonlyTask (Task t) = t IS Task AND NOT employee(t) == currentEmployee();
-showTask (Task t) = (GROUP SUM 1 IF currentEmployee() == employee(Task task) AND project(task) == project(t) AND
-    (status(t) ==  StatusTask.paused OR status(t) == StatusTask.inProcess)) OR currentEmployee() == employee(t);
+showTask (Task t) = (t IS Task AND NOT invisible(t) AND NOT currentUser() IS Employee) OR
+    ((employee(t) == currentEmployee() OR hasTimeEntry(currentEmployee(), t)) OR
+    ((GROUP SUM 1 IF currentEmployee() == employee(Task task) AND project(task) == project(t) AND
+    (status(t) == StatusTask.paused OR status(t) == StatusTask.inProcess)) AND
+    (practice(t) == practice(currentUser()) OR NOT multipleBilling(practice(currentUser())))));
+
     
 FORM contactsDocuments 'Контактные лица/документы'
     OBJECTS p = Project PANEL
@@ -99,10 +107,6 @@ order (Task t) = CASE
     WHEN status(t) == StatusTask.inProcess THEN 2 
     WHEN status(t) == StatusTask.completed THEN 3
     WHEN status(t) == StatusTask.markDelete THEN 4;
-    
-multipleBilling (Task t) = overMultipleBilling(practice(employee(t)));
-hasTimeEntry (Employee e, Task t) = 
-    GROUP SUM 1 IF employee(TimeEntry te) == e AND task(te) == t AND NOT employee(task(te)) == e;
 
 skipDeleteEdit (TimeEntry e) = e IS TimeEntry AND NOT (employee(e) == currentUser() OR employee(task(e)) == currentUser());
 skipDeleteEdit (Task t) = t IS Task AND NOT employee(t) == currentUser();
@@ -146,8 +150,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(fe) invisible SHOWIF currentEmployee()//, markDelete READONLY 
     PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, ed = EDIT READONLYIF skipDeleteEdit(fe), deleteTask READONLYIF isReadonlyTask(fe) OR skipDeleteEdit(fe) SHOWIF NOT markDelete(fe),
         cancelDelete  READONLYIF isReadonlyTask(fe) SHOWIF markDelete(fe)
-    FILTERS showTask(fe) OR (NOT(currentUser() IS Employee) AND NOT invisible(fe)) OR 
-                (multipleBilling(practice(currentUser())) AND practice(fe) == practice(currentUser()) AND (status(fe) ==  StatusTask.paused OR status(fe) == StatusTask.inProcess)),
+    FILTERS showTask(fe),
             markDeleteDateTime(fe) >= dateTimeToDateTime(sum(currentDate(), -1), currentTime()) OR NOT markDelete(fe),
             (DATE(dateTimeStart(fe)) >= df AND DATE(dateTimeStart(fe)) <= dt) OR (status(fe) == StatusTask.paused OR status(fe) == StatusTask.inProcess)
     ORDERS order(fe), nameCustomerProject(fe)
