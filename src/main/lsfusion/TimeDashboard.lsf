@@ -319,6 +319,14 @@ finishNoDialog 'Завершить' (Task t) {
     }
 } CONFIRM;
 
+WHEN SET(fired(Employee e)) DO {
+    FOR employee(Task t) == e AND NOT completed(t) DO {
+            dateTimeFinish(TimeEntry te) <- currentDateTime() WHERE task(te) == t AND NOT dateTimeFinish(te);
+            completed(t) <- TRUE;
+            initPaused(t) <- NULL;
+    }
+}
+
 pause 'Приостановить' (Task t)  { 
     IF employee(t) == currentEmployee()  THEN {
         NEWSESSION {
