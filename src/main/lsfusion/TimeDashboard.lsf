@@ -117,7 +117,7 @@ deleteTimeEntry 'Удалить' (TimeEntry e) {
             DELETE e;
         }
     } ELSE DELETE e;
-} IMAGE 'delete.png';
+} IMAGE 'delete.png' CHANGEKEY 'ctrl DELETE';
 
 FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES currentDateTime()
@@ -174,7 +174,8 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
         dateTimeStartChanged SHOWIF validUser() READONLY, 
         dateTimeFinish BACKGROUND dateTimeFinishChanged(pa) AND validUser() READONLYIF NOT currentEmployee() == employee(pa), 
         dateTimeFinishChanged SHOWIF validUser() READONLY, nameActivity READONLYIF NOT currentEmployee() == employee(pa), 
-        hours BACKGROUND userHours(pa) READONLYIF NOT currentEmployee() == employee(pa), 
+        hours BACKGROUND userHours(pa) READONLYIF NOT currentEmployee() == employee(pa) 
+            ON CHANGE { INPUT h = hours(pa) CHANGE DO { APPLY; } }, 
         comment PANEL READONLYIF NOT currentEmployee() == employee(pa)
         
     PROPERTIES(pa) dateStart ON CHANGE { INPUT d = DATE DO { dateTimeStart(pa) <- dateTimeToDateTime(d, timeStart(pa)); }}, 
@@ -182,8 +183,21 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(pa) dateFinish ON CHANGE { INPUT d = DATE DO { dateTimeFinish(pa) <- dateTimeToDateTime(d, OVERRIDE timeFinish(pa), timeStart(pa)); }}, 
                    timeFinish ON CHANGE { INPUT t = TIME DO { dateTimeFinish(pa) <- dateTimeToDateTime(dateFinish(pa), t); }}
         
-    PROPERTIES(pa) SHOWIF currentEmployee() NEW, deleteTimeEntry READONLYIF skipDeleteEdit(pa)
     FILTERS task(pa) == fe
+;
+
+addDashboardTimeEntry 'Добавить' (Task t) {
+    NEW te = TimeEntry {
+        task(te) <- t;
+        dateTimeStart(te) <- currentDateTime();
+        SEEK timeDashboard.pa = te;
+        ACTIVATE PROPERTY timeDashboard.dateStart(pa);
+    }
+} IMAGE 'add.png' CHANGEKEY 'INSERT';
+
+EXTEND FORM timeDashboard
+    PROPERTIES SHOWIF currentEmployee() addDashboardTimeEntry(fe) DRAW pa TOOLBAR,
+                                        deleteTimeEntry(pa) READONLYIF skipDeleteEdit(pa)
 ;
 
 DESIGN timeDashboard {
