@@ -176,6 +176,12 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
         dateTimeFinishChanged SHOWIF validUser() READONLY, nameActivity READONLYIF NOT currentEmployee() == employee(pa), 
         hours BACKGROUND userHours(pa) READONLYIF NOT currentEmployee() == employee(pa), 
         comment PANEL READONLYIF NOT currentEmployee() == employee(pa)
+        
+    PROPERTIES(pa) dateStart ON CHANGE { INPUT d = DATE DO { dateTimeStart(pa) <- dateTimeToDateTime(d, timeStart(pa)); }}, 
+                   timeStart ON CHANGE { INPUT t = TIME DO { dateTimeStart(pa) <- dateTimeToDateTime(dateStart(pa), t); }}
+    PROPERTIES(pa) dateFinish ON CHANGE { INPUT d = DATE DO { dateTimeFinish(pa) <- dateTimeToDateTime(d, OVERRIDE timeFinish(pa), timeStart(pa)); }}, 
+                   timeFinish ON CHANGE { INPUT t = TIME DO { dateTimeFinish(pa) <- dateTimeToDateTime(dateFinish(pa), t); }}
+        
     PROPERTIES(pa) SHOWIF currentEmployee() NEW, deleteTimeEntry READONLYIF skipDeleteEdit(pa)
     FILTERS task(pa) == fe
 ;
@@ -239,7 +245,7 @@ DESIGN timeDashboard {
 //        }
         NEW tasks {
             fill = 2;
-            caption = 'Трудозатраты';
+//            caption = 'Трудозатраты';
             type = SPLITH;
             NEW current {
                 caption = 'Текущее время';
@@ -262,10 +268,10 @@ DESIGN timeDashboard {
             NEW finished {
                 fill = 2;
                 type = SPLITV;
-                MOVE BOX(fe) {
-                    MOVE BOX(dates) FIRST;
+                NEW taskList {
                     fill = 2;
-                    caption = 'Задачи';
+                    MOVE BOX(dates);
+                    MOVE BOX(fe);
                     TOOLBARRIGHT(fe) {
                         MOVE PROPERTY(deleteTask(fe));
                         MOVE PROPERTY(cancelDelete(fe));
@@ -274,7 +280,9 @@ DESIGN timeDashboard {
                 NEW timeEntry {
                     fill = 1;
                     type = CONTAINERH;
+                    caption = 'Трудозатраты';
                     MOVE BOX (pa) {
+                        caption = NULL;
                         fill = 3;
                     }
                     MOVE PROPERTY(comment(pa)) {

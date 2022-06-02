@@ -10,6 +10,8 @@ name 'Наименование' = DATA ISTRING[200] (Project) CHARWIDTH 15;
 customer 'Клиент' = DATA Customer (Project) NONULL;
 nameCustomer 'Клиент' (Project p) = name(customer(p));
 
+customerName (Project p) = CONCAT ' / ' , nameCustomer(p), name(p); 
+
 WHEN LOCAL SET(Customer c IS Customer) DO {
     NEW p = Project {
         customer(p) <- c;

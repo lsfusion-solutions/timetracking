@@ -106,8 +106,8 @@ toDateDDMMYY = FORMULA STRING[8] 'to_char(($1),\'DD.MM.YY\')';
 
 
 formatPrice = FORMULA 'ltrim(to_char($1, \'999 999 999\'))';
-formatHours (NUMERIC[10,1] h)= replace([ FORMULA 'ltrim(to_char($1, \'990.9\'))'](h), '.', ',');
-formatHours (NUMERIC[10,1] h, NUMERIC[10,1] p)= replace([ FORMULA 'ltrim(to_char($1, \'990.9\'))'](h) + 
+formatHours (NUMERIC[10,1] h)= replace([ FORMULA TEXT 'ltrim(to_char($1, \'990.9\'))'](h), '.', ',');
+formatHours (NUMERIC[10,1] h, NUMERIC[10,1] p)= replace([ FORMULA TEXT 'ltrim(to_char($1, \'990.9\'))'](h) + 
                                                                IF h != p THEN ' (' + [ FORMULA 'ltrim(to_char($1, \'990.9\'))'](p) + ')' ELSE '',
                                                                '.', ',');
 

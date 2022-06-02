@@ -161,18 +161,17 @@ nameCustomerAndProject 'Клиент/проект' (Task t) = CONCAT '', nameCus
 //    MESSAGE 'Тип задачи должен соответствовать практике';
 
 changeTaskType (Task t) {
-    DIALOG dialogTaskType OBJECTS a INPUT, g INPUT DO {
+    DIALOG dialogTaskType OBJECTS a = taskType(t) INPUT, g = practice(t) INPUT DO {
         taskType(t) <- a;
         practice(t) <- g;
+        APPLY;
     } 
-    APPLY;
 }
 
 changeCustomerProject (Task t) {
-    DIALOG dialogProject OBJECTS p INPUT DO {
-        project(t) <- p;
+    DIALOG dialogProject OBJECTS p = project(t) CHANGE LIST customerName(p) DO {
+        APPLY;
     } 
-    APPLY;
 }
 
 // --- Редактирование задачи

@@ -4,7 +4,7 @@ REQUIRE Invoice, Dashboard, InvoiceWord, TimeEntryWord;
 
 NAMESPACE Invoice;
 
-toInvoice 'Часов' = GROUP SUM hours(TimeEntry e) IF NOT invoice(e) BY project(e); 
+toInvoice 'Часов' = GROUP SUM hours(TimeEntry e) IF NOT invoice(e) BY project(e) MATERIALIZED; 
 
 dateFrom 'Дата с' = DATA LOCAL DATE ();
 dateTo 'Дата по' = DATA LOCAL DATE ();

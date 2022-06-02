@@ -12,7 +12,7 @@ WHEN SET(TimeEntry t IS TimeEntry) DO { dateTimeCreated(t) <- currentDateTime();
 
 task 'Задача' = DATA Task (TimeEntry) NONULL DELETE INDEXED;
 
-project 'Проект' (TimeEntry e) = project(task(e));
+project 'Проект' (TimeEntry e) = project(task(e)) MATERIALIZED INDEXED;
 nameProject 'Проект' (TimeEntry e) = nameProject(task(e));
 
 employee 'Сотрудник' = DATA Employee (TimeEntry);
@@ -43,6 +43,8 @@ changeDescriptionTask (TimeEntry e)  { INPUT t = TEXT DO description(Task tt) <-
 dateTimeStart 'Время начала' = DATA DATETIME (TimeEntry);
 dateTimeFinish 'Время окончания' = DATA DATETIME (TimeEntry);
 
+dateTimeStart(TimeEntry e) <- currentDateTime() WHEN SET(e IS TimeEntry);
+
 dateTimeStartChanged 'Дата редактирования' = DATA DATETIME (TimeEntry);
 WHEN CHANGED(dateTimeStart(TimeEntry t)) DO { dateTimeStartChanged(t) <- currentDateTime(); }
 dateTimeFinishChanged 'Дата редактирования' = DATA DATETIME (TimeEntry);
@@ -67,7 +69,7 @@ calcHours (TimeEntry e) = hoursDiffDateTime(dateTimeFinish(e), dateTimeStart(e))
 currentHours 'Часов' (TimeEntry e) = OVERRIDE calcHours(e), hoursDiffDateTime(currentDateTime(), dateTimeStart(e)); 
 
 userHours 'Часов' = DATA NUMERIC[10,1] (TimeEntry);
-hours 'Часов' (TimeEntry e) = OVERRIDE userHours(e), calcHours(e);
+hours 'Часов' (TimeEntry e) = OVERRIDE userHours(e), calcHours(e) MATERIALIZED;
 
 CONSTRAINT SETCHANGED(hours(TimeEntry e)) AND hours(e) < 0.0
     MESSAGE 'Количество часов в отметке не может быть отрицательным';
