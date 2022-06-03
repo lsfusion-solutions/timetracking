@@ -148,7 +148,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(fe) READONLY nameProject, nameTaskType, namePractice, nameParent, name, dateTimeStart, dateTimeFinish
     //FILTERS employee(fe) == currentEmployee()// AND (NOT inProcess(fe) OR onPause(fe))
     PROPERTIES(fe) invisible SHOWIF currentEmployee()//, markDelete READONLY 
-    PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION NEW, ed = EDIT READONLYIF skipDeleteEdit(fe), deleteTask READONLYIF isReadonlyTask(fe) OR skipDeleteEdit(fe) SHOWIF NOT markDelete(fe),
+    PROPERTIES(fe) SHOWIF currentEmployee() NEWSESSION new = NEW, edit = EDIT READONLYIF skipDeleteEdit(fe), deleteTask READONLYIF isReadonlyTask(fe) OR skipDeleteEdit(fe) SHOWIF NOT markDelete(fe),
         cancelDelete  READONLYIF isReadonlyTask(fe) SHOWIF markDelete(fe)
     FILTERS showTask(fe),
             markDeleteDateTime(fe) >= dateTimeToDateTime(sum(currentDate(), -1), currentTime()) OR NOT markDelete(fe),
@@ -262,6 +262,7 @@ DESIGN timeDashboard {
 //            caption = 'Трудозатраты';
             type = SPLITH;
             NEW current {
+                width = 100;
                 caption = 'Текущее время';
                 //MOVE PROPERTY(name(t)) { caption = 'Тип задачи'; alignment = STRETCH; }
                 MOVE PROPERTY(startTimeEntry()) { fill = 1; }
@@ -281,12 +282,16 @@ DESIGN timeDashboard {
             }
             NEW finished {
                 fill = 2;
+                width = 200;
                 type = SPLITV;
                 NEW taskList {
                     fill = 2;
                     MOVE BOX(dates);
                     MOVE BOX(fe);
-                    TOOLBARRIGHT(fe) {
+                    NEW actions {
+                        type = CONTAINERH;
+                        MOVE PROPERTY(new);
+                        MOVE PROPERTY(edit);
                         MOVE PROPERTY(deleteTask(fe));
                         MOVE PROPERTY(cancelDelete(fe));
                     }

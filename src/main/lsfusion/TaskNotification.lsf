@@ -248,9 +248,8 @@ EXTEND FORM timeDashboard
 ;
 
 DESIGN timeDashboard {
-    GROUP(, fe) {
-        MOVE PROPERTY(deleteTask(fe));
-        MOVE PROPERTY(cancelDelete(fe));
+    actions {
+        MOVE PROPERTY(setTaskNotification(fe));
     }
 }
 
