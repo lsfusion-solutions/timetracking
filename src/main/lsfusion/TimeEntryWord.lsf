@@ -59,7 +59,7 @@ generateTimeEntriesTemplate 'Создать шаблон для счета (Юр
 timeEntriesTemplateWord = DATA Template();
 nameTimeEntriesTemplateWord 'Шаблон для трудозатрат' () = name(timeEntriesTemplateWord());
 
-formatPrice = FORMULA 'ltrim(to_char($1, \'999 999 999.99\'))';
+formatPrice = FORMULA TEXT 'ltrim(to_char($1, \'999 999 999.99\'))';
 
 rowTimeEntry (TimeEntry t) = CONCAT 'lsFusionCSep', Time.toDateDDMMYY(dateStart(t)), '-', '-', (OVERRIDE comment(t) + '\r', ''), (OVERRIDE hours(t), 0), '-', '-';
 
