@@ -181,7 +181,7 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
     PROPERTIES(pa) dateStart ON CHANGE { INPUT d = DATE DO { dateTimeStart(pa) <- dateTimeToDateTime(d, timeStart(pa)); }}, 
                    timeStart ON CHANGE { INPUT t = TIME DO { dateTimeStart(pa) <- dateTimeToDateTime(dateStart(pa), t); }}
     PROPERTIES(pa) dateFinish ON CHANGE { INPUT d = DATE DO { dateTimeFinish(pa) <- dateTimeToDateTime(d, OVERRIDE timeFinish(pa), timeStart(pa)); }}, 
-                   timeFinish ON CHANGE { INPUT t = TIME DO { dateTimeFinish(pa) <- dateTimeToDateTime(dateFinish(pa), t); }}
+                   timeFinish ON CHANGE { INPUT t = TIME DO { dateTimeFinish(pa) <- dateTimeToDateTime(dateFinish(pa), t); APPLY; }}
         
     FILTERS task(pa) == fe
 ;
