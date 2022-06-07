@@ -143,7 +143,7 @@ CLASS InvoiceDetailsKind 'Вид отчета' {
 
 FORM dialogInvoiceDetailsKinds 'Выбор вида отчета'
     OBJECTS t = InvoiceDetailsKind
-    PROPERTIES 'Вид отчета' = staticCaption(t)
+    PROPERTIES READONLY 'Вид отчета' = staticCaption(t)
 ;
 
 generateWordTypes 'Сгенерировать (Word)' (Invoice i) {
