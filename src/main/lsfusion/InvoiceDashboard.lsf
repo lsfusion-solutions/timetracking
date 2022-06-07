@@ -16,7 +16,7 @@ skipTimeEntry 'Удалить' (TimeEntry e) {
     }
 }
 
-toInvoice 'Часов' = GROUP SUM hours(TimeEntry e) IF NOT invoice(e) AND NOT inProcess(e) AND NOT skip(e) AND NOT NOT markDelete(task(e)) BY project(e) MATERIALIZED; 
+toInvoice 'Часов' = GROUP SUM hours(TimeEntry e) IF NOT invoice(e) AND NOT inProcess(e) AND NOT skip(e) AND NOT markDelete(task(e)) BY project(e) MATERIALIZED; 
 
 FORM invoiceDashboard 'Выставление счетов'
 
