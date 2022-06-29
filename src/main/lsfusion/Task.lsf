@@ -104,6 +104,7 @@ FORM dialogTaskType 'Выбор типа задачи'
 ;
 
 DESIGN dialogTaskType {
+    size = (800, 600);
     OBJECTS {
         type = CONTAINERH;
         MOVE BOX (g);
