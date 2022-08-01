@@ -10,7 +10,7 @@ TABLE timeEntry(TimeEntry);
 dateTimeCreated 'Дата заведения' = DATA DATETIME (TimeEntry);
 WHEN SET(TimeEntry t IS TimeEntry) DO { dateTimeCreated(t) <- currentDateTime(); }
 
-task 'Задача' = DATA Task (TimeEntry) NONULL DELETE INDEXED;
+task 'Задача' = DATA Task (TimeEntry) NONULL INDEXED;
 
 project 'Проект' (TimeEntry e) = project(task(e)) MATERIALIZED INDEXED;
 nameProject 'Проект' (TimeEntry e) = nameProject(task(e));
