@@ -170,9 +170,11 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
                 
     OBJECTS pa = TimeEntry
     PROPERTIES(pa) dateTimeCreated SHOWIF validUser() READONLY, nameEmployee READONLY, 
-        dateTimeStart BACKGROUND dateTimeStartChanged(pa) AND validUser() READONLYIF NOT currentEmployee() == employee(pa),
+        dateTimeStart BACKGROUND dateTimeStartChanged(pa) AND validUser() READONLYIF NOT currentEmployee() == employee(pa)
+            ON CHANGE { INPUT dt = dateTimeStart(pa) CHANGE DO { APPLY; } },
         dateTimeStartChanged SHOWIF validUser() READONLY, 
-        dateTimeFinish BACKGROUND dateTimeFinishChanged(pa) AND validUser() READONLYIF NOT currentEmployee() == employee(pa), 
+        dateTimeFinish BACKGROUND dateTimeFinishChanged(pa) AND validUser() READONLYIF NOT currentEmployee() == employee(pa)
+            ON CHANGE { INPUT dt = dateTimeFinish(pa) CHANGE DO { APPLY; } },
         dateTimeFinishChanged SHOWIF validUser() READONLY, nameActivity READONLYIF NOT currentEmployee() == employee(pa), 
         hours BACKGROUND userHours(pa) READONLYIF NOT currentEmployee() == employee(pa) 
             ON CHANGE { INPUT h = hours(pa) CHANGE DO { APPLY; } }, 
