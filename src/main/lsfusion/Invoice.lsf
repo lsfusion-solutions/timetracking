@@ -107,7 +107,7 @@ sumPay 'Сумма к оплате' (Invoice i) = (IF maxAmountMonthly(project(i
     ELSE GROUP SUM sumPay(i, Task t)) (-) (IF discount(i) == Discount.document THEN sumDiscount(i));
 sumPay 'Сумма к оплате' (Invoice i, Category c) = GROUP SUM sumPay(i, Task t) BY category(t);
 
-CONSTRAINT extractMonth(fromDate(Invoice i)) != extractMonth(toDate(i)) AND hoursMonthly(i) MESSAGE 'Запрещено выставлять счет за несколько месяцев одновременно';
+//CONSTRAINT extractMonth(fromDate(Invoice i)) != extractMonth(toDate(i)) AND hoursMonthly(i) MESSAGE 'Запрещено выставлять счет за несколько месяцев одновременно';
 
 removeInvoice 'Исключить' (TimeEntry e)  { 
     invoice(e) <- NULL;
