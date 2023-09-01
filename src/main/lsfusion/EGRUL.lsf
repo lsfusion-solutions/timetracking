@@ -270,7 +270,7 @@ EXTEND FORM legalEntity
 DESIGN legalEntity {
     params {
         NEW tabParams {
-            type = TABBED;
+            tabbed = TRUE;
             fill = 1;
             MOVE BOX (l) { caption = 'Журнал изменений'; fill = 1; height = 250; }
             MOVE BOX (ee) { caption = 'Сотрудники'; fill = 1; height = 250; }

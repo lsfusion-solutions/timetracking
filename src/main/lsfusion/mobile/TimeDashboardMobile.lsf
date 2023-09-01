@@ -59,7 +59,7 @@ DESIGN timeDashboardMobile {
         REMOVE BOX(te);
 //        NEW tabbedPane {
 //            fill = 1;
-//            type = TABBED;
+//            tabbed = TRUE;
 //            
 //            NEW timeEntry {
 //                caption = 'Трудозатраты';

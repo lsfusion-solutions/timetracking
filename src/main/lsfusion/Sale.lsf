@@ -270,7 +270,7 @@ DESIGN sale {
         }
         NEW body {
             fill = 1;
-            type = TABBED;
+            tabbed = TRUE;
             MOVE BOX(i) { caption = 'Журнал взаимодействия'; }
             //MOVE BOX(p2) { caption = 'Роли в продаже'; }
             MOVE BOX(h) { caption = 'История'; }

@@ -65,7 +65,7 @@ DESIGN customer {
         }
         NEW tabPane {
             fill = 2;
-            type = TABBED;
+            tabbed = TRUE;
         }
     }
 }

@@ -148,7 +148,7 @@ DESIGN legalEntity {
         fill = 1;
         NEW tabPane {
             fill = 1;
-            type = TABBED;
+            tabbed = TRUE;
             NEW main {
                 fill = 1;
                 //type = SCROLL;
@@ -380,7 +380,7 @@ EXTEND FORM person
 //
 //DESIGN conterparties {
 //    OBJECTS {
-//        type = TABBED;
+//        tabbed = TRUE;
 //        MOVE BOX(l);
 //        MOVE BOX(p);
 //    }

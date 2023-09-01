@@ -386,7 +386,7 @@ DESIGN person {
             type = SPLITV;
             NEW body {
                 fill = 1;
-                type = TABBED;
+                tabbed = TRUE;
                 NEW main {
                     caption = 'Основные';
                     NEW data {

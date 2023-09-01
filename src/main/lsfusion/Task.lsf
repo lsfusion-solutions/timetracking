@@ -80,7 +80,7 @@ FORM taskTypes 'Типы задач'
 DESIGN taskTypes {
     OBJECTS {
         NEW tabbedPane {
-            type = TABBED;
+            tabbed = TRUE;
             fill = 1;
             caption = 'Практики';
             MOVE BOX(g);
