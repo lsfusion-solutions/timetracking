@@ -98,7 +98,7 @@ FORM entryDashboard 'Импортированные проводки'
 DESIGN entryDashboard {
     OBJECTS {
         NEW header {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE BOX(dates) { caption = ''; }
             MOVE PROPERTY(inEntryCustomers()) { align = CENTER; }
         }

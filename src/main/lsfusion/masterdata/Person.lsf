@@ -390,7 +390,7 @@ DESIGN person {
                 NEW main {
                     caption = 'Основные';
                     NEW data {
-                        type = CONTAINERH;
+                        horizontal = TRUE;
                         NEW names1 {
                             caption = 'ФИО (Им. падеж)';
                             MOVE PROPERTY (lastName(p)) { charWidth = 20; }
@@ -422,7 +422,7 @@ DESIGN person {
                         NEW additional {
                             caption = 'Доп информация';
                             NEW dataP {
-                                type = CONTAINERH;
+                                horizontal = TRUE;
                                 MOVE BOX(a) { height = 200; align = STRETCH; }
                                 MOVE BOX(ph) { height = 200; align = STRETCH; }
                                 MOVE BOX(e) { height = 200; align = STRETCH; }
@@ -434,7 +434,7 @@ DESIGN person {
                 NEW legal {
                     caption = 'Юридические';
                     NEW top {
-                        type = CONTAINERH;
+                        horizontal = TRUE;
                         NEW left {
                             NEW account {
                                 fill = 1;
@@ -445,7 +445,7 @@ DESIGN person {
                             NEW passport {
                                 caption = 'Паспорт';
                                 NEW seriesNumber {
-                                    type = CONTAINERH;
+                                    horizontal = TRUE;
                                     MOVE PROPERTY (seriesPassport(p)) { caption = 'Серия'; }
                                     MOVE PROPERTY (numberPassport(p)) { caption = 'Номер'; }
                                 }
@@ -453,7 +453,7 @@ DESIGN person {
                                 MOVE PROPERTY (authorityPassport(p));
                                 MOVE PROPERTY (codeUnitPassport(p)) { caption = 'Код подразделения'; }
                                 NEW passportFile {
-                                    type = CONTAINERH;
+                                    horizontal = TRUE;
                                     MOVE PROPERTY (loadFilePassport(p));
                                     MOVE PROPERTY (openFilePassport(p));
                                 }
@@ -461,12 +461,12 @@ DESIGN person {
                         }
                         NEW right {
                             NEW others {
-                                type = CONTAINERH;
+                                horizontal = TRUE;
                                 NEW snils {
                                     caption = 'СНИЛС';
                                     MOVE PROPERTY (snils(p));
                                     NEW snilsFile {
-                                        type = CONTAINERH;
+                                        horizontal = TRUE;
                                         MOVE PROPERTY (loadFileSnils(p));
                                         MOVE PROPERTY (openFileSnils(p));
                                     }
@@ -475,14 +475,14 @@ DESIGN person {
                                     caption = 'ИНН';
                                     MOVE PROPERTY (inn(p));
                                     NEW innFile {
-                                        type = CONTAINERH;
+                                        horizontal = TRUE;
                                         MOVE PROPERTY (loadFileINN(p));
                                         MOVE PROPERTY (openFileINN(p));
                                     }
                                 }
                                 NEW military {
                                     caption = 'Военный билет';
-                                    type = CONTAINERH;
+                                    horizontal = TRUE;
                                     MOVE PROPERTY (openFileMilitary(p));
                                     MOVE PROPERTY (loadFileMilitary(p));
                                 }
@@ -494,7 +494,7 @@ DESIGN person {
                                 MOVE PROPERTY(nameSpouse(p));
                                 MOVE PROPERTY(authorityMarriage(p));
                                 NEW marriageFile {
-                                    type = CONTAINERH;
+                                    horizontal = TRUE;
                                     MOVE PROPERTY(loadfileMarriage(p));
                                     MOVE PROPERTY(openfileMarriage(p));
                                 }

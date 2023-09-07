@@ -96,17 +96,17 @@ DESIGN options {
         MOVE PROPERTY (nameDefaultEmplomentContractTemplateCEO());
         MOVE PROPERTY (generateEmployeeAgreement());
         NEW secret {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY (loadDefaultEmplomentContractSecret());
             MOVE PROPERTY (openDefaultEmplomentContractSecret());
         }
         NEW statement {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY (loadDefaultEmplomentContractStatement());
             MOVE PROPERTY (openDefaultEmplomentContractStatement());
         }
         NEW data {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY (loadDefaultEmplomentContractData());
             MOVE PROPERTY (openDefaultEmplomentContractData());
         }
@@ -295,7 +295,7 @@ DESIGN employmentContract {
             NEW employeePassport {
                 caption = 'Паспортные данные';
                 NEW seriesNumber {
-                    type = CONTAINERH;
+                    horizontal = TRUE;
                     fill = 1;
                     MOVE PROPERTY (seriesPassport(e)) { caption = 'Серия'; }
                     MOVE PROPERTY (numberPassport(e)) { caption = 'Номер'; }

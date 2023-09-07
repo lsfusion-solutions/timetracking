@@ -250,7 +250,7 @@ FORM workDays 'Производственный календарь'
 DESIGN workDays {
     OBJECTS {
         NEW header {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(dFrom);
             MOVE PROPERTY(dTo);
         }
@@ -446,7 +446,7 @@ FORM taskMonitoring 'Мониторинг задач по проекту'
 DESIGN taskMonitoring {
     OBJECTS {
         NEW header {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(dFrom);
             MOVE PROPERTY(dTo);
             MOVE PROPERTY(nameFilterProject());
@@ -499,7 +499,7 @@ DESIGN notify {
     OBJECTS {
         MOVE PROPERTY(text) { fill = 1; height = 230; width = 800; }
         NEW actions {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(notifyYes());
             MOVE PROPERTY(notifyNo());
         }
@@ -537,7 +537,7 @@ FORM timeEntryPeriod 'Период'
 
 DESIGN timeEntryPeriod {
     OBJECTS {
-        type = CONTAINERH;
+        horizontal = TRUE;
         MOVE PROPERTY(dFrom);
         MOVE PROPERTY(dTo);
     }
@@ -648,7 +648,7 @@ FORM operationsReport 'Отчёт по операциям'
 DESIGN operationsReport {
     OBJECTS {
         NEW header {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(dFrom);
             MOVE PROPERTY(dTo);
         }
@@ -795,7 +795,7 @@ FORM employeesExtended 'Расширенный отчет по сотрудни�
 DESIGN employeesExtended {
     OBJECTS {
         NEW header {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE BOX(dates) { caption = 'Даты'; }
             MOVE PROPERTY(filterEmployees()) { alignment = CENTER; }
         }
@@ -865,7 +865,7 @@ FORM partnersExtended 'Расширенный отчёт по клиентам'
 DESIGN partnersExtended {
     OBJECTS {
         NEW header {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE BOX(dates);
             MOVE PROPERTY(nameFilterPractice()) { alignment = CENTER; }
         }

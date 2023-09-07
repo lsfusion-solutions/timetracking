@@ -118,7 +118,7 @@ DESIGN invoiceDashboard {
 //            caption = 'Трудозатраты';
             NEW filters {
                 caption = 'Фильтр';
-                type = CONTAINERH;
+                horizontal = TRUE;
                 MOVE PROPERTY (dateFrom());
                 MOVE PROPERTY (dateTo());
                 MOVE PROPERTY (createInvoiceDates(p));

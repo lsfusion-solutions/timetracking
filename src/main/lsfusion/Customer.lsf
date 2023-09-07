@@ -50,13 +50,13 @@ DESIGN customer {
             fill = 1;
             MOVE BOX(c) {  
                 NEW lane1 {
-                    type = CONTAINERH;
+                    horizontal = TRUE;
                     MOVE PROPERTY(name(c));
                     MOVE PROPERTY(namePartner(c));
                     MOVE PROPERTY(inactive(c));
                 }
                 NEW lane2 {
-                    type = CONTAINERH;
+                    horizontal = TRUE;
                     caption = 'Для иностранных компаний укажите "0"';
                     MOVE PROPERTY(inn(c));
                     MOVE PROPERTY(ogrn(c));

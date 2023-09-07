@@ -154,13 +154,13 @@ DESIGN legalEntity {
                 //type = SCROLL;
                 caption = 'Главная';
                 NEW first {
-                    type = CONTAINERH;
+                    horizontal = TRUE;
                     caption = 'Основые параметры';
                     //MOVE PROPERTY (id(o));
                     MOVE PROPERTY (shortNameFrom(o));
                 }
                 NEW names {
-                    type = CONTAINERH;
+                    horizontal = TRUE;
                     NEW nameRus {
                         caption = 'Название';
                         MOVE PROPERTY (shortName(o)) { caption = 'Сокращенное'; }
@@ -174,7 +174,7 @@ DESIGN legalEntity {
                 }
                 NEW other {
                     NEW otherFirst {
-                        type = CONTAINERH;
+                        horizontal = TRUE;
                         NEW info {
                             caption = 'Контакты';
                             MOVE PROPERTY (addr);
@@ -200,7 +200,7 @@ DESIGN legalEntity {
                     caption = 'Информация';
                     fill = 1;
                     NEW line1 {
-                        type = CONTAINERH;
+                        horizontal = TRUE;
                         MOVE PROPERTY (okpo(o));
                         MOVE PROPERTY (oktmo(o));
                     }
@@ -210,7 +210,7 @@ DESIGN legalEntity {
                     NEW line3 {
                         fill = 1;
                         NEW okved {
-                            type = CONTAINERH;
+                            horizontal = TRUE;
                         MOVE PROPERTY (okved(o));
                         MOVE PROPERTY (okvedName(o));
                         }
@@ -396,7 +396,7 @@ EXTEND FORM person
 //DESIGN customer {
 //    BOX(c) {
 //        NEW lane2 {
-//            type = CONTAINERH;
+//            horizontal = TRUE;
 //            MOVE PROPERTY(nameConterparties(c));
 //        }
 //    }

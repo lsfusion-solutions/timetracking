@@ -155,18 +155,18 @@ DESIGN taskNotification {
         height = 200;
         MOVE PROPERTY(nameTaskNotificationPeriod(n));
         NEW row1 {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(nDay(n)) { caption = ''; }
             MOVE PROPERTY(nDayNumber(n)) { caption = 'Каждый'; }
             MOVE PROPERTY(caption1) { charWidth = 60; }
         }
         NEW row2 {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(workDay(n)) { caption = ''; }
             MOVE PROPERTY(caption2) { charWidth = 60; }
         }
         NEW row3 {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(nWeek(n)) { caption = ''; }
             MOVE PROPERTY(nWeekNumber(n)) { caption = 'Каждую'; }
             MOVE PROPERTY(caption3) { charWidth = 60; }
@@ -175,28 +175,28 @@ DESIGN taskNotification {
             MOVE PROPERTY(nameDow(n));
         }
         NEW row5 {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(nDayMonth(n)) { caption = ''; }
             MOVE PROPERTY(nDayNumberMonth(n)) { caption = 'Каждое'; }
             MOVE PROPERTY(nMonthNumber(n)) { caption = 'число каждого'; } 
             MOVE PROPERTY(caption4) { charWidth = 60; }
         }
         NEW row6 {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(nDowMonth(n)) { caption = ''; }
             MOVE PROPERTY(nDowMonthDescription(n)) { caption = 'Каждый'; charWidth = 15; }
             MOVE PROPERTY(nMonthNumber2(n)) { caption = 'каждого'; } 
             MOVE PROPERTY(caption5) { charWidth = 60; }
         }
         NEW row7 {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(nWorkDayMonth(n)) { caption = ''; }
             MOVE PROPERTY(nWorkDayMonthNumber(n)) { caption = 'Каждый'; }
             MOVE PROPERTY(nMonthNumber3(n)) { caption = 'рабочий день каждого'; }
             MOVE PROPERTY(caption6) { charWidth = 60; }
         }
         NEW row8 {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(nDateYear(n)) { caption = ''; }
             MOVE PROPERTY(nYearDayNumber(n)) { caption = 'Каждое'; }
             MOVE PROPERTY(nameNYearMonth(n)) { caption = ''; }
@@ -206,7 +206,7 @@ DESIGN taskNotification {
         NEW row9 {
             MOVE PROPERTY(endDate(n));
             NEW row10 {
-                type = CONTAINERH;
+                horizontal = TRUE;
                 MOVE PROPERTY(nextNotificationDate(n));
             }
         }
@@ -348,7 +348,7 @@ DESIGN taskNotification {
     }
     OBJECTS {
         NEW row11 {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(notificationTime(n));
             MOVE PROPERTY(setToday(n));
         }

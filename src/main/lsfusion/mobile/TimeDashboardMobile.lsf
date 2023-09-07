@@ -35,7 +35,7 @@ FORM timeDashboardMobile 'Мобильная отметка'
 DESIGN timeDashboardMobile {
     OBJECTS {
 //        NEW lastEntry {
-//            type = CONTAINERH;
+//            horizontal = TRUE;
 //            alignment = STRETCH;
 //            MOVE PROPERTY(dateTimeStartLastEntry(t));
 //            MOVE PROPERTY(currentHoursLastEntry(t));
@@ -51,7 +51,7 @@ DESIGN timeDashboardMobile {
         REMOVE BOX(t);
         NEW timeEntryActions {
             alignment = STRETCH;
-            type = CONTAINERH;
+            horizontal = TRUE;
         }
         MOVE GRID(te) {
             fontSize = 20;
@@ -144,7 +144,7 @@ DESIGN taskMobile {
     PROPERTY(formClose()) { fontSize = 20; fill = 1; }
 //    BOX {
 //        NEW formActions {
-//            type = CONTAINERH;
+//            horizontal = TRUE;
 //            alignment = STRETCH;
 //            MOVE PROPERTY(formOk()) { fill = 1; }
 //            MOVE PROPERTY(formClose()) { fill = 1; }
@@ -166,13 +166,13 @@ DESIGN timeDashboardMobile {
     taskActions {
         NEW taskActions1 {
             alignment = STRETCH;
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(createNewTaskMobile()) { fill = 1; fontSize = 20; };
             MOVE PROPERTY(editMobile(t)) { fill = 1; fontSize = 20; }
         }
         NEW taskActions2 {
             alignment = STRETCH;
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(deleteTask(t)) { fill = 1; fontSize = 20;}
             MOVE PROPERTY(cancelDelete(t)) { fill = 1; fontSize = 20;}
             MOVE PROPERTY(finishNoDialog(t)) { fill = 1; fontSize = 20; };
@@ -232,7 +232,7 @@ DESIGN timeEntryMobile {
             fill = 1;
             NEW interval {
                 alignment = STRETCH;
-                type = CONTAINERH;
+                horizontal = TRUE;
 //                NEW timeInterval {
 //                    fill = 1;
 //                    MOVE PROPERTY(dateTimeStart(te)) { fontSize = 24; fill = 1; panelCaptionVertical = TRUE; }

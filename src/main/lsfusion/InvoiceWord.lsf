@@ -51,7 +51,7 @@ generateInvoiceTemplate 'Создать шаблон для счета (Бухг
 //    OBJECTS {
 //        NEW invoices AFTER BOX(t) {
 //            caption = 'Счета';
-//            type = CONTAINERH;
+//            horizontal = TRUE;
 //            MOVE PROPERTY(generateInvoiceTemplate());
 //            MOVE PROPERTY(nameTemplateWord()) {
 //                alignment = STRETCH;

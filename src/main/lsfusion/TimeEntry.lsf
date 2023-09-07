@@ -175,7 +175,7 @@ FORM timeEntry 'Трудозатраты'
 DESIGN timeEntry {
     NEW projectInfo FIRST {
         caption = 'Проект';
-        type = CONTAINERH;
+        horizontal = TRUE;
         MOVE PROPERTY(nameCustomerProject(e));
         MOVE PROPERTY(nameProject(e));
         MOVE PROPERTY(nameTask(e));
@@ -183,7 +183,7 @@ DESIGN timeEntry {
     
     NEW timeInfo AFTER projectInfo {
         caption = 'Время';
-        type = CONTAINERH;
+        horizontal = TRUE;
         MOVE PROPERTY(dateTimeStart(e));
         MOVE PROPERTY(dateTimeFinish(e));
         MOVE PROPERTY(hours(e));
@@ -216,7 +216,7 @@ DESIGN task {
                 fill = 1;
                 NEW taskTimeInfo {
                     caption = 'Время';
-                    type = CONTAINERH;
+                    horizontal = TRUE;
                     MOVE PROPERTY(dateTimeStart(t));
                     MOVE PROPERTY(dateTimeFinish(t));
                     MOVE PROPERTY(hours(t));

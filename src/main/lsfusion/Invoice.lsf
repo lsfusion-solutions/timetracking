@@ -173,7 +173,7 @@ DESIGN invoice {
     NEW header FIRST {
         caption = 'Счет';
         NEW params {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(date(i));
             MOVE PROPERTY(nameNumerator(i));
             MOVE PROPERTY(series(i));
@@ -182,7 +182,7 @@ DESIGN invoice {
             MOVE PROPERTY(nameProject(i));
         }
         NEW time {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(fromDate(i));
             MOVE PROPERTY(toDate(i));
             MOVE PROPERTY(hours(i));
@@ -192,7 +192,7 @@ DESIGN invoice {
             MOVE PROPERTY(sumMonthly(i));
         }
         NEW sum {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(nameCurrency(i));
             MOVE PROPERTY(nameDiscount(i));
             MOVE PROPERTY(sumDiscount(i));

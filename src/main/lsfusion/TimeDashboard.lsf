@@ -277,7 +277,7 @@ DESIGN timeDashboard {
                 MOVE PROPERTY(description(ce)) { panelCaptionVertical = TRUE; fill = 1; }
                 NEW save {
                     alignment = STRETCH;
-                    type = CONTAINERH;
+                    horizontal = TRUE;
                     MOVE PROPERTY(formApply()) { fill = 1; }
                     MOVE PROPERTY(formCancel()) { fill = 1; }
                 }
@@ -291,7 +291,7 @@ DESIGN timeDashboard {
                     MOVE BOX(dates);
                     MOVE BOX(fe);
                     NEW actions {
-                        type = CONTAINERH;
+                        horizontal = TRUE;
                         MOVE PROPERTY(new);
                         MOVE PROPERTY(edit);
                         MOVE PROPERTY(deleteTask(fe));
@@ -300,7 +300,7 @@ DESIGN timeDashboard {
                 }
                 NEW timeEntry {
                     fill = 1;
-                    type = CONTAINERH;
+                    horizontal = TRUE;
                     caption = 'Трудозатраты';
                     MOVE BOX (pa) {
                         caption = NULL;

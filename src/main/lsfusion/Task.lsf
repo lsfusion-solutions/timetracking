@@ -106,7 +106,7 @@ FORM dialogTaskType 'Выбор типа задачи'
 DESIGN dialogTaskType {
     size = (800, 600);
     OBJECTS {
-        type = CONTAINERH;
+        horizontal = TRUE;
         MOVE BOX (g);
         MOVE BOX (a);
     }
@@ -190,7 +190,7 @@ DESIGN task {
     OBJECTS {
         NEW projectInfo FIRST {
             caption = 'Проект';
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(nameCustomerAndProject(t));
             MOVE PROPERTY(nameTypePactice(t));
             MOVE PROPERTY(name(t));

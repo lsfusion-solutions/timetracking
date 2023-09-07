@@ -98,7 +98,7 @@ DESIGN customer {
         NEW rates FIRST {
             caption = 'Оплата';
             NEW header {
-                type = CONTAINERH;
+                horizontal = TRUE;
                 MOVE PROPERTY(hoursMonthly(p));
                 MOVE PROPERTY(sumMonthly(p));
             }
@@ -165,7 +165,7 @@ DESIGN customer {
         TOOLBARLEFT(e) {
             //type = CONTAINERV;
             NEW toolbar {
-                type = CONTAINERH;
+                horizontal = TRUE;
                 MOVE FILTERGROUP(category);
                 MOVE FILTERGROUP(cat);
                 MOVE PROPERTY(addEmployees(p));

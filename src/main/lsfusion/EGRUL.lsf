@@ -374,7 +374,7 @@ EXTEND FORM legalEntities
 DESIGN legalEntity {
     GROUP (params, o) {
         NEW paramsFirst FIRST {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(EDO(o));
             MOVE PROPERTY(audit(o));
             MOVE PROPERTY(seal(o));
@@ -469,7 +469,7 @@ EXTEND FORM integrationData
 DESIGN integrationData {  //  Just Design настройки
     egrul {
         NEW okved {
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(importOKVED());
             MOVE PROPERTY(fillOKVED());
         }

@@ -70,7 +70,7 @@ DESIGN document {
     OBJECTS {
         NEW lastVersion AFTER BOX(d) {
             caption = 'Последняя версия';
-            type = CONTAINERH;
+            horizontal = TRUE;
             MOVE PROPERTY(openLastVersion(d));
             MOVE PROPERTY(loadLastVersion(d));
         }

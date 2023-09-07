@@ -89,7 +89,7 @@ FORM dialogPractices 'Выбор практики'
 
 DESIGN dialogPractices {
     OBJECTS {
-        type = CONTAINERH;
+        horizontal = TRUE;
         MOVE BOX(g);
     }
 }
