@@ -265,7 +265,7 @@ FORM employmentContract 'Трудовой договор'
 DESIGN employmentContract {
     OBJECTS {
         type = COLUMNS;
-        columns = 3;
+        lines = 3;
         NEW employer {
             fill = 1;
             caption = 'Данные Работодателя';
