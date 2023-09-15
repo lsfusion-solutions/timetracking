@@ -163,7 +163,7 @@ DESIGN customer {
 DESIGN customer {
     BOX(e) {
         TOOLBARLEFT(e) {
-            //type = CONTAINERV;
+            //horizontal = FALSE;
             NEW toolbar {
                 horizontal = TRUE;
                 MOVE FILTERGROUP(category);
