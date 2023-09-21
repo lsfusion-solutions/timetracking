@@ -285,7 +285,7 @@ DESIGN timeDashboard {
             NEW finished {
                 fill = 2;
                 width = 200;
-                type = SPLITV;
+                horizontal = FALSE;
                 NEW taskList {
                     fill = 2;
                     MOVE BOX(dates);

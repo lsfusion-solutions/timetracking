@@ -383,7 +383,7 @@ DESIGN person {
     OBJECTS {
         NEW container {
             fill = 1;
-            type = SPLITV;
+            horizontal = FALSE;
             NEW body {
                 fill = 1;
                 tabbed = TRUE;

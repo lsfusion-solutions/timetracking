@@ -54,7 +54,7 @@ FORM invoiceDashboard 'Выставление счетов'
 DESIGN invoiceDashboard {
     NEW pane FIRST {
         fill = 1;
-        type = SPLITV;
+        horizontal = FALSE;
         NEW toInvoice {
             caption = 'Не выставлен счет';
             fill = 1;
