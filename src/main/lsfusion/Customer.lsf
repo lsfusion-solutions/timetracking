@@ -45,7 +45,7 @@ FORM customer 'Клиент'
 DESIGN customer {
     NEW pane FIRST {
         fill = 1;
-        type = SPLITH;
+        horizontal = TRUE;
         NEW leftPane {
             fill = 1;
             MOVE BOX(c) {  

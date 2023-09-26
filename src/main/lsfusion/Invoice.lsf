@@ -203,7 +203,7 @@ DESIGN invoice {
     }
     NEW pane AFTER header {
         fill = 1;
-        type = SPLITH;
+        horizontal = TRUE;
         NEW tasks {
             fill = 3;
             caption = 'Задачи';

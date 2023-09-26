@@ -58,7 +58,7 @@ DESIGN invoiceDashboard {
         NEW toInvoice {
             caption = 'Не выставлен счет';
             fill = 1;
-            type = SPLITH;
+            horizontal = TRUE;
             MOVE BOX(p);
             MOVE BOX(t) {
                 fill = 2;

@@ -65,7 +65,7 @@ DESIGN practices {
 
 DESIGN practices {
     OBJECTS {
-        type = SPLITH;
+        horizontal = TRUE;
         MOVE BOX (p) { 
             fill = 1; 
         }

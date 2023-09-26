@@ -198,7 +198,7 @@ DESIGN task {
         
         NEW projectDescr {
             fill = 1;
-            type = SPLITH;
+            horizontal = TRUE;
             MOVE PROPERTY(description(t)) {
                 fill = 1;
                 panelCaptionVertical = TRUE;

@@ -246,7 +246,7 @@ DESIGN timeDashboard {
         fill = 1;
 //        NEW projectPane {
 //            fill = 1;
-//            type = SPLITH; 
+//            horizontal = TRUE; 
 //            MOVE BOX(p);
 ////            NEW projectInfo {
 ////                fill = 2;
@@ -262,7 +262,7 @@ DESIGN timeDashboard {
         NEW tasks {
             fill = 2;
 //            caption = 'Трудозатраты';
-            type = SPLITH;
+            horizontal = TRUE;
             NEW current {
                 width = 100;
                 caption = 'Текущее время';
