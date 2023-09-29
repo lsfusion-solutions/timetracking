@@ -151,7 +151,6 @@ DESIGN legalEntity {
             tabbed = TRUE;
             NEW main {
                 fill = 1;
-                //type = SCROLL;
                 caption = 'Главная';
                 NEW first {
                     horizontal = TRUE;
