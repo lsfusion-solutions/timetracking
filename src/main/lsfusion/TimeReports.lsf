@@ -894,7 +894,6 @@ FORM notificationSettings 'Рассылка для сотрудников'
 DESIGN notificationSettings {
     OBJECTS { 
         NEW header FIRST {
-             horizontal = FALSE;
              MOVE PROPERTY(dataHoursSet());
              MOVE PROPERTY(dataNotificationPeriod());
              MOVE PROPERTY(nameWeeklyNotificationDay());

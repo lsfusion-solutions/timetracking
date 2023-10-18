@@ -383,7 +383,6 @@ DESIGN person {
     OBJECTS {
         NEW container {
             fill = 1;
-            horizontal = FALSE;
             NEW body {
                 fill = 1;
                 tabbed = TRUE;
