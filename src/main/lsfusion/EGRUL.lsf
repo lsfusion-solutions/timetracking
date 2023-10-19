@@ -41,7 +41,7 @@ EXTEND FORM legalEntity PROPERTIES (o) legalName, legalPure, legalLatin, inn, kp
 
 DESIGN legalEntity {
     tabPane {
-        MOVE GROUP (params, o) { horizontal = FALSE; }
+        MOVE GROUP (params, o);
     }
 }
 
