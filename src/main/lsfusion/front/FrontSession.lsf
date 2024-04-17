@@ -98,7 +98,7 @@ uploadFile(TEXT extension, TEXT token, FILE f) {
     logToFile('API', 'uploadFile:\n' + token + ' - ' + extension);
     
     FOR ISTRING[50] id = generateToken() AND FrontSession s = frontSession(token) DO {
-        file(s, id) <- changeExtension(f, extension);
+        file(s, id) <- file(f, extension);
         APPLY;
         
         EXPORT JSON FROM code = '0', id = id;
