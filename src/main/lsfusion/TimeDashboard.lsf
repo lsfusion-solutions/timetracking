@@ -119,7 +119,7 @@ deleteTimeEntry 'Удалить' (TimeEntry e) {
     } ELSE DELETE e;
 } IMAGE 'delete.png' CHANGEKEY 'ctrl DELETE';
 
-FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
+FORM timeDashboard 'Отметка времени'
     PROPERTIES currentDateTime()
 
 //    OBJECTS p = Project
@@ -186,6 +186,8 @@ FORM timeDashboard 'Отметка времени' AUTOREFRESH 60
                    timeFinish ON CHANGE { INPUT t = TIME DO { dateTimeFinish(pa) <- dateTimeToDateTime(dateFinish(pa), t); APPLY; }}
         
     FILTERS task(pa) == fe
+
+    EVENTS ON SCHEDULE PERIOD 60 formRefresh()
 ;
 
 addDashboardTimeEntry 'Добавить' (Task t) {
